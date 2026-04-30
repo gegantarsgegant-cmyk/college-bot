@@ -27,13 +27,13 @@ async def submit_application(
     app = await create_application(session, payload.model_dump())
 
     # Notify admins via Telegram (fire-and-forget; don't fail the request if bot unavailable).
+    import logging
     try:
         from ..bot.notifier import notify_new_application
 
         await notify_new_application(app)
-    except Exception:  # noqa: BLE001
-        # Logging would be nice here; keep response 200 regardless.
-        pass
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger("college.api").warning("notify_new_application failed: %s", exc)
 
     return {"ok": True, "id": app.id}
 

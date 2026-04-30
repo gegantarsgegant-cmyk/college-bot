@@ -60,6 +60,8 @@ async def notify_new_application(app: models.Application) -> None:
 
     for chat_id in targets:
         try:
-            await bot.send_message(chat_id, text, reply_markup=kb)
+            await bot.send_message(chat_id, text, reply_markup=kb, parse_mode="HTML")
         except Exception as exc:  # noqa: BLE001
             log.warning("Failed to notify %s: %s", chat_id, exc)
+        else:
+            log.info("Notified admin %s about application #%s", chat_id, app.id)
