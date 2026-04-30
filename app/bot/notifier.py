@@ -33,18 +33,13 @@ async def notify_new_application(app: models.Application) -> None:
     bot = get_bot()
     if bot is None:
         return
-    from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+    # Inline-клавиатура: одинаковая со списком заявок (есть WebApp кнопка
+    # на админ-панель если PUBLIC_URL — HTTPS).
+    from .handlers import application_kb
 
     text = _format_application(app)
-    kb = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(text="✓ В работу", callback_data=f"app:in_progress:{app.id}"),
-                InlineKeyboardButton(text="✓ Принято", callback_data=f"app:accepted:{app.id}"),
-                InlineKeyboardButton(text="✗ Отклонить", callback_data=f"app:rejected:{app.id}"),
-            ]
-        ]
-    )
+    kb = application_kb(app.id)
 
     targets: list[int] = []
     if settings.TELEGRAM_NOTIFY_CHAT_ID:

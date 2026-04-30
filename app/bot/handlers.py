@@ -1,9 +1,18 @@
-"""Telegram bot handlers — public commands + admin content management."""
+"""Telegram bot — admin-only.
+
+Регулярные пользователи общаются только с сайтом. Бот предназначен
+исключительно для администрации:
+  - получает уведомления о новых заявках с inline-кнопками управления;
+  - открывает админ-панель в виде Telegram Mini App;
+  - даёт быстрые FSM-команды на создание новостей/событий/преподавателей/документов
+    прямо из чата (для удобства с телефона).
+"""
 
 from __future__ import annotations
 
 import logging
 from html import escape
+from pathlib import Path
 from typing import cast
 
 from aiogram import Dispatcher, F, Router
@@ -16,6 +25,7 @@ from aiogram.types import (
     KeyboardButton,
     Message,
     ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
     WebAppInfo,
 )
 
@@ -23,63 +33,117 @@ from .. import models
 from ..config import settings
 from ..db import AsyncSessionLocal
 from ..services import (
-    create_application,
-    get_settings_dict,
-    latest_news,
     list_applications,
-    published_documents,
-    published_teachers,
-    upcoming_events,
     update_application_status,
 )
-from .states import ApplyFlow, DocumentCreate, EventCreate, NewsCreate, TeacherCreate
+from .states import DocumentCreate, EventCreate, NewsCreate, TeacherCreate
 
 log = logging.getLogger("college.bot.handlers")
 router = Router(name="college")
 
 
-# --------------- Helpers ---------------
+# ============== Helpers ==============
 
 def is_admin(user_id: int) -> bool:
     return user_id in settings.admin_ids
 
 
-def main_menu(user_id: int) -> ReplyKeyboardMarkup:
-    rows: list[list[KeyboardButton]] = [
-        [KeyboardButton(text="📰 Новости"), KeyboardButton(text="📅 События")],
-        [KeyboardButton(text="🎓 Программы"), KeyboardButton(text="👥 Преподаватели")],
-        [KeyboardButton(text="📄 Документы"), KeyboardButton(text="📍 Контакты")],
-        [KeyboardButton(text="✍ Подать заявку")],
-    ]
-    if settings.PUBLIC_URL.startswith("https://"):
+def _admin_panel_url() -> str:
+    """URL открываемый кнопкой Mini App."""
+    return settings.PUBLIC_URL.rstrip("/") + "/admin/tg"
+
+
+def _public_url() -> str:
+    return settings.PUBLIC_URL.rstrip("/")
+
+
+def _webapp_supported() -> bool:
+    """Telegram WebApp требует HTTPS (кроме t.me/test). Проверяем что URL https://."""
+    return settings.PUBLIC_URL.startswith("https://")
+
+
+def _public_link_button_supported() -> bool:
+    """Telegram отвергает URL-кнопки на localhost/127.0.0.1.
+
+    Возвращает True только если PUBLIC_URL — реальный публичный URL,
+    с которым Telegram позволит привязать inline url-кнопку.
+    """
+    url = settings.PUBLIC_URL
+    if not (url.startswith("http://") or url.startswith("https://")):
+        return False
+    bad_hosts = ("localhost", "127.0.0.1", "0.0.0.0")
+    return not any(host in url for host in bad_hosts)
+
+
+def admin_menu_kb() -> InlineKeyboardMarkup:
+    rows: list[list[InlineKeyboardButton]] = []
+    if _webapp_supported():
         rows.append(
             [
-                KeyboardButton(
-                    text="🌐 Открыть сайт",
-                    web_app=WebAppInfo(url=settings.PUBLIC_URL),
+                InlineKeyboardButton(
+                    text="🛠 Открыть админ-панель",
+                    web_app=WebAppInfo(url=_admin_panel_url()),
                 )
             ]
         )
-    if is_admin(user_id):
-        rows.append([KeyboardButton(text="⚙ Админ-панель")])
-    return ReplyKeyboardMarkup(keyboard=rows, resize_keyboard=True)
-
-
-def admin_menu() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="📥 Заявки", callback_data="adm:apps")],
+    elif _public_link_button_supported():
+        rows.append(
             [
-                InlineKeyboardButton(text="📰 Новости", callback_data="adm:news"),
-                InlineKeyboardButton(text="📅 События", callback_data="adm:events"),
-            ],
-            [
-                InlineKeyboardButton(text="👥 Преподаватели", callback_data="adm:teachers"),
-                InlineKeyboardButton(text="📄 Документы", callback_data="adm:docs"),
-            ],
-            [InlineKeyboardButton(text="❌ Закрыть", callback_data="adm:close")],
+                InlineKeyboardButton(
+                    text="🌐 Открыть админ-панель",
+                    url=_admin_panel_url(),
+                )
+            ]
+        )
+    rows.append([InlineKeyboardButton(text="📥 Заявки", callback_data="adm:apps")])
+    rows.append(
+        [
+            InlineKeyboardButton(text="📰 Новость", callback_data="adm:news"),
+            InlineKeyboardButton(text="📅 Событие", callback_data="adm:events"),
         ]
     )
+    rows.append(
+        [
+            InlineKeyboardButton(text="👥 Преподаватель", callback_data="adm:teachers"),
+            InlineKeyboardButton(text="📄 Документ", callback_data="adm:docs"),
+        ]
+    )
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def application_kb(app_id: int) -> InlineKeyboardMarkup:
+    rows: list[list[InlineKeyboardButton]] = [
+        [
+            InlineKeyboardButton(text="✓ В работу", callback_data=f"app:in_progress:{app_id}"),
+            InlineKeyboardButton(text="✓ Принято", callback_data=f"app:accepted:{app_id}"),
+            InlineKeyboardButton(text="✗ Отклонить", callback_data=f"app:rejected:{app_id}"),
+        ]
+    ]
+    if _webapp_supported():
+        rows.append(
+            [
+                InlineKeyboardButton(
+                    text="🛠 Открыть в админке",
+                    web_app=WebAppInfo(
+                        url=_admin_panel_url() + f"?app={app_id}#applications"
+                    ),
+                )
+            ]
+        )
+    elif _public_link_button_supported():
+        rows.append(
+            [
+                InlineKeyboardButton(
+                    text="🌐 Открыть в админке",
+                    url=_admin_panel_url() + f"?app={app_id}#applications",
+                )
+            ]
+        )
+    return rows_to_markup(rows)
+
+
+def rows_to_markup(rows: list[list[InlineKeyboardButton]]) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 async def _ensure_bot_user(message: Message) -> None:
@@ -108,303 +172,127 @@ async def _ensure_bot_user(message: Message) -> None:
         await session.commit()
 
 
-# --------------- Public commands ---------------
+async def _safe_answer(event: Message | CallbackQuery, text: str, **kw):
+    if isinstance(event, CallbackQuery):
+        if event.message:
+            await event.message.answer(text, **kw)
+        await event.answer()
+    else:
+        await event.answer(text, **kw)
+
+
+# ============== /start ==============
 
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
     await state.clear()
     await _ensure_bot_user(message)
-    name = (message.from_user.first_name if message.from_user else "") or "друг"
-    text = (
-        f"<b>Здравствуйте, {escape(name)}!</b>\n\n"
-        "Это бот <b>Библейского Колледжа ХВЕ</b>. Здесь вы можете:\n"
-        "• читать новости и узнавать о событиях;\n"
-        "• посмотреть программы и состав преподавателей;\n"
-        "• скачать документы;\n"
-        "• подать заявку на поступление прямо в Telegram.\n\n"
-        "Выберите раздел в меню ниже 👇"
+    user = message.from_user
+    name = (user.first_name if user else "") or "друг"
+
+    if not user or not is_admin(user.id):
+        # Пользователю бот не нужен — отправляем на сайт.
+        await message.answer(
+            f"Здравствуйте, {escape(name)}!\n\n"
+            "Этот бот предназначен только для администрации Библейского колледжа ХВЕ.\n\n"
+            f"Чтобы узнать больше о колледже, посмотреть программы или оставить заявку — пожалуйста, перейдите на сайт:\n{_public_url()}",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        return
+
+    await message.answer(
+        f"Добрый день, {escape(name)}! 👋\n\n"
+        "Это <b>административный бот</b> Библейского колледжа ХВЕ.\n"
+        "Сюда приходят заявки с сайта, отсюда вы управляете содержимым.\n\n"
+        "Используйте кнопки ниже или команды:\n"
+        "/admin — это меню\n"
+        "/applications — последние новые заявки\n"
+        "/newpost — добавить новость\n"
+        "/newevent — добавить событие\n"
+        "/newteacher — добавить преподавателя\n"
+        "/newdoc — загрузить документ\n"
+        "/cancel — отменить текущую операцию",
+        reply_markup=admin_menu_kb(),
     )
-    await message.answer(text, reply_markup=main_menu(message.from_user.id if message.from_user else 0))
 
 
 @router.message(Command("help"))
 async def cmd_help(message: Message):
-    text = (
-        "<b>Команды</b>\n"
-        "/start — главное меню\n"
-        "/news — последние новости\n"
-        "/events — ближайшие события\n"
-        "/programs — программы обучения\n"
-        "/teachers — преподаватели\n"
-        "/contacts — контакты\n"
-        "/apply — подать заявку\n"
-    )
-    if message.from_user and is_admin(message.from_user.id):
-        text += (
-            "\n<b>Админ</b>\n"
-            "/admin — админ-меню\n"
-            "/applications — список заявок\n"
-            "/newpost — добавить новость\n"
-            "/newevent — добавить событие\n"
-            "/newteacher — добавить преподавателя\n"
-            "/newdoc — добавить документ\n"
-            "/cancel — отменить текущую операцию\n"
+    if not message.from_user or not is_admin(message.from_user.id):
+        await message.answer(
+            "Этот бот только для администрации. Сайт колледжа: " + _public_url()
         )
-    await message.answer(text)
+        return
+    await message.answer(
+        "<b>Команды бота</b>\n"
+        "/admin — главное меню (с кнопкой админ-панели)\n"
+        "/applications — список новых заявок\n"
+        "/newpost — добавить новость\n"
+        "/newevent — добавить событие\n"
+        "/newteacher — добавить преподавателя\n"
+        "/newdoc — загрузить документ\n"
+        "/cancel — отменить текущую операцию"
+    )
 
 
 @router.message(Command("cancel"))
 async def cmd_cancel(message: Message, state: FSMContext):
     await state.clear()
-    await message.answer("Отменено.", reply_markup=main_menu(message.from_user.id if message.from_user else 0))
+    await message.answer("Отменено.", reply_markup=ReplyKeyboardRemove())
 
 
-@router.message(F.text == "📰 Новости")
-@router.message(Command("news"))
-async def show_news(message: Message):
-    async with AsyncSessionLocal() as session:
-        items = await latest_news(session, limit=5)
-    if not items:
-        await message.answer("Пока новостей нет.")
-        return
-    for n in items:
-        text = f"<b>{escape(n.title)}</b>\n\n{escape(n.body)}"
-        if n.image_url:
-            url = settings.PUBLIC_URL.rstrip("/") + n.image_url
-            try:
-                await message.answer_photo(photo=url, caption=text[:1000])
-                continue
-            except Exception:  # noqa: BLE001
-                pass
-        await message.answer(text)
+# ============== /admin ==============
 
-
-@router.message(F.text == "📅 События")
-@router.message(Command("events"))
-async def show_events(message: Message):
-    async with AsyncSessionLocal() as session:
-        items = await upcoming_events(session, limit=10)
-    if not items:
-        await message.answer("Ближайших событий не запланировано.")
-        return
-    lines = ["<b>📅 Ближайшие события</b>\n"]
-    for ev in items:
-        when = ev.starts_at.strftime("%d.%m.%Y %H:%M")
-        lines.append(f"• <b>{when}</b> — {escape(ev.title)}")
-        if ev.location:
-            lines.append(f"  📍 {escape(ev.location)}")
-        if ev.description:
-            lines.append(f"  {escape(ev.description)[:200]}")
-    await message.answer("\n".join(lines))
-
-
-@router.message(F.text == "🎓 Программы")
-@router.message(Command("programs"))
-async def show_programs(message: Message):
-    text = (
-        "<b>🎓 Программы подготовки</b>\n\n"
-        "<b>1. Музыкальное служение</b> — Бакалавр искусств в церковной музыке.\n"
-        "Очно-заочная форма, 4 сессии в год. Уровень 1 — 3 года, Уровень 2 — 2,5 года.\n\n"
-        "<b>2. Богословие и христианское служение</b> — Сертификат / Бакалавр служения / Бакалавр богословия.\n"
-        "Заочная (онлайн).\n\n"
-        "<b>3. Театральное служение</b> — Бакалавр искусств в театральном служении.\n"
-        "Очно-заочная форма, 4 сессии в год. 3 года.\n"
-    )
-    await message.answer(text)
-
-
-@router.message(F.text == "👥 Преподаватели")
-@router.message(Command("teachers"))
-async def show_teachers(message: Message):
-    async with AsyncSessionLocal() as session:
-        items = await published_teachers(session)
-    if not items:
-        await message.answer("Состав преподавателей пока не добавлен.")
-        return
-    lines = [f"<b>👥 Преподаватели ({len(items)})</b>\n"]
-    for t in items[:30]:
-        lines.append(f"• <b>{escape(t.name)}</b> — {escape(t.role)}")
-    if len(items) > 30:
-        lines.append(f"\n…и ещё {len(items) - 30}. Полный список — на сайте.")
-    await message.answer("\n".join(lines))
-
-
-@router.message(F.text == "📄 Документы")
-@router.message(Command("documents"))
-async def show_documents(message: Message):
-    async with AsyncSessionLocal() as session:
-        items = await published_documents(session)
-    if not items:
-        await message.answer("Документы пока не загружены.")
-        return
-    base = settings.PUBLIC_URL.rstrip("/")
-    lines = ["<b>📄 Документы</b>\n"]
-    for d in items:
-        url = base + d.file_url if d.file_url.startswith("/") else d.file_url
-        lines.append(f"• <a href=\"{url}\">{escape(d.title)}</a>")
-        if d.description:
-            lines.append(f"  {escape(d.description)[:200]}")
-    await message.answer("\n".join(lines), disable_web_page_preview=True)
-
-
-@router.message(F.text == "📍 Контакты")
-@router.message(Command("contacts"))
-async def show_contacts(message: Message):
-    async with AsyncSessionLocal() as session:
-        site = await get_settings_dict(session)
-    text = (
-        "<b>📍 Контакты</b>\n\n"
-        f"<b>Адрес:</b>\n{escape(site.get('contact_address',''))}\n\n"
-        f"<b>Email:</b>\n{escape(site.get('contact_email',''))}\n\n"
-        f"<b>Телефоны:</b>\n{escape(site.get('contact_phones',''))}\n\n"
-        f"<b>Режим работы:</b>\n{escape(site.get('contact_hours',''))}"
-    )
-    await message.answer(text)
-
-
-# --------------- Apply flow ---------------
-
-@router.message(F.text == "✍ Подать заявку")
-@router.message(Command("apply"))
-async def apply_start(message: Message, state: FSMContext):
-    await state.set_state(ApplyFlow.name)
-    await message.answer("Как вас зовут? (Имя)")
-
-
-@router.message(ApplyFlow.name)
-async def apply_name(message: Message, state: FSMContext):
-    await state.update_data(name=(message.text or "").strip())
-    await state.set_state(ApplyFlow.lastname)
-    await message.answer("Ваша фамилия?")
-
-
-@router.message(ApplyFlow.lastname)
-async def apply_lastname(message: Message, state: FSMContext):
-    await state.update_data(lastname=(message.text or "").strip())
-    await state.set_state(ApplyFlow.phone)
-    await message.answer("Телефон или Telegram для связи:")
-
-
-@router.message(ApplyFlow.phone)
-async def apply_phone(message: Message, state: FSMContext):
-    await state.update_data(phone=(message.text or "").strip())
-    await state.set_state(ApplyFlow.program)
-    kb = ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text="Музыкальное служение")],
-            [KeyboardButton(text="Богословие и христианское служение")],
-            [KeyboardButton(text="Театральное служение")],
-        ],
-        resize_keyboard=True,
-        one_time_keyboard=True,
-    )
-    await message.answer("Какая программа вас интересует?", reply_markup=kb)
-
-
-_PROGRAM_MAP = {
-    "Музыкальное служение": "music",
-    "Богословие и христианское служение": "theology",
-    "Театральное служение": "theatre",
-}
-
-
-@router.message(ApplyFlow.program)
-async def apply_program(message: Message, state: FSMContext):
-    raw = (message.text or "").strip()
-    await state.update_data(program=_PROGRAM_MAP.get(raw, raw)[:64])
-    await state.set_state(ApplyFlow.church)
-    await message.answer("Ваша церковь (название и город). Можно «—», если не указываете.")
-
-
-@router.message(ApplyFlow.church)
-async def apply_church(message: Message, state: FSMContext):
-    data = await state.get_data()
-    church = (message.text or "").strip()
-    if church == "—":
-        church = ""
-    payload = {**data, "church": church}
-    async with AsyncSessionLocal() as session:
-        app = await create_application(session, payload)
-    await state.clear()
-    await message.answer(
-        f"✅ Заявка #{app.id} принята! Мы свяжемся с вами в течение 1–2 рабочих дней.",
-        reply_markup=main_menu(message.from_user.id if message.from_user else 0),
-    )
-
-    # Notify admins
-    try:
-        from .notifier import notify_new_application
-
-        await notify_new_application(app)
-    except Exception as exc:  # noqa: BLE001
-        log.warning("Notify failed: %s", exc)
-
-
-# --------------- Admin panel ---------------
-
-@router.message(F.text == "⚙ Админ-панель")
 @router.message(Command("admin"))
-async def admin_panel(message: Message):
-    if not message.from_user or not is_admin(message.from_user.id):
+async def cmd_admin(message: Message):
+    user = message.from_user
+    if not user or not is_admin(user.id):
         await message.answer("⛔ Доступ только для администраторов.")
         return
-    await message.answer("⚙ <b>Админ-панель</b>", reply_markup=admin_menu())
-
-
-@router.callback_query(F.data == "adm:close")
-async def admin_close(cb: CallbackQuery):
-    if cb.message:
-        try:
-            await cb.message.delete()
-        except Exception:  # noqa: BLE001
-            pass
-    await cb.answer()
+    await message.answer(
+        "⚙ <b>Админ-меню</b>\n\nОткройте админ-панель кнопкой ниже или используйте быстрые команды.",
+        reply_markup=admin_menu_kb(),
+    )
 
 
 @router.callback_query(F.data == "adm:apps")
 @router.message(Command("applications"))
-async def admin_apps(event: Message | CallbackQuery):
+async def list_apps(event: Message | CallbackQuery):
     user = event.from_user
     if not user or not is_admin(user.id):
         await _safe_answer(event, "⛔ Доступ только для администраторов.")
         return
     async with AsyncSessionLocal() as session:
         apps = await list_applications(session, status="new", limit=10)
+    target = event.message if isinstance(event, CallbackQuery) else event
     if not apps:
         await _safe_answer(event, "Новых заявок нет 🎉")
         return
-    for app in apps:
-        text = (
-            f"<b>📥 Заявка #{app.id}</b>\n"
-            f"<b>{escape(app.name)} {escape(app.lastname)}</b>\n"
-            f"📞 {escape(app.phone)}\n"
-            f"🎓 {escape(app.program)}\n"
-            f"⛪ {escape(app.church) or '—'}"
-        )
-        kb = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(text="✓ В работу", callback_data=f"app:in_progress:{app.id}"),
-                    InlineKeyboardButton(text="✓ Принято", callback_data=f"app:accepted:{app.id}"),
-                    InlineKeyboardButton(text="✗ Отклонить", callback_data=f"app:rejected:{app.id}"),
-                ]
-            ]
-        )
-        target = event.message if isinstance(event, CallbackQuery) else event
-        if target:
-            await target.answer(text, reply_markup=kb)
+    if target:
+        await target.answer(f"<b>Новых заявок: {len(apps)}</b>")
+        for app in apps:
+            await target.answer(_format_application(app), reply_markup=application_kb(app.id))
     if isinstance(event, CallbackQuery):
         await event.answer()
 
 
-async def _safe_answer(event: Message | CallbackQuery, text: str):
-    if isinstance(event, CallbackQuery):
-        if event.message:
-            await event.message.answer(text)
-        await event.answer()
-    else:
-        await event.answer(text)
+def _format_application(app: models.Application) -> str:
+    lines = [
+        f"<b>📥 Заявка #{app.id}</b>",
+        f"<b>{escape(app.name)} {escape(app.lastname)}</b>",
+    ]
+    if app.phone:
+        lines.append(f"📞 {escape(app.phone)}")
+    if app.program:
+        lines.append(f"🎓 {escape(app.program)}")
+    if app.church:
+        lines.append(f"⛪ {escape(app.church)}")
+    if app.note:
+        lines.append(f"💬 {escape(app.note)}")
+    return "\n".join(lines)
 
+
+# ============== Application status callbacks ==============
 
 @router.callback_query(F.data.startswith("app:"))
 async def application_action(cb: CallbackQuery):
@@ -432,18 +320,19 @@ async def application_action(cb: CallbackQuery):
         "rejected": "Отклонено",
         "new": "Новая",
     }
+    label = label_map.get(status, status)
     if cb.message:
         try:
-            await cb.message.edit_reply_markup(reply_markup=None)
-            await cb.message.answer(
-                f"Заявка #{app.id}: статус → <b>{label_map.get(status, status)}</b>"
-            )
+            # Заменяем inline-клавиатуру на отметку статуса.
+            new_text = (cb.message.html_text or cb.message.text or "")
+            new_text += f"\n\n<i>Статус: <b>{escape(label)}</b></i>"
+            await cb.message.edit_text(new_text, parse_mode="HTML")
         except Exception:  # noqa: BLE001
             pass
-    await cb.answer("Готово")
+    await cb.answer(f"Заявка #{app.id}: {label}")
 
 
-# ----- News creation -----
+# ============== News creation (FSM) ==============
 
 @router.callback_query(F.data == "adm:news")
 @router.message(Command("newpost"))
@@ -496,7 +385,7 @@ async def _save_news(message: Message, state: FSMContext, image_url: str | None)
     await message.answer("✅ Новость опубликована.")
 
 
-# ----- Event creation -----
+# ============== Event creation (FSM) ==============
 
 @router.callback_query(F.data == "adm:events")
 @router.message(Command("newevent"))
@@ -513,7 +402,7 @@ async def event_start(event: Message | CallbackQuery, state: FSMContext):
 async def event_title(message: Message, state: FSMContext):
     await state.update_data(title=(message.text or "").strip()[:255])
     await state.set_state(EventCreate.starts_at)
-    await message.answer("Дата и время? Формат: <code>ДД.ММ.ГГГГ ЧЧ:ММ</code> (например, 15.09.2026 18:00)")
+    await message.answer("Дата и время? Формат: <code>ДД.ММ.ГГГГ ЧЧ:ММ</code>")
 
 
 @router.message(EventCreate.starts_at)
@@ -558,7 +447,7 @@ async def _save_event(message: Message, state: FSMContext, location: str):
     await message.answer("✅ Событие добавлено.")
 
 
-# ----- Teacher creation -----
+# ============== Teacher creation (FSM) ==============
 
 @router.callback_query(F.data == "adm:teachers")
 @router.message(Command("newteacher"))
@@ -638,13 +527,10 @@ async def teacher_departments(message: Message, state: FSMContext):
         session.add(obj)
         await session.commit()
     await state.clear()
-    await message.answer(
-        "✅ Преподаватель добавлен.",
-        reply_markup=main_menu(message.from_user.id if message.from_user else 0),
-    )
+    await message.answer("✅ Преподаватель добавлен.", reply_markup=ReplyKeyboardRemove())
 
 
-# ----- Document creation -----
+# ============== Document creation (FSM) ==============
 
 @router.callback_query(F.data == "adm:docs")
 @router.message(Command("newdoc"))
@@ -671,7 +557,7 @@ async def doc_file(message: Message, state: FSMContext):
         return
     file_url = await _download_telegram_document(message)
     if not file_url:
-        await message.answer("Не удалось сохранить файл. Попробуйте ещё раз.")
+        await message.answer("Не удалось сохранить файл.")
         return
     data = await state.get_data()
     async with AsyncSessionLocal() as session:
@@ -686,7 +572,7 @@ async def doc_file(message: Message, state: FSMContext):
     await message.answer("✅ Документ загружен.")
 
 
-# --------------- Telegram file → uploads ---------------
+# ============== Telegram file → uploads ==============
 
 async def _download_telegram_photo(message: Message) -> str | None:
     if not message.photo:
@@ -703,8 +589,7 @@ async def _download_telegram_photo(message: Message) -> str | None:
         return None
     import secrets
 
-    suffix = ".jpg"
-    name = f"{secrets.token_urlsafe(16)}{suffix}"
+    name = f"{secrets.token_urlsafe(16)}.jpg"
     target = UPLOADS_DIR / name
     await bot.download_file(file.file_path, destination=target)
     return f"/static/uploads/{name}"
@@ -713,8 +598,6 @@ async def _download_telegram_photo(message: Message) -> str | None:
 async def _download_telegram_document(message: Message) -> str | None:
     if not message.document:
         return None
-    from pathlib import Path
-
     from ..config import UPLOADS_DIR
     from .bot import get_bot
 
@@ -735,17 +618,22 @@ async def _download_telegram_document(message: Message) -> str | None:
     return f"/static/uploads/{name}"
 
 
-# --------------- Fallback ---------------
+# ============== Fallback ==============
 
 @router.message()
 async def fallback(message: Message):
+    user = message.from_user
+    if not user or not is_admin(user.id):
+        await message.answer(
+            "Этот бот только для администрации. Сайт колледжа: " + _public_url()
+        )
+        return
     await message.answer(
-        "Не понял команду. Используйте меню или /help.",
-        reply_markup=main_menu(message.from_user.id if message.from_user else 0),
+        "Не понял команду. Используйте /admin или /help.",
     )
 
 
-# --------------- Public registration ---------------
+# ============== Public registration ==============
 
 def register(dp: Dispatcher) -> None:
     dp.include_router(router)

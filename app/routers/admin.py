@@ -85,6 +85,70 @@ async def logout(request: Request):
     return resp
 
 
+# ----------------- Telegram Mini App auto-login -----------------
+
+@router.get("/tg", response_class=HTMLResponse)
+async def tg_auth_page(request: Request):
+    """HTML-страница, которую открывает Telegram Mini App.
+
+    Внутри страницы JavaScript читает Telegram.WebApp.initData и POSTит её
+    на /admin/tg/auth, после чего получает session cookie и переходит на /admin/.
+    """
+    return templates.TemplateResponse(request, "admin/tg_auth.html", {})
+
+
+@router.post("/tg/auth")
+async def tg_auth_submit(
+    request: Request,
+    init_data: str = Form(...),
+    session: AsyncSession = Depends(get_session),
+):
+    """Проверяет HMAC-подпись Telegram WebApp initData и выдаёт session cookie."""
+    from ..config import settings as app_settings
+    from ..tg_webapp import parse_and_verify_init_data
+
+    if not app_settings.TELEGRAM_BOT_TOKEN:
+        raise HTTPException(503, "Bot is not configured")
+
+    parsed = parse_and_verify_init_data(init_data, app_settings.TELEGRAM_BOT_TOKEN)
+    if parsed is None:
+        raise HTTPException(401, "Invalid Telegram signature")
+
+    user = parsed.get("user") or {}
+    tg_user_id = user.get("id")
+    if not isinstance(tg_user_id, int) or tg_user_id not in app_settings.admin_ids:
+        raise HTTPException(403, "Этот аккаунт не в списке администраторов колледжа.")
+
+    # Mirror admin in DB so /admin/ has something to render.
+    username = user.get("username") or f"tg_{tg_user_id}"
+    existing = (
+        await session.execute(
+            select(models.AdminUser).where(models.AdminUser.username == username)
+        )
+    ).scalar_one_or_none()
+    if existing is None:
+        new_admin = models.AdminUser(
+            username=username,
+            password_hash=hash_password("!disabled-tg-only!"),
+        )
+        session.add(new_admin)
+        await session.commit()
+        await session.refresh(new_admin)
+        existing = new_admin
+
+    token = make_session_token(existing.id, existing.username)
+    resp = RedirectResponse("/admin/", status_code=303)
+    resp.set_cookie(
+        SESSION_COOKIE,
+        token,
+        max_age=SESSION_MAX_AGE,
+        httponly=True,
+        samesite="lax",
+        secure=False,
+    )
+    return resp
+
+
 # ----------------- Dashboard -----------------
 
 @router.get("/", response_class=HTMLResponse)

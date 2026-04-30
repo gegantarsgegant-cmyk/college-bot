@@ -1,16 +1,24 @@
 # Bible College ХВЕ — site + Telegram bot + admin
 
-A self-contained website + Telegram bot + mini admin panel for the
+A self-contained website + admin-only Telegram bot for the
 **Библейский Колледж ХВЕ** (Minsk). One Python process serves:
 
-- the public website (`/`) — your existing `college.html` design, but with all
-  data (teachers, contact info, application form, etc.) coming from a database;
-- a JSON API for the application form (`/api/applications`);
-- a web admin panel at **`/admin`** (login required) for managing news,
-  events, teachers, gallery, documents, settings and applications;
-- a Telegram bot (aiogram) that mirrors the same admin features inside Telegram
-  and lets visitors browse content, get notified of news, and submit
-  applications via a guided FSM.
+- **Public website (`/`)** — your existing `college.html` design, but with all
+  data (teachers, contact info, programmes, application form, …) backed by a
+  database. Visitors only ever interact with the site.
+- **Application API (`/api/applications`)** — the website form posts here; new
+  applications are stored in DB and pushed into Telegram.
+- **Web admin panel (`/admin`)** — login-protected, full CRUD for news, events,
+  teachers, gallery, documents, applications and site settings (titles,
+  contacts, social links, statistics).
+- **Telegram Mini App (`/admin/tg`)** — same admin panel auto-authenticated via
+  Telegram WebApp `initData` HMAC; opens directly inside Telegram from the bot's
+  inline buttons. Designed for managing the site on the go.
+- **Admin-only Telegram bot** — receives new-application notifications with
+  inline action buttons (✓ В работу / ✓ Принято / ✗ Отклонить + 🛠 Открыть
+  админку). Provides quick FSM commands for creating news, events, teachers and
+  documents from the chat. **Non-admin users get a polite redirect to the
+  website**; the bot is not meant for the public.
 
 ## Quick start (Docker)
 
@@ -98,29 +106,46 @@ server {
 
 ## Bot commands
 
-Public:
+The bot is **admin-only**. Users not listed in `TELEGRAM_ADMIN_IDS` get a
+short message pointing them to the public website and nothing else.
 
-- `/start` — greeting + reply keyboard menu
-- `/news` — latest 5 news items
-- `/events` — upcoming events
-- `/programs` — programmes summary
-- `/teachers` — teachers list
-- `/documents` — published documents
-- `/contacts` — contacts
-- `/apply` — start the guided application flow
+Admin commands (only for users in `TELEGRAM_ADMIN_IDS`):
 
-Admin (only for users in `TELEGRAM_ADMIN_IDS`):
-
-- `/admin` — open inline admin menu
+- `/start`, `/admin` — open inline admin menu (with the WebApp button to the
+  full admin panel and quick action buttons)
 - `/applications` — list new applications
 - `/newpost` — create a news item
 - `/newevent` — create an event
 - `/newteacher` — add a teacher
 - `/newdoc` — upload a document
 - `/cancel` — abort an in-progress wizard
+- `/help` — show this list
 
-When a new application arrives (web or bot), every admin gets a Telegram
-message with three inline buttons: **в работу / принято / отклонить**.
+When a new application arrives from the website, every admin in
+`TELEGRAM_ADMIN_IDS` (and optionally `TELEGRAM_NOTIFY_CHAT_ID`) gets a Telegram
+message with inline buttons: **✓ В работу / ✓ Принято / ✗ Отклонить** and (if
+`PUBLIC_URL` is HTTPS) **🛠 Открыть в админке** which opens the relevant
+application inside the Telegram Mini App.
+
+## Telegram Mini App / WebApp setup
+
+For the *Mini App* button (`web_app=…`) to work, Telegram requires a public
+HTTPS URL. After you have HTTPS:
+
+1. Open [@BotFather](https://t.me/BotFather) → `/mybots` → pick your bot.
+2. *Bot Settings → Configure Mini App* → **Edit Mini App URL** → paste
+   `https://your-domain.tld/admin/tg`.
+3. (Optional) *Bot Settings → Menu Button* → set the menu button to the same
+   URL so admins can also open the panel from the Telegram chat header.
+
+The page at `/admin/tg` reads `Telegram.WebApp.initData`, posts it to
+`/admin/tg/auth`, the server verifies the HMAC against `TELEGRAM_BOT_TOKEN`,
+checks that the Telegram user is in `TELEGRAM_ADMIN_IDS` and issues an admin
+session cookie. No password is needed inside Telegram.
+
+If `PUBLIC_URL` is not HTTPS the bot falls back gracefully: the WebApp button
+is hidden and admins can still log into `/admin/login` with the username /
+password from `.env`.
 
 ## Project layout
 
