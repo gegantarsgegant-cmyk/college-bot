@@ -1,0 +1,47 @@
+{% extends "admin/_base.html" %}
+{% block title %}Дашборд{% endblock %}
+{% block content %}
+<h1>Дашборд</h1>
+
+<div class="stat-grid">
+  <a class="stat-tile" href="/admin/applications?status=new" style="text-decoration:none;color:inherit;">
+    <div class="num">{{ counts.applications_new }}</div>
+    <div class="lbl">Новых заявок</div>
+  </a>
+  <a class="stat-tile" href="/admin/news" style="text-decoration:none;color:inherit;">
+    <div class="num">{{ counts.news }}</div>
+    <div class="lbl">Новостей</div>
+  </a>
+  <a class="stat-tile" href="/admin/events" style="text-decoration:none;color:inherit;">
+    <div class="num">{{ counts.events }}</div>
+    <div class="lbl">Событий</div>
+  </a>
+  <a class="stat-tile" href="/admin/teachers" style="text-decoration:none;color:inherit;">
+    <div class="num">{{ counts.teachers }}</div>
+    <div class="lbl">Преподавателей</div>
+  </a>
+  <a class="stat-tile" href="/admin/gallery" style="text-decoration:none;color:inherit;">
+    <div class="num">{{ counts.gallery }}</div>
+    <div class="lbl">Галерея</div>
+  </a>
+  <a class="stat-tile" href="/admin/documents" style="text-decoration:none;color:inherit;">
+    <div class="num">{{ counts.documents }}</div>
+    <div class="lbl">Документов</div>
+  </a>
+</div>
+
+<div class="card" style="margin-top:24px;">
+  <h2>Сменить пароль</h2>
+  <form method="post" action="/admin/change-password">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Новый пароль</label>
+        <input type="password" name="new_password" minlength="6" required>
+      </div>
+      <div class="form-group" style="display:flex;align-items:flex-end;">
+        <button class="btn">Сохранить</button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "admin/_base.html" %}
+{% block title %}Документы{% endblock %}
+{% block content %}
+<h1>Документы</h1>
+
+<div class="card">
+  <h2>Загрузить документ</h2>
+  <form method="post" action="/admin/documents/new" enctype="multipart/form-data">
+    <div class="form-group"><label>Название</label><input type="text" name="title" required></div>
+    <div class="form-group"><label>Описание</label><textarea name="description"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Файл (PDF/DOC/XLS/TXT)</label><input type="file" name="file" required></div>
+      <div class="form-group"><label>Сортировка</label><input type="number" name="sort_order" value="0"></div>
+      <div class="form-group"><label><input type="checkbox" name="published" checked> Опубликовать</label></div>
+    </div>
+    <button class="btn">Загрузить</button>
+  </form>
+</div>
+
+<div class="card" style="padding:0;overflow-x:auto;">
+  {% if items %}
+  <table>
+    <thead><tr><th>#</th><th>Название</th><th>Файл</th><th>Сорт.</th><th>Опубл.</th><th></th></tr></thead>
+    <tbody>
+      {% for d in items %}
+      <tr>
+        <td>{{ d.id }}</td>
+        <td><b>{{ d.title }}</b><div class="muted">{{ d.description[:120] }}</div></td>
+        <td><a href="{{ d.file_url }}" target="_blank">скачать</a></td>
+        <td>{{ d.sort_order }}</td>
+        <td>{{ "Да" if d.published else "Нет" }}</td>
+        <td>
+          <form method="post" action="/admin/documents/{{ d.id }}/delete" onsubmit="return confirm('Удалить?')">
+            <button class="btn btn-danger">Удалить</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<div style="padding:24px;color:#888;">Пусто.</div>{% endif %}
+</div>
+{% endblock %}

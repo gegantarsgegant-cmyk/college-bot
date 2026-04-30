@@ -1,0 +1,3749 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ site.site_title or 'Библейский Колледж ХВЕ' }}</title>
+<link rel="icon" href="/static/favicon/favicon.ico">
+<link rel="preload" href="/static/fonts/fonts.css" as="style">
+<link rel="stylesheet" href="/static/fonts/fonts.css">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-dim: rgba(201,168,76,0.15);
+    --cream: #F5F0E8;
+    --cream-dark: #EDE5D4;
+    --ink: #1A1612;
+    --ink-soft: #3D3530;
+    --parchment: #FAF6EE;
+    --border: rgba(201,168,76,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  /* Убрать синее выделение при тапе на мобильных */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  button, a, [role="button"] {
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:focus, a:focus, [role="button"]:focus {
+    outline: none;
+  }
+  /* Сохраняем outline только при навигации с клавиатуры */
+  button:focus-visible, a:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--parchment);
+    color: var(--ink);
+    overflow-x: hidden;
+    font-size: 17px;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* ===================== PAGE SYSTEM ===================== */
+  .page {
+    position: fixed;
+    inset: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: var(--parchment);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    z-index: 1;
+  }
+  .page.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
+    z-index: 0;
+  }
+  .page.entering {
+    animation: pageEnter 0.5s ease forwards;
+  }
+  @keyframes pageEnter {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===================== NAV ===================== */
+  #navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 20px 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.4s ease;
+    background: rgba(26,22,18,0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  #navbar.scrolled {
+    padding: 14px 60px;
+  }
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .nav-logo-svg {
+    height: 76px;
+    width: auto;
+    filter: brightness(1);
+    transition: opacity 0.3s;
+  }
+  .nav-logo:hover .nav-logo-svg { opacity: 0.8; }
+  .nav-logo-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(245,240,232,0.45);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    line-height: 1.3;
+    display: flex;
+    flex-direction: column;
+  }
+  .nav-logo-text span:first-child { color: var(--gold); font-size: 0.8rem; }
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+  .nav-links a {
+    color: rgba(245,240,232,0.75);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    transition: color 0.3s;
+  }
+  .nav-links a:hover { color: var(--gold); }
+
+  /* ===================== HERO ===================== */
+  .hero {
+    position: relative;
+    height: 100vh;
+    min-height: 700px;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 40%, rgba(201,168,76,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 20% 80%, rgba(201,168,76,0.05) 0%, transparent 60%),
+      linear-gradient(180deg, #1A1612 0%, #0F0C09 100%);
+  }
+  .hero-cross {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px; height: 600px;
+    opacity: 0.03;
+  }
+  .hero-lines {
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(201,168,76,0.04) 79px, rgba(201,168,76,0.04) 80px),
+      repeating-linear-gradient(90deg, transparent, transparent 79px, rgba(201,168,76,0.04) 79px, rgba(201,168,76,0.04) 80px);
+  }
+  .hero-content {
+    position: relative;
+    text-align: center;
+    z-index: 2;
+  }
+  .hero-eyebrow {
+    display: inline-block;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 28px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 20px;
+    animation: fadeUp 1s 0.2s both;
+  }
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3.5rem, 8vw, 8rem);
+    font-weight: 300;
+    color: var(--cream);
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+    animation: fadeUp 1s 0.4s both;
+  }
+  .hero-title em { font-style: italic; color: var(--gold-light); }
+  .hero-sub {
+    margin-top: 28px;
+    font-size: 0.95rem;
+    font-weight: 300;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(245,240,232,0.5);
+    animation: fadeUp 1s 0.6s both;
+  }
+  .hero-cta {
+    margin-top: 48px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    animation: fadeUp 1s 0.8s both;
+  }
+  .btn-primary {
+    display: inline-block;
+    padding: 14px 36px;
+    background: var(--gold);
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    transition: all 0.3s;
+    cursor: pointer;
+    border: none;
+    font-family: 'Jost', sans-serif;
+  }
+  .btn-primary:hover { background: var(--gold-light); transform: translateY(-2px); }
+  .btn-outline {
+    display: inline-block;
+    padding: 14px 36px;
+    border: 1px solid var(--border);
+    color: var(--cream);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    transition: all 0.3s;
+    cursor: pointer;
+    background: none;
+    font-family: 'Jost', sans-serif;
+  }
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 40px; left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    animation: fadeUp 1s 1.2s both;
+  }
+  .hero-scroll span {
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(245,240,232,0.35);
+  }
+  .scroll-line {
+    width: 1px; height: 50px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    animation: scrollLine 2s ease infinite;
+  }
+  @keyframes scrollLine {
+    0%   { transform: scaleY(0); transform-origin: top; }
+    50%  { transform: scaleY(1); transform-origin: top; }
+    51%  { transform: scaleY(1); transform-origin: bottom; }
+    100% { transform: scaleY(0); transform-origin: bottom; }
+  }
+
+  /* ===================== SECTIONS ===================== */
+  section { padding: 100px 60px; }
+  .section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+  .section-label::before {
+    content: '';
+    display: block;
+    width: 32px; height: 1px;
+    background: var(--gold);
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 300;
+    line-height: 1.15;
+    color: var(--ink);
+  }
+  .section-title em { font-style: italic; color: var(--gold); }
+
+  /* MISSION */
+  .mission { background: var(--ink); position: relative; overflow: hidden; }
+  .mission::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(201,168,76,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .mission-inner { max-width: 1200px; margin: 0 auto; }
+  .mission .section-label { color: var(--gold); }
+  .mission .section-title { color: var(--cream); }
+
+  /* LEAD — вопрос + ответ */
+  .mission-lead {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 80px; align-items: center;
+    margin-bottom: 80px;
+  }
+  .mission-lead-text {
+    font-size: 1.1rem; font-weight: 300;
+    line-height: 1.9; color: rgba(245,240,232,0.6);
+    margin-top: 28px;
+  }
+  .mission-lead-text strong { color: var(--cream); font-weight: 500; }
+  .mission-lead-quote {
+    position: relative;
+    padding: 44px;
+    border: 1px solid rgba(201,168,76,0.2);
+    background: rgba(201,168,76,0.04);
+  }
+  .mission-lead-quote::before {
+    content: '\201C';
+    position: absolute; top: -28px; left: 36px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 7rem; line-height: 1;
+    color: var(--gold); opacity: 0.25;
+  }
+  .mission-lead-quote p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.25rem; font-style: italic;
+    font-weight: 300; line-height: 1.75;
+    color: var(--cream-dark);
+  }
+  .mission-lead-quote cite {
+    display: block; margin-top: 20px;
+    font-size: 0.7rem; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--gold);
+    font-style: normal;
+  }
+
+  /* DIVIDER */
+  .mission-divider {
+    border: none; border-top: 1px solid rgba(245,240,232,0.08);
+    margin: 0 0 72px;
+  }
+
+  /* REASONS GRID */
+  .mission-reasons-label {
+    font-size: 0.65rem; font-weight: 600;
+    letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 48px;
+  }
+  .mission-reasons {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+  }
+  .mission-reason {
+    padding: 40px 36px;
+    background: rgba(255,255,255,0.025);
+    border-top: 1px solid rgba(245,240,232,0.07);
+    position: relative; overflow: hidden;
+    transition: background 0.3s;
+  }
+  .mission-reason::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+    background: var(--gold); transform: scaleX(0); transform-origin: left;
+    transition: transform 0.4s;
+  }
+  .mission-reason:hover { background: rgba(201,168,76,0.04); }
+  .mission-reason:hover::after { transform: scaleX(1); }
+  .mission-reason-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3rem; font-weight: 300;
+    color: rgba(201,168,76,0.2);
+    line-height: 1; margin-bottom: 20px;
+  }
+  .mission-reason-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.25rem; font-weight: 600;
+    color: var(--cream); margin-bottom: 12px; line-height: 1.3;
+  }
+  .mission-reason-body {
+    font-size: 0.85rem; font-weight: 300;
+    line-height: 1.85; color: rgba(245,240,232,0.55);
+  }
+  .mission-reason-body strong { color: rgba(245,240,232,0.85); font-weight: 500; }
+
+  /* STATS BAR */
+  .mission-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid rgba(245,240,232,0.07);
+    margin-top: 2px;
+  }
+  .mission-stat {
+    padding: 40px 36px;
+    border-right: 1px solid rgba(245,240,232,0.07);
+  }
+  .mission-stat:last-child { border-right: none; }
+  .mission-stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.8rem; font-weight: 300;
+    color: var(--gold); line-height: 1; margin-bottom: 8px;
+  }
+  .mission-stat-text {
+    font-size: 0.72rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(245,240,232,0.4);
+  }
+
+  @media (max-width: 1024px) {
+    .mission-reasons { grid-template-columns: 1fr; }
+    .mission-stats { grid-template-columns: repeat(2, 1fr); }
+    .mission-stat:nth-child(2) { border-right: none; }
+  }
+  @media (max-width: 768px) {
+    .mission-lead { grid-template-columns: 1fr; gap: 40px; }
+    .mission-reasons { grid-template-columns: 1fr; }
+    .mission-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* PROGRAMS */
+  .programs { background: var(--parchment); }
+  .programs-header { max-width: 1200px; margin: 0 auto 64px; }
+  .programs-grid {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+  }
+  .program-card {
+    background: var(--cream);
+    padding: 52px 44px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.4s ease;
+    text-decoration: none;
+    display: block;
+    color: inherit;
+    border: none;
+    text-align: left;
+    font-family: 'Jost', sans-serif;
+    width: 100%;
+  }
+  .program-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+  }
+  .program-card:hover { transform: translateY(-6px); }
+  .program-card:hover::before { transform: scaleX(1); }
+  .program-number {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 4rem;
+    font-weight: 300;
+    color: rgba(201,168,76,0.15);
+    line-height: 1;
+    margin-bottom: 20px;
+    transition: color 0.3s;
+  }
+  .program-card:hover .program-number { color: rgba(201,168,76,0.3); }
+  .program-tag {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+  .program-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.7rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--ink);
+    margin-bottom: 20px;
+  }
+  .program-desc {
+    font-size: 0.92rem;
+    font-weight: 300;
+    line-height: 1.75;
+    color: var(--ink-soft);
+    margin-bottom: 28px;
+  }
+  .program-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .program-meta-item {
+    display: flex;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+  .program-meta-item span:first-child {
+    color: var(--gold);
+    font-weight: 500;
+    min-width: 80px;
+  }
+  .program-arrow {
+    position: absolute;
+    top: 44px; right: 44px;
+    width: 36px; height: 36px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+  }
+  .program-card:hover .program-arrow { background: var(--gold); border-color: var(--gold); }
+  .program-arrow svg { transition: transform 0.3s; }
+  .program-card:hover .program-arrow svg { transform: translate(2px, -2px); }
+
+  /* RECTOR */
+  .rector { background: var(--cream-dark); position: relative; overflow: hidden; }
+  .rector-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 100px;
+    align-items: center;
+  }
+  .rector-body {
+    font-size: 1rem;
+    font-weight: 300;
+    line-height: 1.9;
+    color: var(--ink-soft);
+    margin-top: 24px;
+  }
+  .rector-body p + p { margin-top: 16px; }
+  .rector-signature {
+    margin-top: 40px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+  .rector-sig-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .rector-sig-title { font-size: 0.7rem; font-weight: 400; letter-spacing: 0.1em; color: var(--gold); text-transform: uppercase; margin-top: 4px; }
+  .rector-portrait { position: relative; }
+  .rector-portrait-frame {
+    width: 100%;
+    aspect-ratio: 3/4;
+    background: var(--ink);
+    position: relative;
+    overflow: hidden;
+  }
+  .rector-portrait-frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(26,22,18,0.4) 0%, transparent 50%);
+  }
+  .rector-initials {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 8rem;
+    font-weight: 300;
+    color: rgba(201,168,76,0.2);
+    z-index: 1;
+  }
+  .rector-caption {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 32px;
+    z-index: 2;
+    color: var(--cream);
+  }
+  .rector-caption-name { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 600; }
+  .rector-caption-sub { font-size: 0.72rem; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+  .portrait-ornament {
+    position: absolute;
+    top: -20px; right: -20px;
+    width: 120px; height: 120px;
+    border: 1px solid var(--border);
+    pointer-events: none;
+  }
+  .portrait-ornament2 {
+    position: absolute;
+    bottom: 20px; left: -20px;
+    width: 80px; height: 80px;
+    border: 1px solid var(--border);
+    pointer-events: none;
+  }
+
+  /* TEACHERS */
+  .teachers { background: var(--parchment); }
+  .teachers-inner { max-width: 1200px; margin: 0 auto; }
+  .teachers-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 56px; }
+  .teachers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; }
+  .teacher-card {
+    background: var(--cream);
+    padding: 36px 28px;
+    transition: background 0.3s, box-shadow 0.3s;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .teacher-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
+  }
+  .teacher-card:hover::before { transform: scaleX(1); }
+  .teacher-card:hover { background: var(--cream-dark); }
+  .teacher-avatar {
+    width: 64px; height: 64px;
+    background: var(--gold-dim);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--gold);
+    margin-bottom: 20px;
+    flex-shrink: 0;
+  }
+  .teacher-name { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 600; color: var(--ink); line-height: 1.3; margin-bottom: 6px; }
+  .teacher-role { font-size: 0.78rem; color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; margin-bottom: 14px; }
+  .teacher-subjects { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .teacher-subject { font-size: 0.72rem; padding: 4px 10px; background: var(--gold-dim); color: var(--ink-soft); border-radius: 2px; }
+  .teacher-more-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 16px; font-size: 0.72rem; color: var(--gold);
+    letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .teacher-card:hover .teacher-more-btn { opacity: 1; }
+
+  /* TEACHER MODAL */
+  .teacher-modal-overlay {
+    position: fixed; inset: 0; z-index: 5000;
+    background: rgba(26,22,18,0.75);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .teacher-modal-overlay.open { opacity: 1; pointer-events: all; }
+  .teacher-modal {
+    background: var(--parchment);
+    max-width: 680px; width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 56px 52px;
+    position: relative;
+    transform: translateY(20px);
+    transition: transform 0.3s;
+  }
+  .teacher-modal-overlay.open .teacher-modal { transform: translateY(0); }
+  .teacher-modal-close {
+    position: absolute; top: 20px; right: 20px;
+    width: 36px; height: 36px;
+    border: 1px solid var(--border);
+    background: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-soft); transition: border-color 0.2s, color 0.2s;
+  }
+  .teacher-modal-close:hover { border-color: var(--gold); color: var(--gold); }
+  .teacher-modal-header { display: flex; align-items: flex-start; gap: 24px; margin-bottom: 32px; }
+  .teacher-modal-avatar {
+    width: 80px; height: 80px; flex-shrink: 0;
+    background: var(--gold-dim);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem; font-weight: 600; color: var(--gold);
+  }
+  .teacher-modal-name { font-family: 'Cormorant Garamond', serif; font-size: 1.7rem; font-weight: 600; color: var(--ink); line-height: 1.2; margin-bottom: 8px; }
+  .teacher-modal-role { font-size: 0.78rem; color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; }
+  .teacher-modal-bio { font-size: 0.9rem; color: var(--ink-soft); line-height: 1.8; margin-bottom: 28px; }
+  .teacher-modal-subjects-title { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); font-weight: 500; margin-bottom: 12px; }
+  .teacher-modal-subjects { display: flex; flex-wrap: wrap; gap: 8px; }
+  .teacher-modal-subject { font-size: 0.78rem; padding: 6px 14px; background: var(--gold-dim); color: var(--ink-soft); border-radius: 2px; }
+
+  /* TEACHER MODAL */
+  .teacher-modal-overlay {
+    position: fixed; inset: 0; z-index: 5000;
+    background: rgba(26,22,18,0.75);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .teacher-modal-overlay.open { opacity: 1; pointer-events: all; }
+  .teacher-modal {
+    background: var(--parchment);
+    max-width: 640px; width: 100%;
+    max-height: 85vh; overflow-y: auto;
+    padding: 52px 48px;
+    position: relative;
+    transform: translateY(20px);
+    transition: transform 0.3s;
+  }
+  .teacher-modal-overlay.open .teacher-modal { transform: translateY(0); }
+  .teacher-modal-close {
+    position: absolute; top: 18px; right: 18px;
+    width: 34px; height: 34px;
+    border: 1px solid var(--border); background: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-soft); transition: border-color 0.2s, color 0.2s;
+  }
+  .teacher-modal-close:hover { border-color: var(--gold); color: var(--gold); }
+  .teacher-modal-header { display: flex; align-items: flex-start; gap: 22px; margin-bottom: 28px; }
+  .teacher-modal-avatar {
+    width: 72px; height: 72px; flex-shrink: 0;
+    background: var(--gold-dim); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.7rem; font-weight: 600; color: var(--gold);
+  }
+  .teacher-modal-name { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 600; color: var(--ink); line-height: 1.2; margin-bottom: 8px; }
+  .teacher-modal-role { font-size: 0.75rem; color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; }
+  .teacher-modal-bio { font-size: 0.88rem; color: var(--ink-soft); line-height: 1.85; margin-bottom: 26px; }
+  .teacher-modal-subjects-title { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); font-weight: 500; margin-bottom: 12px; }
+  .teacher-modal-subjects { display: flex; flex-wrap: wrap; gap: 7px; }
+  .teacher-modal-subject { font-size: 0.76rem; padding: 5px 12px; background: var(--gold-dim); color: var(--ink-soft); border-radius: 2px; }
+
+  /* ADMISSION */
+  .admission { background: var(--ink); position: relative; overflow: hidden; }
+  .admission::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%);
+  }
+  .admission-inner { max-width: 1200px; margin: 0 auto; }
+  .admission .section-label { color: var(--gold); }
+  .admission .section-title { color: var(--cream); }
+  .admission-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-top: 60px; }
+  .admission-block h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--cream);
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .admission-block p, .admission-block li {
+    font-size: 0.93rem;
+    font-weight: 300;
+    line-height: 1.85;
+    color: rgba(245,240,232,0.6);
+  }
+  .admission-block ul { padding-left: 0; list-style: none; }
+  .admission-block li {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(201,168,76,0.08);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .admission-block li::before { content: '—'; color: var(--gold); flex-shrink: 0; }
+  .dates-grid { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
+  .date-item {
+    padding: 20px 24px;
+    border: 1px solid var(--border);
+    background: rgba(201,168,76,0.03);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .date-dot { width: 8px; height: 8px; background: var(--gold); border-radius: 50%; flex-shrink: 0; }
+  .date-text { font-size: 0.9rem; color: var(--cream); font-weight: 300; line-height: 1.5; }
+  .date-text strong { display: block; font-weight: 500; color: var(--gold-light); margin-bottom: 2px; }
+
+  /* CONTACT */
+  .contact { background: var(--cream-dark); }
+  .contact-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; }
+  .contact-items { margin-top: 40px; display: flex; flex-direction: column; gap: 28px; }
+  .contact-item { display: flex; gap: 20px; }
+  .contact-icon {
+    width: 44px; height: 44px;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    color: var(--gold);
+  }
+  .contact-item-text label { display: block; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+  .contact-item-text p { font-size: 0.95rem; font-weight: 300; color: var(--ink-soft); line-height: 1.6; }
+  .contact-form { padding: 52px; background: var(--ink); }
+  .contact-form h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 300; color: var(--cream); margin-bottom: 32px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .form-group label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(245,240,232,0.5); }
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(201,168,76,0.2);
+    padding: 12px 16px;
+    color: var(--cream);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 300;
+    outline: none;
+    transition: border-color 0.3s;
+    width: 100%;
+    appearance: none;
+  }
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus { border-color: var(--gold); }
+  .form-group textarea { resize: none; height: 100px; }
+  .form-submit {
+    width: 100%;
+    padding: 16px;
+    background: var(--gold);
+    border: none;
+    color: var(--ink);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 8px;
+  }
+  .form-submit:hover { background: var(--gold-light); }
+
+  /* SOCIAL LINKS */
+  .social-strip {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 32px;
+  }
+  .social-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border: 1px solid var(--ink);
+    color: var(--cream);
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    transition: all 0.3s;
+    background: var(--ink);
+    position: relative;
+    overflow: hidden;
+  }
+  .social-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+    z-index: 0;
+  }
+  .social-btn:hover::before { transform: scaleX(1); }
+  .social-btn:hover { color: var(--ink); border-color: var(--gold); }
+  .social-btn svg, .social-btn span { position: relative; z-index: 1; }
+
+  .footer-socials {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+  .footer-social-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px; height: 36px;
+    border: 1px solid rgba(201,168,76,0.2);
+    color: rgba(245,240,232,0.3);
+    text-decoration: none;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .footer-social-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: scale(0);
+    border-radius: 50%;
+    transition: transform 0.35s ease;
+    z-index: 0;
+  }
+  .footer-social-btn:hover::before { transform: scale(1.5); }
+  .footer-social-btn:hover { color: var(--ink); border-color: var(--gold); }
+  .footer-social-btn svg { position: relative; z-index: 1; }
+
+  /* FOOTER */
+  footer {
+    background: #0C0A08;
+    padding: 60px;
+    border-top: 1px solid rgba(201,168,76,0.15);
+  }
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 600; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; }
+  .footer-middle { text-align: center; }
+  .footer-cross-divider { color: var(--gold); font-size: 1.5rem; margin-bottom: 8px; opacity: 0.4; }
+  .footer-reg { font-size: 0.75rem; color: rgba(245,240,232,0.25); letter-spacing: 0.05em; line-height: 1.6; }
+  .footer-right { text-align: right; font-size: 0.8rem; color: rgba(245,240,232,0.3); line-height: 1.8; }
+
+  .ornament-cross { display: inline-block; width: 24px; height: 24px; position: relative; margin: 0 auto; }
+  .ornament-cross::before, .ornament-cross::after { content: ''; position: absolute; background: var(--gold); opacity: 0.5; }
+  .ornament-cross::before { width: 1px; height: 100%; top: 0; left: 50%; }
+  .ornament-cross::after { width: 100%; height: 1px; top: 40%; left: 0; }
+
+  /* STATS */
+  .stats-bar { background: var(--gold); padding: 0 60px; }
+  .stats-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
+  .stat-item { padding: 40px 0; text-align: center; border-right: 1px solid rgba(26,22,18,0.15); }
+  .stat-item:last-child { border-right: none; }
+  .stat-num { font-family: 'Cormorant Garamond', serif; font-size: 3rem; font-weight: 600; color: var(--ink); line-height: 1; }
+  .stat-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(26,22,18,0.6); margin-top: 6px; }
+
+  /* ===================== BOTTOM NAV ===================== */
+  .bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 500;
+    width: calc(100% - 32px);
+    max-width: 420px;
+    background: rgba(20, 17, 13, 0.88);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 24px;
+    padding: 10px 8px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.45), 0 1px 0 rgba(201,168,76,0.1) inset;
+  }
+  .bottom-nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    width: 100%;
+  }
+  .bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 4px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    flex: 1;
+    background: none;
+    border: none;
+    font-family: 'Jost', sans-serif;
+  }
+  .bottom-nav-item:active { background: rgba(201,168,76,0.15); transform: scale(0.93); }
+  .bottom-nav-item.active .bottom-nav-icon { color: var(--gold); }
+  .bottom-nav-item.active .bottom-nav-label { color: var(--gold); }
+  .bottom-nav-icon {
+    color: rgba(245,240,232,0.45);
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px; height: 24px;
+  }
+  .bottom-nav-label {
+    font-size: 0.58rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: rgba(245,240,232,0.45);
+    transition: color 0.2s;
+    white-space: nowrap;
+  }
+  /* Prog nav: wider items, same height as main */
+  .bottom-nav--prog .bottom-nav-item { flex: none; padding: 6px 12px; }
+  .bottom-nav--prog .bottom-nav-label { font-size: 0.58rem; letter-spacing: 0.04em; }
+  .bottom-nav--prog .bottom-nav-sep {
+    width: 1px; height: 24px;
+    background: rgba(201,168,76,0.15);
+    flex-shrink: 0;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .fade-in.visible { opacity: 1; transform: none; }
+
+  /* ===================== ENHANCED ANIMATIONS ===================== */
+
+  /* Staggered reveal for children */
+  .stagger-children > * {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.65s ease, transform 0.65s ease;
+  }
+  .stagger-children.visible > *:nth-child(1) { opacity:1; transform:none; transition-delay: 0s; }
+  .stagger-children.visible > *:nth-child(2) { opacity:1; transform:none; transition-delay: 0.1s; }
+  .stagger-children.visible > *:nth-child(3) { opacity:1; transform:none; transition-delay: 0.2s; }
+  .stagger-children.visible > *:nth-child(4) { opacity:1; transform:none; transition-delay: 0.3s; }
+  .stagger-children.visible > *:nth-child(5) { opacity:1; transform:none; transition-delay: 0.4s; }
+  .stagger-children.visible > *:nth-child(n+6) { opacity:1; transform:none; transition-delay: 0.5s; }
+
+  /* Slide-in from left */
+  .reveal-left {
+    opacity: 0; transform: translateX(-40px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal-left.visible { opacity: 1; transform: none; }
+
+  /* Slide-in from right */
+  .reveal-right {
+    opacity: 0; transform: translateX(40px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal-right.visible { opacity: 1; transform: none; }
+
+  /* Scale-in */
+  .reveal-scale {
+    opacity: 0; transform: scale(0.94);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal-scale.visible { opacity: 1; transform: scale(1); }
+
+  /* Hero canvas particles */
+  #heroCanvas {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* Animated gold line accent on section-label */
+  .section-label::before {
+    content: '';
+    display: block;
+    width: 32px; height: 1px;
+    background: var(--gold);
+    transform-origin: left;
+    animation: none;
+  }
+  .fade-in.visible .section-label::before,
+  .reveal-left.visible .section-label::before {
+    animation: lineGrow 0.8s 0.3s ease both;
+  }
+  @keyframes lineGrow {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+
+  /* Glowing orb that follows mouse on hero */
+  .hero-orb {
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 65%);
+    pointer-events: none;
+    z-index: 1;
+    transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transform: translate(-50%, -50%);
+  }
+
+  /* Stats bar count-up shimmer */
+  .stat-num {
+    position: relative;
+    display: inline-block;
+  }
+  .stat-num::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    transform: scaleX(0);
+    transition: transform 0.6s ease;
+  }
+  .stat-item.counted .stat-num::after { transform: scaleX(1); }
+
+  /* Program card hover glow */
+  .program-card {
+    transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease !important;
+  }
+  .program-card:hover {
+    transform: translateY(-6px) !important;
+    box-shadow: 0 24px 60px rgba(201,168,76,0.1) !important;
+  }
+
+  /* Floating cross decoration */
+  @keyframes floatCross {
+    0%, 100% { transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 0.03; }
+    50%       { transform: translate(-50%, -50%) rotate(3deg) scale(1.04); opacity: 0.05; }
+  }
+  .hero-cross { animation: floatCross 12s ease-in-out infinite; }
+
+  /* Grid lines drift */
+  @keyframes gridDrift {
+    0%   { background-position: 0 0, 0 0; }
+    100% { background-position: 80px 80px, 80px 80px; }
+  }
+  .hero-lines { animation: gridDrift 20s linear infinite; }
+
+  /* Section divider gold line animation */
+  .section-divider {
+    display: block;
+    width: 60px; height: 1px;
+    background: var(--gold);
+    margin: 32px auto;
+    transform-origin: center;
+  }
+  .reveal-scale.visible .section-divider { animation: dividerExpand 1s 0.4s ease both; }
+  @keyframes dividerExpand {
+    from { transform: scaleX(0); opacity: 0; }
+    to   { transform: scaleX(1); opacity: 1; }
+  }
+
+  /* Teacher card stagger on teachers page */
+  .teacher-card-v2 {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease, border-color 0.3s, box-shadow 0.3s !important;
+  }
+  .teacher-card-v2.appeared { opacity: 1; transform: none; }
+
+  /* Rector portrait reveal */
+  @keyframes portraitReveal {
+    from { clip-path: inset(0 100% 0 0); }
+    to   { clip-path: inset(0 0% 0 0); }
+  }
+
+  /* Navbar link underline animation */
+  .nav-links a {
+    position: relative;
+  }
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -3px; left: 0;
+    width: 100%; height: 1px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.3s ease;
+  }
+  .nav-links a:hover::after { transform: scaleX(1); transform-origin: left; }
+
+  /* Gold shimmer on hero title */
+  @keyframes shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+  .hero-title em {
+    background: linear-gradient(90deg, var(--gold-light) 0%, #fff5d4 40%, var(--gold) 60%, var(--gold-light) 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 4s linear 1.5s infinite;
+  }
+
+  /* Mission section decorative lines */
+  .mission::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    animation: borderGlow 3s ease-in-out infinite;
+  }
+  @keyframes borderGlow {
+    0%, 100% { opacity: 0.3; }
+    50%       { opacity: 0.8; }
+  }
+
+  /* ===================== PROGRAM PAGE ===================== */
+  .prog-page-hero {
+    background: var(--ink);
+    padding: 120px 60px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .prog-page-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 60% at 70% 50%, rgba(201,168,76,0.07) 0%, transparent 70%),
+      linear-gradient(180deg, #1A1612 0%, #0D0B08 100%);
+  }
+  .prog-page-hero-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+  }
+  .prog-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(245,240,232,0.4);
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: 'Jost', sans-serif;
+    margin-bottom: 48px;
+    transition: color 0.3s;
+    padding: 0;
+  }
+  .prog-back-btn:hover { color: var(--gold); }
+  .prog-back-btn svg { transition: transform 0.3s; }
+  .prog-back-btn:hover svg { transform: translateX(-4px); }
+  .prog-hero-tag {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .prog-hero-tag::before { content: ''; display: block; width: 32px; height: 1px; background: var(--gold); }
+  .prog-hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 6vw, 5.5rem);
+    font-weight: 300;
+    color: var(--cream);
+    line-height: 1.05;
+    max-width: 800px;
+    margin-bottom: 24px;
+  }
+  .prog-hero-title em { font-style: italic; color: var(--gold-light); }
+  .prog-hero-sub {
+    font-size: 0.95rem;
+    font-weight: 300;
+    color: rgba(245,240,232,0.55);
+    font-style: italic;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    max-width: 600px;
+  }
+  .prog-hero-meta {
+    display: flex;
+    gap: 40px;
+    margin-top: 48px;
+    padding-top: 40px;
+    border-top: 1px solid var(--border);
+  }
+  .prog-hero-meta-item label {
+    display: block;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+  .prog-hero-meta-item span {
+    font-size: 0.85rem;
+    color: var(--cream);
+    font-weight: 300;
+  }
+
+  .prog-body { max-width: 1200px; margin: 0 auto; padding: 80px 60px; }
+
+  .prog-section { margin-bottom: 72px; }
+  .prog-section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 300;
+    color: var(--ink);
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .prog-section-title em { font-style: italic; color: var(--gold); }
+
+  .prog-specialties {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 2px;
+    margin-bottom: 48px;
+  }
+  .prog-specialty-card {
+    background: var(--cream);
+    padding: 36px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .prog-specialty-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--gold);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 0.4s ease;
+  }
+  .prog-specialty-card:hover::before { transform: scaleY(1); }
+  .prog-specialty-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: rgba(201,168,76,0.2);
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .prog-specialty-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .prog-specialty-subs {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    font-weight: 300;
+    line-height: 1.7;
+  }
+  .prog-specialty-qual {
+    margin-top: 16px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .prog-curriculum {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 48px;
+  }
+  .prog-curriculum-block {
+    background: var(--cream);
+    padding: 40px;
+  }
+  .prog-curriculum-block h4 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .prog-curriculum-block ul { list-style: none; padding: 0; }
+  .prog-curriculum-block li {
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    font-weight: 300;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(201,168,76,0.1);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .prog-curriculum-block li::before { content: '—'; color: var(--gold); flex-shrink: 0; }
+
+  .prog-levels {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin-bottom: 48px;
+  }
+  .prog-level-card {
+    background: var(--cream);
+    padding: 40px 32px;
+    position: relative;
+  }
+  .prog-level-badge {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: var(--gold);
+    padding: 4px 12px;
+    margin-bottom: 20px;
+  }
+  .prog-level-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .prog-level-credits {
+    font-size: 0.7rem;
+    color: var(--gold);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    margin-bottom: 20px;
+  }
+  .prog-level-list { list-style: none; padding: 0; }
+  .prog-level-list li {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    font-weight: 300;
+    padding: 5px 0;
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid rgba(201,168,76,0.1);
+  }
+  .prog-level-list li::before { content: '·'; color: var(--gold); font-size: 1rem; line-height: 1; }
+
+  .prog-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 48px;
+  }
+  .prog-info-block {
+    background: var(--ink);
+    padding: 40px;
+    color: var(--cream);
+  }
+  .prog-info-block h4 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--cream);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .prog-info-block p, .prog-info-block li {
+    font-size: 0.82rem;
+    color: rgba(245,240,232,0.6);
+    font-weight: 300;
+    line-height: 1.8;
+  }
+  .prog-info-block ul { list-style: none; padding: 0; }
+  .prog-info-block li { padding: 5px 0; display: flex; gap: 10px; }
+  .prog-info-block li::before { content: '—'; color: var(--gold); flex-shrink: 0; }
+  .prog-info-block .prog-price {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: var(--gold-light);
+    line-height: 1;
+    margin: 12px 0 4px;
+  }
+  .prog-info-block .prog-price-note {
+    font-size: 0.7rem;
+    color: rgba(245,240,232,0.35);
+    letter-spacing: 0.05em;
+  }
+
+  .prog-cta {
+    background: var(--gold);
+    padding: 60px;
+    text-align: center;
+    margin-bottom: 0;
+  }
+  .prog-cta h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem;
+    font-weight: 300;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+  .prog-cta p {
+    font-size: 0.85rem;
+    color: rgba(26,22,18,0.65);
+    font-weight: 300;
+    margin-bottom: 32px;
+  }
+  .prog-cta .btn-cta {
+    display: inline-block;
+    padding: 14px 48px;
+    background: var(--ink);
+    color: var(--gold);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+  }
+  .prog-cta .btn-cta:hover { background: var(--ink-soft); }
+
+  /* Subpage nav highlight */
+  .bottom-nav-item.prog-home-btn { }
+
+  /* ===================== PROGRAM SWITCHER ===================== */
+  .prog-switcher {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .prog-switcher-btn {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 7px 18px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(245,240,232,0.38);
+    transition: color 0.25s;
+    white-space: nowrap;
+  }
+  .prog-switcher-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 18px; right: 18px;
+    height: 1px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+  }
+  .prog-switcher-btn:hover {
+    color: rgba(245,240,232,0.7);
+  }
+  .prog-switcher-btn.active {
+    color: var(--gold);
+  }
+  .prog-switcher-btn.active::after {
+    transform: scaleX(1);
+  }
+  .prog-switcher-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.65rem;
+    font-weight: 300;
+    color: rgba(201,168,76,0.45);
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+  .prog-switcher-btn.active .prog-switcher-num {
+    color: rgba(201,168,76,0.75);
+  }
+  .prog-switcher-divider {
+    width: 1px;
+    height: 22px;
+    background: rgba(201,168,76,0.18);
+    flex-shrink: 0;
+  }
+  .prog-switcher-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    border: 1px solid rgba(201,168,76,0.2);
+    background: transparent;
+    cursor: pointer;
+    color: rgba(245,240,232,0.45);
+    transition: border-color 0.25s, color 0.25s;
+    flex-shrink: 0;
+  }
+  .prog-switcher-arrow:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  @media (max-width: 900px) {
+    .prog-switcher { display: none; }
+  }
+
+  /* Mobile program switcher - shown inside the page on mobile */
+  .prog-mobile-switcher {
+    display: none;
+  }
+  @media (max-width: 900px) {
+    .prog-mobile-switcher {
+      display: flex;
+      background: var(--ink);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      gap: 8px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .prog-mobile-switcher::-webkit-scrollbar { display: none; }
+    .prog-mobile-switcher-btn {
+      flex-shrink: 0;
+      padding: 8px 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(201,168,76,0.18);
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(245,240,232,0.45);
+      transition: color 0.25s, background 0.25s, border-color 0.25s;
+    }
+    .prog-mobile-switcher-btn.active {
+      color: var(--ink);
+      background: var(--gold);
+      border-color: var(--gold);
+      font-weight: 700;
+    }
+    .prog-mobile-switcher-btn:hover:not(.active) {
+      color: rgba(245,240,232,0.75);
+      border-color: rgba(201,168,76,0.4);
+    }
+  }
+
+  /* ===================== SUBPAGE NAVBAR ===================== */
+  .subpage-nav {
+    position: sticky !important;
+    top: 0;
+    z-index: 100;
+    padding: 16px 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(26,22,18,0.97);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .subpage-nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+  }
+  .subpage-nav-logo svg { height: 38px; width: auto; }
+  .subpage-nav-logo-text { display: flex; flex-direction: column; gap: 1px; }
+  .subpage-nav-logo-text span:first-child {
+    font-size: 0.6rem; font-weight: 600; letter-spacing: 0.25em;
+    text-transform: uppercase; color: var(--gold);
+  }
+  .subpage-nav-logo-text span:last-child {
+    font-size: 0.72rem; font-weight: 400; letter-spacing: 0.15em;
+    text-transform: uppercase; color: rgba(245,240,232,0.7);
+  }
+  .subpage-nav-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: rgba(245,240,232,0.7);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .subpage-nav-back:hover { border-color: var(--gold); color: var(--gold); }
+  @media (max-width: 768px) {
+    .subpage-nav { padding: 10px 12px 10px 12px; }
+    .subpage-nav-logo { gap: 10px; }
+    .subpage-nav-logo svg { height: 38px; }
+    .subpage-nav-logo-text span:first-child { display: block; }
+    .subpage-nav-logo-text span:last-child { display: block; color: var(--gold); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.18em; }
+  }
+
+  /* ===================== TEACHERS PAGE REDESIGN ===================== */
+  .teachers-page-intro {
+    background: var(--ink);
+    padding: 80px 80px 60px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: end;
+  }
+  .teachers-page-intro-quote {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 300;
+    color: var(--cream);
+    line-height: 1.55;
+    font-style: italic;
+    margin-top: 28px;
+    border-left: 2px solid var(--gold);
+    padding-left: 28px;
+  }
+  .teachers-page-intro-right { display: flex; flex-direction: column; gap: 24px; }
+  .teachers-page-stat {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(201,168,76,0.15);
+  }
+  .teachers-page-stat:last-child { border-bottom: none; }
+  .teachers-page-stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3.5rem;
+    font-weight: 300;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .teachers-page-stat-label {
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    color: rgba(245,240,232,0.5);
+    text-transform: uppercase;
+  }
+  .teachers-dept-filter {
+    background: var(--ink);
+    padding: 0 80px 40px;
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .teachers-dept-btn {
+    padding: 8px 20px;
+    border: 1px solid rgba(201,168,76,0.2);
+    background: transparent;
+    color: rgba(245,240,232,0.45);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+  .teachers-dept-btn:hover, .teachers-dept-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.07); }
+  .teachers-masonry {
+    background: var(--parchment);
+    padding: 60px 80px 80px;
+    columns: 3;
+    column-gap: 24px;
+  }
+  .teacher-card-v2 {
+    break-inside: avoid;
+    margin-bottom: 24px;
+    background: white;
+    border: 1px solid rgba(201,168,76,0.12);
+    cursor: pointer;
+    transition: all 0.3s;
+    overflow: hidden;
+  }
+  .teacher-card-v2:hover { border-color: var(--gold); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(26,22,18,0.12); }
+  .teacher-card-v2-header { padding: 28px 28px 20px; display: flex; align-items: center; gap: 18px; }
+  .teacher-card-v2-avatar {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem; font-weight: 600; color: var(--gold); flex-shrink: 0;
+  }
+  .teacher-card-v2-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem; font-weight: 600; color: var(--ink); line-height: 1.25; margin-bottom: 4px;
+  }
+  .teacher-card-v2-role {
+    font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold);
+  }
+  .teacher-card-v2-dept {
+    margin: 0 28px; padding: 10px 14px; background: var(--gold-dim);
+    font-size: 0.65rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft);
+  }
+  .teacher-card-v2-bio { padding: 16px 28px; font-size: 0.82rem; font-weight: 300; line-height: 1.7; color: var(--ink-soft); }
+  .teacher-card-v2-subjects { padding: 0 28px 20px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .teacher-card-v2-subject {
+    font-size: 0.62rem; padding: 3px 9px; background: var(--parchment);
+    border: 1px solid var(--border); color: var(--ink-soft); border-radius: 2px;
+  }
+  .teacher-card-v2-arrow {
+    margin: 0 28px 24px; padding-top: 16px; border-top: 1px solid rgba(201,168,76,0.15);
+    font-size: 0.65rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--gold); display: flex; align-items: center; gap: 8px;
+  }
+  .teacher-card-v2-arrow svg { transition: transform 0.3s; }
+  .teacher-card-v2:hover .teacher-card-v2-arrow svg { transform: translateX(4px); }
+  @media (max-width: 1024px) {
+    .teachers-masonry { columns: 2; padding: 48px 40px 60px; }
+    .teachers-page-intro { padding: 60px 40px; grid-template-columns: 1fr; gap: 48px; }
+    .teachers-dept-filter { padding: 0 40px 32px; }
+  }
+  @media (max-width: 768px) {
+    .teachers-masonry { columns: 1; padding: 32px 24px 48px; }
+    .teachers-page-intro { padding: 40px 24px; }
+    .teachers-dept-filter { padding: 0 24px 28px; }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 1024px) {
+    section { padding: 80px 40px; }
+    .mission-grid, .rector-inner, .admission-grid, .contact-inner { grid-template-columns: 1fr; gap: 48px; }
+    .programs-grid { grid-template-columns: 1fr 1fr; }
+    .teachers-grid { grid-template-columns: repeat(2, 1fr); }
+    .rector-portrait { max-width: 400px; }
+    .prog-curriculum { grid-template-columns: 1fr; }
+    .prog-levels { grid-template-columns: 1fr; }
+    .prog-info-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    nav { padding: 16px 16px 16px 8px; }
+    nav.scrolled { padding: 12px 16px 12px 8px; }
+    #navbar { padding: 16px 16px 16px 16px; }
+    #navbar.scrolled { padding: 12px 16px 12px 16px; }
+    .nav-links { display: none !important; }
+    .nav-logo-svg { height: 44px; }
+    .nav-logo { gap: 10px; }
+    .bottom-nav { display: flex; }
+    body { padding-bottom: 90px; }
+    section { padding: 64px 24px; }
+    .programs-grid { grid-template-columns: 1fr; }
+    .teachers-grid { grid-template-columns: 1fr 1fr; }
+    .teacher-modal { padding: 40px 28px; }
+    .teacher-modal-header { flex-direction: column; gap: 16px; }
+    .stats-inner { grid-template-columns: repeat(2, 1fr); }
+    .stat-item:nth-child(2) { border-right: none; }
+    .form-row { grid-template-columns: 1fr; }
+    .footer-inner { flex-direction: column; gap: 32px; text-align: center; }
+    .footer-right { text-align: center; }
+    footer { padding: 48px 24px 110px; }
+    .contact-form { padding: 32px 24px; }
+    .teachers-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .prog-page-hero { padding: 100px 24px 60px; }
+    .prog-body { padding: 48px 24px; }
+    .prog-specialties { grid-template-columns: 1fr; }
+    .prog-hero-meta { flex-wrap: wrap; gap: 24px; }
+    .prog-cta { padding: 40px 24px; }
+  }
+  @media (max-width: 480px) {
+    .teachers-grid { grid-template-columns: 1fr; }
+    .teacher-modal { padding: 32px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== MAIN PAGE ==================== -->
+<div class="page" id="page-main">
+
+  <!-- NAV -->
+  <nav id="navbar">
+    <span class="nav-logo" onclick="goHome()">
+      <svg class="nav-logo-svg" viewBox="0 0 2048 2048" xmlns="http://www.w3.org/2000/svg">
+        <path fill="rgb(254,254,254)" d="M 563.408 430.403 C 576.145 433.628 678.372 513.149 697.694 526.463 C 716.843 539.658 737.542 551.847 758.634 561.638 C 818.56 589.457 884.238 605.575 948.594 619.54 C 977.989 625.919 1007.82 630.572 1037.05 637.633 C 1104.53 653.928 1174.59 683.386 1228.09 728.187 C 1272.91 765.73 1309.4 816.635 1314.64 876.309 C 1316.33 874.797 1318.07 873.338 1319.85 871.936 C 1363.81 837.465 1429.6 812.696 1484.96 819.892 C 1588.5 833.353 1652.04 926.722 1679.2 1019.74 C 1681.95 1029.16 1688.71 1042.19 1687.47 1051.78 C 1685.58 1054.54 1682.81 1056.06 1679.56 1056.47 C 1659.65 1059.95 1633.32 1054.47 1613.93 1057.86 C 1503.36 1077.18 1426.67 1182.34 1392.16 1282.39 C 1380.52 1316.12 1373.64 1346.49 1361.7 1378.8 C 1325.28 1477.35 1254.15 1558.24 1158.47 1602.42 C 1040.34 1656.5 907.662 1645.73 788.226 1599.53 C 730.559 1579.5 676.429 1543.78 622.729 1515.2 C 613.533 1510.3 579.421 1494.33 579.351 1484.25 C 584.686 1479.35 600.085 1480.39 607.421 1479.95 C 651.574 1477.25 696.911 1477.25 740.948 1473.99 C 757.313 1472.64 773.593 1470.4 789.717 1467.29 C 880.646 1450.18 972.551 1416.2 1026.75 1336.93 C 1019.61 1336.07 1012.51 1334.5 1005.45 1333.17 C 831.674 1300.56 670.936 1220.87 559.605 1080.66 C 469.248 966.866 429.482 837.396 389.582 700.413 C 385.204 685.385 378.542 669.204 377.855 653.774 C 377.772 651.887 379.802 650.249 381.186 649.308 C 391.417 651.086 466.927 705.134 481.688 714.841 C 492.629 722.142 503.993 728.789 515.719 734.749 C 592.663 774.517 674.781 792.188 756.766 815.023 C 756.482 814.729 756.198 814.434 755.914 814.14 L 754.522 812.645 C 750.19 808.04 747.014 803.532 743.317 798.41 C 676.416 705.722 629.105 601.179 584.763 496.363 C 576.686 477.271 566.426 458.871 560.131 439.175 C 558.924 435.401 561.422 433.154 563.408 430.403 z M 1275.75 1266.48 L 1275.36 1265.21 C 1248.5 1175.38 1296.97 1048.89 1197.98 996.895 C 1129.04 960.687 1051.83 957.713 976.525 946.249 C 919.786 937.858 863.274 928.006 807.043 916.703 C 738.934 903.421 671.602 886.426 605.35 865.792 C 578.892 857.375 553.577 847.92 527.532 838.48 C 535.671 863.289 551.484 896.526 563.173 919.881 C 620.281 1033.99 705.082 1120.15 819.088 1177.97 C 928.346 1233.38 1050.06 1255.83 1171.5 1263.85 C 1204.06 1266 1242.99 1268 1275.75 1266.48 z M 1225.12 910.727 C 1225.08 865.102 1220.44 845.007 1186.4 811.258 C 1108.86 734.375 1002.15 722.48 901.054 700.484 C 853.729 690.188 807.544 675.809 761.621 659.883 C 779.698 698.262 870.89 830.832 906.875 843.865 C 922.491 849.52 945.012 850.618 961.961 853.442 C 1037.89 866.096 1115.35 869.955 1188.54 895.638 C 1200.85 899.96 1213.67 904.436 1225.12 910.727 z M 882.268 1537.17 C 896.144 1537.75 911.894 1541.72 925.931 1543.83 C 955.834 1548.34 1009.9 1551 1038.76 1544.32 C 1108.82 1536.91 1181.63 1493.12 1225.55 1438.57 C 1238.79 1421.93 1250.42 1404.07 1260.3 1385.24 C 1264.97 1376.18 1269.23 1365.82 1273.99 1357.12 C 1255.79 1359.14 1233.58 1356.48 1215 1356.12 C 1192.2 1355.68 1170 1354.73 1147.28 1352.54 C 1138.17 1351.66 1129.31 1351.94 1119.99 1350.63 C 1092.15 1425.38 1018.42 1480.29 947.97 1512.49 C 926.628 1522.13 904.681 1530.38 882.268 1537.17 z M 1318.18 989.614 C 1348.24 1035.59 1356.35 1100.68 1353.93 1154.91 C 1360.97 1142.35 1373.67 1120.9 1383.21 1109.98 C 1429.04 1049.51 1491.48 998.421 1565.54 977.774 C 1537.53 939.193 1512.28 907.806 1461.02 909.43 C 1415.44 911.011 1381.42 935.334 1347.18 963.701 C 1337.71 971.553 1327.38 982.443 1318.18 989.614 z"/>
+      </svg>
+      <span class="nav-logo-text">
+        <span>ХДН</span>
+        <span>Библейский Колледж</span>
+      </span>
+    </span>
+    <ul class="nav-links">
+      <li><a href="#mission">Миссия</a></li>
+      <li><a href="#programs">Программы</a></li>
+      <li><a href="#rector">Ректор</a></li>
+      <li><a href="#teachers">Преподаватели</a></li>
+      <li><a href="#admission">Приём</a></li>
+      <li><a href="#contact">Контакты</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <canvas id="heroCanvas"></canvas>
+    <div class="hero-orb" id="heroOrb"></div>
+    <div class="hero-bg"></div>
+    <div class="hero-lines"></div>
+    <svg class="hero-cross" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <line x1="100" y1="10" x2="100" y2="190" stroke="#C9A84C" stroke-width="1"/>
+      <line x1="10" y1="75" x2="190" y2="75" stroke="#C9A84C" stroke-width="1"/>
+    </svg>
+    <div class="hero-content">
+      <div class="hero-eyebrow">{{ site.hero_eyebrow }}</div>
+      <h1 class="hero-title">Библейский<br><em>Колледж</em></h1>
+      <p class="hero-sub">{{ site.hero_subtitle }}</p>
+      <div class="hero-cta">
+        <button class="btn-primary" onclick="scrollToPrograms()">Выбрать программу</button>
+        <a href="#mission" class="btn-outline">Узнать больше</a>
+      </div>
+    </div>
+    <div class="hero-scroll">
+      <span>Далее</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stats-inner stagger-children">
+      <div class="stat-item"><div class="stat-num">{{ site.stats_directions }}</div><div class="stat-label">Направления</div></div>
+      <div class="stat-item"><div class="stat-num">{{ site.stats_years }}</div><div class="stat-label">Лет служения</div></div>
+      <div class="stat-item"><div class="stat-num">{{ site.stats_degrees }}</div><div class="stat-label">Степеней</div></div>
+      <div class="stat-item"><div class="stat-num">{{ site.stats_callings }}</div><div class="stat-label">Призваний</div></div>
+    </div>
+  </div>
+
+  <!-- MISSION -->
+  <section class="mission" id="mission">
+    <div class="mission-inner fade-in">
+
+      <!-- LEAD -->
+      <div class="mission-lead">
+        <div class="reveal-left">
+          <div class="section-label">Почему мы</div>
+          <h2 class="section-title">Не просто<br><em>учёба</em></h2>
+          <p class="mission-lead-text">
+            Большинство людей знают Библию — но <strong>не знают, что с ней делать.</strong>
+            Чувствуют призвание — но не понимают, куда оно ведёт.
+            Хотят служить — но не имеют инструментов.<br><br>
+            Библейский колледж ХВЕ существует для тех, кто готов перейти
+            от «верю» к <strong>«действую».</strong> Здесь вера встречается с практикой,
+            а призвание обретает форму.
+          </p>
+        </div>
+        <div>
+          <div class="mission-lead-quote">
+            <p>«Бог ищет не идеальных — Он ищет готовых. Готовых учиться, расти и идти туда, куда большинство не решается.»</p>
+            <cite>Пётр Ашейчик · Ректор</cite>
+          </div>
+        </div>
+      </div>
+
+      <hr class="mission-divider">
+
+      <!-- REASONS -->
+      <div class="mission-reasons-label">3 причины, которые меняют всё</div>
+      <div class="mission-reasons">
+
+        <div class="mission-reason">
+          <div class="mission-reason-num">01</div>
+          <div class="mission-reason-title">Ты уйдёшь с ответами, а не вопросами</div>
+          <div class="mission-reason-body">
+            Многие годами ходят на службы и так и не понимают,
+            <strong>как самостоятельно читать и понимать Библию.</strong>
+            Здесь ты изучишь герменевтику, экзегетику, богословие —
+            и научишься слышать Бога в тексте, а не только через чужую проповедь.
+          </div>
+        </div>
+
+        <div class="mission-reason">
+          <div class="mission-reason-num">02</div>
+          <div class="mission-reason-title">Призвание становится профессией</div>
+          <div class="mission-reason-body">
+            Желание служить — это начало. Но без знаний оно быстро упирается в стену.
+            <strong>Государственно признанный диплом бакалавра</strong> открывает двери
+            в профессиональное служение — в Беларуси и за её пределами.
+          </div>
+        </div>
+
+        <div class="mission-reason">
+          <div class="mission-reason-num">03</div>
+          <div class="mission-reason-title">Формат, который работает для занятых</div>
+          <div class="mission-reason-body">
+            Очно-заочная форма — <strong>4 сессии в год.</strong>
+            Ты продолжаешь работать, служить в своей церкви, жить своей жизнью —
+            и при этом системно растёшь. Не нужно бросать всё. Нужно просто начать.
+          </div>
+        </div>
+
+      </div><!-- /reasons -->
+
+      <!-- STATS -->
+      <div class="mission-stats">
+        <div class="mission-stat">
+          <div class="mission-stat-num">20+</div>
+          <div class="mission-stat-text">лет подготовки служителей</div>
+        </div>
+        <div class="mission-stat">
+          <div class="mission-stat-num">25</div>
+          <div class="mission-stat-text">практикующих преподавателей</div>
+        </div>
+        <div class="mission-stat">
+          <div class="mission-stat-num">3</div>
+          <div class="mission-stat-text">программы подготовки</div>
+        </div>
+        <div class="mission-stat">
+          <div class="mission-stat-num">4×</div>
+          <div class="mission-stat-text">сессии в год — без отрыва от жизни</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- PROGRAMS -->
+  <section class="programs" id="programs">
+    <div class="programs-header fade-in">
+      <div class="section-label">Обучение</div>
+      <h2 class="section-title">Программы<br><em>Подготовки</em></h2>
+    </div>
+    <div class="programs-grid">
+      <button class="program-card fade-in" onclick="openPage('music')">
+        <div class="program-arrow">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L12 2M12 2H5M12 2V9"/></svg>
+        </div>
+        <div class="program-number">01</div>
+        <div class="program-tag">Музыкальное служение</div>
+        <h3 class="program-title">Бакалавр искусств в церковной музыке</h3>
+        <p class="program-desc">Практические навыки музыкального служения и технического обеспечения. Богословская и музыкальная подготовка в едином курсе.</p>
+        <div class="program-meta">
+          <div class="program-meta-item"><span>Форма</span><span>Очно-заочная · 4 сессии/год</span></div>
+          <div class="program-meta-item"><span>Срок</span><span>Уровень 1 — 3 года · Уровень 2 — 2,5 года</span></div>
+          <div class="program-meta-item"><span>Степень</span><span>Бакалавр искусств</span></div>
+        </div>
+      </button>
+
+      <button class="program-card fade-in" onclick="openPage('theology')">
+        <div class="program-arrow">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L12 2M12 2H5M12 2V9"/></svg>
+        </div>
+        <div class="program-number">02</div>
+        <div class="program-tag">Библейско-богословское</div>
+        <h3 class="program-title">Богословие и христианское служение</h3>
+        <p class="program-desc">Изучение Священного Писания на трёх уровнях — от базового сертификата до степени бакалавра богословия. Полностью онлайн.</p>
+        <div class="program-meta">
+          <div class="program-meta-item"><span>Форма</span><span>Заочная (онлайн)</span></div>
+          <div class="program-meta-item"><span>Уровень А</span><span>Сертификат библейских знаний</span></div>
+          <div class="program-meta-item"><span>Уровень B/C</span><span>Бакалавр служения / богословия</span></div>
+        </div>
+      </button>
+
+      <button class="program-card fade-in" onclick="openPage('theatre')">
+        <div class="program-arrow">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L12 2M12 2H5M12 2V9"/></svg>
+        </div>
+        <div class="program-number">03</div>
+        <div class="program-tag">Евангелие через творчество</div>
+        <h3 class="program-title">Бакалавр искусств в театральном служении</h3>
+        <p class="program-desc">Практические навыки церковного театрального служения. Сочетание богословской и специальной подготовки для служения творчеством.</p>
+        <div class="program-meta">
+          <div class="program-meta-item"><span>Форма</span><span>Очно-заочная · 4 сессии/год</span></div>
+          <div class="program-meta-item"><span>Срок</span><span>3 года</span></div>
+          <div class="program-meta-item"><span>Степень</span><span>Бакалавр искусств</span></div>
+        </div>
+      </button>
+    </div>
+  </section>
+
+  <!-- RECTOR -->
+  <section class="rector" id="rector">
+    <div class="rector-inner fade-in">
+      <div class="rector-text-side">
+        <div class="section-label">Слово ректора</div>
+        <h2 class="section-title">Послание<br><em>Руководителя</em></h2>
+        <div class="rector-body">
+          <p>Бог трудится над спасением людей в этом мире сегодня. Он ищет общения с тобой. Он хочет пригласить тебя в Свой труд.</p>
+          <p>У Него есть конкретное призвание и дело для Твоей Жизни. Тебя ждёт серьёзный вызов, если примешь решение исполнять своё призвание.</p>
+          <p>Его видение гораздо выше твоих возможностей. Потребуется вся вера и верность Ему. Придётся серьёзно подготовиться к выполнению Его задания.</p>
+          <p>Ты узнаешь, как это — <strong>Ходить с Ним!</strong></p>
+        </div>
+        <div class="rector-signature">
+          <div class="ornament-cross"></div>
+          <div>
+            <div class="rector-sig-name">Пётр Ашейчик</div>
+            <div class="rector-sig-title">Ректор · Доктор богословия</div>
+          </div>
+        </div>
+      </div>
+      <div class="rector-portrait">
+        <div class="portrait-ornament"></div>
+        <div class="rector-portrait-frame">
+          <div class="rector-initials">ПА</div>
+          <div class="rector-caption">
+            <div class="rector-caption-name">Пётр Викентьевич Ашейчик</div>
+            <div class="rector-caption-sub">Ректор · Доктор богословия · Основатель ХДН</div>
+          </div>
+        </div>
+        <div class="portrait-ornament2"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEACHERS -->
+  <section class="teachers" id="teachers">
+    <div class="teachers-inner">
+      <div class="teachers-header fade-in">
+        <div>
+          <div class="section-label">Состав</div>
+          <h2 class="section-title">Наши<br><em>Преподаватели</em></h2>
+        </div>
+      </div>
+      <div class="teachers-grid">
+        <div class="teacher-card fade-in" onclick="openTeacherModal(0)" style="cursor:pointer;">
+          <div class="teacher-avatar">ПА</div>
+          <div class="teacher-name">Пётр Викентьевич Ашейчик</div>
+          <div class="teacher-role">Ректор · Доктор богословия</div>
+          <div class="teacher-subjects">
+            <span class="teacher-subject">Хвала и поклонение</span>
+            <span class="teacher-subject">Введение в Библию</span>
+            <span class="teacher-subject">Обзор НЗ</span>
+            <span class="teacher-subject">Христ. этика</span>
+          </div>
+        </div>
+        <div class="teacher-card fade-in" onclick="openTeacherModal(1)" style="cursor:pointer;">
+          <div class="teacher-avatar">ИА</div>
+          <div class="teacher-name">Инесса Григорьевна Ашейчик</div>
+          <div class="teacher-role">Проректор · Магистр богословия</div>
+          <div class="teacher-subjects">
+            <span class="teacher-subject">Обзор ВЗ</span>
+            <span class="teacher-subject">Теория музыки</span>
+            <span class="teacher-subject">Хвала и поклонение</span>
+          </div>
+        </div>
+        <div class="teacher-card fade-in" onclick="openTeacherModal(2)" style="cursor:pointer;">
+          <div class="teacher-avatar">АЛ</div>
+          <div class="teacher-name">Александр Сергеевич Лукьянович</div>
+          <div class="teacher-role">Зав. богосл. отделением · Магистр</div>
+          <div class="teacher-subjects">
+            <span class="teacher-subject">Методы изучения Библии</span>
+            <span class="teacher-subject">Герменевтика</span>
+          </div>
+        </div>
+        <div class="teacher-card fade-in" onclick="openPage('teachers')" style="background:var(--gold-dim);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:40px 28px;cursor:pointer;">
+          <div style="width:48px;height:48px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gold);">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="7" r="3"/><path d="M2 17c0-3 2.7-5 6-5s6 2 6 5"/><circle cx="15" cy="7" r="2.5"/><path d="M15 12c2 .5 3 2 3 4"/></svg>
+          </div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">Практические служители</div>
+          <div style="font-size:0.78rem;color:var(--ink-soft);font-weight:300;line-height:1.6;">Большинство наших преподавателей — действующие служители церкви</div>
+          <div class="btn-primary" style="font-size:0.65rem;padding:10px 24px;margin-top:8px;pointer-events:none;">Все преподаватели</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+  // Teachers data is rendered from the database (seeded on first start, editable via /admin and bot).
+  const TEACHERS_FROM_DB = {{ teachers | tojson }};
+  const TEACHERS_FALLBACK = [
+    { initials:"ПА", name:"Пётр Викентьевич Ашейчик", role:"Ректор · Доктор богословия", bio:"Родился 6 августа 1967 года в Минске в семье верующих родителей. В составе группы «Пилигримъ» участвовал в проповеди Евангелия на территории Советского Союза. В 1995 г. закончил Библейский институт «Христос для народов». С 2003 г. и по настоящее время — ректор Библейского колледжа ХВЕ. В 2005 году закончил магистратуру Калифорнийского университета «Vision», в 2013 году получил степень доктора богословия. Является основателем и пастором церкви «Христос для народов» г. Минска.", subjects:["Хвала и поклонение","Введение в Библию","Обзор Нового Завета","Христианская педагогика","Христианская этика","Послания к Римлянам и Галатам","Жизнь Иисуса Христа","Малые пророки","Гитара","Бас-гитара"] },
+    { initials:"ИА", name:"Инесса Григорьевна Ашейчик", role:"Проректор по учебной работе · Магистр богословия", bio:"Родилась в Минске в 1965 году в семье евангельских христиан. 30 лет несла служение музыканта в хоре. Образование высшее — БГУ по специальности химия. В 2005 году окончила магистратуру Калифорнийского университета «Vision». Продюсер детских музыкальных альбомов. Служит директором Воскресной школы церкви «Христос для народов» г. Минска.", subjects:["Обзор Ветхого Завета","Исторические книги Библии","Хвала и поклонение","Теория музыки","Общее фортепиано","Музыкальная литература"] },
+    { initials:"АЛ", name:"Александр Сергеевич Лукьянович", role:"Зав. богословским отделением · Магистр богословия", bio:"Родился 31 декабря 1983 года в Бресте. Образование высшее — БГЭУ (правоведение, юрист). Практикующий юрист в области экономического права. В 2010 году получил степень бакалавра, в 2012 году — магистра богословия. Рукоположен в сан дьякона в 2019 г.", subjects:["Обзор Ветхого Завета","Методы изучения Библии","Практическая герменевтика","Современные герменевтические подходы","Введение в систематическое богословие","Основы права","Деяния апостолов","Экзегетика"] },
+    { initials:"ЕФ", name:"Елена Андреевна Филиппович", role:"Академический куратор · Магистр богословия", bio:"Образование: БГПУ им. М. Танка (сурдопедагогика), психология, бакалавр богословия (с отличием), магистр богословия. С года окончания колледжа является академическим секретарем и преподавателем. Учитель воскресной школы и сурдопереводчик.", subjects:["Практическое христианство","Синоптические евангелия","Введение в Библию","Правила написания академических работ","Дары служений"] },
+    { initials:"СП", name:"Сергей Сергеевич Поднюк", role:"Доктор богословия · Епископ ОЦ ХВЕ", bio:"Родился 24 февраля 1973 года в Бресте. Доктор философских наук. С 2006 года — ректор Теологического института ХВЕ г. Минска. Рукоположен в сан епископа в 2018 году. С 2026 г. — епископ Объединенной Церкви ХВЕ в Республике Беларусь.", subjects:["Послания к Коринфянам","Систематическое богословие","Сравнительное богословие","Философия","История церкви","Пасторское богословие","Душепопечение"] },
+    { initials:"ПК", name:"Павел Александрович Калоша", role:"Доктор практического богословия · Пастор", bio:"Родился 6 августа 1982 года в Жодино. В 2006 году — бакалавр богословия, в 2008 году — магистр (Киев), в 2019 году — Доктор практического богословия. С 2007 года преподаёт. Старший пастор церквей ХВЕ Пуховичского и Червенского районов.", subjects:["Апологетика","Пятикнижие","Обзор Ветхого Завета","Пророческая литература","Герменевтика","Экзегетика","Деяния Святых Апостолов","Синоптические Евангелия"] },
+    { initials:"ВШ", name:"Валерий Михайлович Шейбак", role:"Бакалавр богословия · Пастор", bio:"Родился 27 августа 1973 года в Минске. Пришел к Богу в 1993 году. Окончил Библейский колледж и Теологический институт ХВЕ. С 1998 г. — пастор церкви «Семья Божья». Служит в семейном консультировании, член почетного совета лагерей «Вместе».", subjects:["Брак и семья","Введение в евангельское вероучение","Церковь в плюралистическом обществе","История церкви"] },
+    { initials:"АБ", name:"Андрей Владимирович Борейко", role:"Преподаватель · Бакалавр богословия", bio:"Родился 16 января 1991 года в Молодечно. В 2013 году закончил Библейский колледж ХВЕ. Образование высшее — БГАТУ (инженер-энергетик). В 2020 году рукоположен на пасторское служение в церкви «Христос для народов».", subjects:["Христианская жизнь","Призвание","Библейское лидерство"] },
+    { initials:"АС", name:"Ангелина Валерьевна Савицкая", role:"Преподаватель · Бакалавр искусств", bio:"Окончила Теологический институт ХВЕ (бакалавр искусств в церковной музыке) и БГУКИ (певец, педагог по вокалу). С 2013 года преподаёт в студии «Ракета». С 2018 года — руководитель Второго молодёжного хора церкви «Благодать».", subjects:["Вокал","Работа в нотном редакторе"] },
+    { initials:"АС", name:"Алевтина Викторовна Скорина", role:"Преподаватель · Бакалавр искусств", bio:"Родилась 14 июня 1977 года в Минске в семье музыкантов. Окончила Лицей при консерватории, Академию музыки, Теологический институт ХВЕ. С 2004 года служит концертмейстером в хоре церкви «Благодать».", subjects:["Теория музыки","Сольфеджио","Фортепиано"] },
+    { initials:"СЯ", name:"Станислав Викторович Янчин", role:"Преподаватель", bio:"Родился 16 октября 1958 года. Высшее образование (Минская академия искусств). С 1983 года работал в Филармонии в ансамбле «Хорошки». С 2001 года — звукорежиссёр в студии «Селах». С 2011 года — музыкальный руководитель служения прославления в «Церкви Иисуса Христа».", subjects:["Звукорежиссура","Бас-гитара"] },
+    { initials:"ИБ", name:"Ирина Владимировна Бейня", role:"Преподаватель", bio:"Родилась 20 января 1983 г. в Минске. Отец — пастор. Окончила Минский педагогический колледж (музыкальное отделение). Репетитор вокала в Национальном центре искусств им. В. Мулявина. С 1989 года поёт в группе «Эдем». Автор более 65 песен.", subjects:["Вокал"] },
+    { initials:"АС", name:"Алесь Александрович Соболь", role:"Преподаватель", bio:"Родился 16 мая 1989 г. в Поставах. Высшее образование (БГУКИ, ударные инструменты). С 2015 года преподаёт в Минском государственном музыкальном колледже им. Глинки. Служит в прославлении церкви «Христос для народов» г. Минска.", subjects:["Ударные","Ритмическое сольфеджио"] },
+    { initials:"СС", name:"Сюзанна Александровна Соболь", role:"Преподаватель", bio:"Родилась 4 сентября 1993 г. в Минске. Высшее образование (БГУКИ, искусство эстрады, пение). С 2018 года педагог музыкальной школы «Jam». Лидер прославления церкви «Христос для народов» г. Минска.", subjects:["Вокал"] },
+    { initials:"ИГ", name:"Ирина Петровна Горошко", role:"Преподаватель", bio:"Родилась 16 июня 1993 года в Иваново. Окончила с отличием школу искусств им. Н. Орды. Образование — БГУ (математическая электроника), Теологический институт ХВЕ (бакалавр искусств). С 2010 года служит концертмейстером в молодёжном хоре церкви «Благодать».", subjects:["Общее фортепиано"] },
+    { initials:"СЧ", name:"Сергей Александрович Черняк", role:"Преподаватель", bio:"Родился 28 июня 1988 года в Ивацевичах. Образование высшее — БГУ (современные иностранные языки). В 2013–2014 гг. обучался в Berklee College of Music (джазовая гармония). С 2017 г. — клавишные в церкви «Новая жизнь» г. Минска.", subjects:["Клавишные инструменты","Композиция"] },
+    { initials:"АЧ", name:"Алина Александровна Черняк", role:"Преподаватель", bio:"Родилась 20 мая 1987 года в Минске. Высшее образование (БГПУ, хоровое дирижирование), магистратура БГПУ. Лидер команды прославления в церкви «Новая Жизнь». Участвует в миссионерском служении «В сердце весь мир» (Кения, Непал).", subjects:["Общее фортепиано"] },
+    { initials:"ПТ", name:"Павел Здиславович Третяк", role:"Преподаватель", bio:"Родился 1 мая 1974 года в Гродно. Образование — Гродненское музыкальное училище (гитара), Белорусская государственная академия музыки. Лауреат республиканских и международных конкурсов. С 2003 года — сессионный музыкант на студии «Селах».", subjects:["Гитара","Электрогитара"] },
+    { initials:"ДЯ", name:"Дарья Владимировна Ярмакович", role:"Преподаватель", bio:"Образование — Молодечненский музыкальный колледж им. М. Кл. Огинского, Белорусская государственная академия музыки. Специальность «музыковедение». Опыт преподавания более десяти лет в музыкальной школе, студии и колледже.", subjects:["Сольфеджио","Теория музыки","Гармония","История музыки","Анализ музыкальных произведений","Полифония"] },
+    { initials:"ВА", name:"Викентий Петрович Ашейчик", role:"Преподаватель", bio:"Родился 1 февраля 1989 г. в Минске. Высшее образование (БГУКИ, ударные инструменты). В 2012 году закончил Библейский колледж ХВЕ. В 2018 году — программа по звукорежиссуре в Visible Music College (Мемфис, США). С 2019 г. — директор КПУ «СелахМедиа». Рукоположен в 2019 году.", subjects:["Ударные","Ритмическое сольфеджио","Основы компьютерной аранжировки"] },
+    { initials:"ВГ", name:"Вероника Александровна Гойко", role:"Преподаватель", bio:"Родилась 08 августа 1992 года в Бобруйске. Высшее образование (Белорусская государственная академия музыки, хоровое дирижирование). Руководитель образцового хора «Элегия» в СШ №43. Регент хора в церкви «Благодать» г. Минска.", subjects:["Хоровое сольфеджио","Теория музыки"] },
+    { initials:"БИ", name:"Борис Евсеевич Идельчик", role:"Преподаватель", bio:"Родился в Минске. Окончил культпросвет училище с красным дипломом. С 1993 года пишет песни. Участник Славянского базара 1995 года. Записал 8 авторских альбомов. Основал группу «Барух Бэнд». Служит в еврейской мессианской общине «Звезда Вифлеема».", subjects:["Клавишные инструменты","Композиция"] },
+    { initials:"МЯ", name:"Мария Александровна Якович", role:"Преподаватель", bio:"Родилась 02 августа 1993 года в Бобруйске. Высшее образование (БГУКИ, режиссёр театра). Финалистка «Х-Фактор»-4 и -6 (Украина). Обучалась в международной школе вокала «Be Victory». С 2015 г. служит в группе прославления церкви «Евангелие Христа».", subjects:["Вокал","Сценическая речь. Культура речи"] },
+    { initials:"АБ", name:"Андрей Николаевич Бобровко", role:"Преподаватель", bio:"Родился 17 ноября 1977 г. в Минске. Высшее образование (БГУК, режиссёр массовых зрелищ). Работал звукорежиссёром в Минском молодёжном театре и Библейском колледже ХВЕ. Звукорежиссёр в КПУ «СелахМедиа».", subjects:["Звукорежиссура"] },
+    { initials:"МГ", name:"Мария Гуцева", role:"Преподаватель · Режиссёр театра", bio:"Режиссёр театра с опытом мастер-классов по мастерству актёра и сценической речи. В 2022 году закончила БГАИ. Поставила 6 спектаклей в профессиональных театрах РБ. С 2022 по 2024 г. — режиссёр-постановщик Могилёвского областного театра кукол.", subjects:["Актёрское мастерство","Пластика"] }
+  ];
+  const TEACHERS = (TEACHERS_FROM_DB && TEACHERS_FROM_DB.length) ? TEACHERS_FROM_DB : TEACHERS_FALLBACK;
+
+  // Determine department from subjects/role
+  function getTeacherDept(t) {
+    const theology = ['богословие','богословия','герменевтик','экзегетик','пятикнижие','пророки','ветхого завет','нового завет','синоптические','послания','апологетик','миссиолог','сотериолог','философи','история церкви','душепопечение','пасторск','брак и семья','христианская жизнь','христианская этика','христианская педагогика','призвание','лидерство','церковь','введение в библию','практическое христианство','дары','правила написания','христос для народов'];
+    const music = ['вокал','гитара','бас-гитара','ударные','клавишные','фортепиано','сольфеджио','теория музыки','хоровое','музыкальная литература','звукорежиссур','композиц','гармония','полифония','аранжировк','ритмическое','обзор ветхого','хвала и поклонение','введение в евангельское'];
+    const theatre = ['актёрское','пластика','хореография','сценическая речь','режиссёр'];
+    const subStr = t.subjects.join(' ').toLowerCase();
+    const roleStr = t.role.toLowerCase();
+    const bioStr = t.bio.toLowerCase();
+    if (theatre.some(k => subStr.includes(k) || roleStr.includes(k))) return 'theatre';
+    if (music.some(k => subStr.includes(k))) return 'music';
+    if (theology.some(k => subStr.includes(k) || roleStr.includes(k))) return 'theology';
+    return 'music';
+  }
+
+  const DEPT_LABELS = { music: 'Музыкальное служение', theology: 'Богословское отделение', theatre: 'Театральное служение' };
+
+  let currentFilter = 'all';
+
+  function filterTeachers(dept, btn) {
+    currentFilter = dept;
+    document.querySelectorAll('.teachers-dept-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderTeachersGrid();
+  }
+
+  function renderTeachersGrid() {
+    const grid = document.getElementById('teachersFullGrid');
+    if (!grid) return;
+    const filtered = currentFilter === 'all' ? TEACHERS : TEACHERS.filter(t => getTeacherDept(t) === currentFilter);
+    grid.innerHTML = filtered.map((t, i) => {
+      const idx = TEACHERS.indexOf(t);
+      const dept = getTeacherDept(t);
+      return `
+      <div class="teacher-card-v2" onclick="openTeacherModal(${idx})">
+        <div class="teacher-card-v2-header">
+          <div class="teacher-card-v2-avatar">${t.initials}</div>
+          <div>
+            <div class="teacher-card-v2-name">${t.name}</div>
+            <div class="teacher-card-v2-role">${t.role.split(' · ')[0]}</div>
+          </div>
+        </div>
+        <div class="teacher-card-v2-dept">${DEPT_LABELS[dept]}</div>
+        <div class="teacher-card-v2-bio">${t.bio.length > 160 ? t.bio.slice(0, 157) + '...' : t.bio}</div>
+        <div class="teacher-card-v2-subjects">
+          ${t.subjects.slice(0, 3).map(s => `<span class="teacher-card-v2-subject">${s}</span>`).join('')}
+          ${t.subjects.length > 3 ? `<span class="teacher-card-v2-subject">+${t.subjects.length - 3}</span>` : ''}
+        </div>
+        <div class="teacher-card-v2-arrow">
+          Подробнее
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderTeachersPage() {
+    renderTeachersGrid();
+  }
+  // renderTeachersPage вызывается из openPage('teachers') после рендера DOM
+  </script>
+
+  <!-- ADMISSION -->
+  <section class="admission" id="admission">
+    <div class="admission-inner fade-in">
+      <div class="section-label">Поступление</div>
+      <h2 class="section-title">Правила<br><em>Приёма</em></h2>
+      <div class="admission-grid">
+        <div>
+          <div class="admission-block">
+            <h3>Требования к поступающим</h3>
+            <ul>
+              <li>Граждане Беларуси, иностранные граждане и лица без гражданства</li>
+              <li>Возраст от 17 лет, наличие среднего образования</li>
+              <li>Членство в евангельской церкви</li>
+              <li>Отсутствие церковных взысканий на момент поступления</li>
+              <li>Прохождение вступительного испытания / прослушивания</li>
+            </ul>
+          </div>
+          <div class="admission-block" style="margin-top:36px">
+            <h3>Организация учёбы</h3>
+            <p>Учебный процесс ведётся пять дней в неделю (пн.–пт.) в соответствии с учебными планами. Для сессионных программ — 4 очных недели в год. Богословское отделение работает полностью онлайн.</p>
+          </div>
+        </div>
+        <div>
+          <div class="admission-block">
+            <h3>Сроки приёма документов</h3>
+            <div class="dates-grid">
+              <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Музыкальное отделение (уровень 1)</strong>1 августа — 15 сентября 2026 г.</div></div>
+              <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Библейско-богословское отделение</strong>В течение всего года</div></div>
+              <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Театральное отделение</strong>1 января — 8 февраля 2026 г.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact" id="contact">
+    <div class="contact-inner fade-in">
+      <div class="contact-info">
+        <div class="section-label">Связь</div>
+        <h2 class="section-title">Контактная<br><em>Информация</em></h2>
+        <div class="contact-items">
+          <div class="contact-item">
+            <div class="contact-icon">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 1C6.2 1 4 3.2 4 6c0 4 5 11 5 11s5-7 5-11c0-2.8-2.2-5-5-5z"/><circle cx="9" cy="6" r="2"/></svg>
+            </div>
+            <div class="contact-item-text">
+              <label>Адрес</label>
+              <p>{{ site.contact_address | e | replace('\n', '<br>') | safe }}</p>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-icon">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h12v10H3z"/><path d="M3 4l6 6 6-6"/></svg>
+            </div>
+            <div class="contact-item-text">
+              <label>Электронная почта</label>
+              <p>{{ site.contact_email | e | replace('\n', '<br>') | safe }}</p>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-icon">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3l3 3-2 4 4 4 4-2 3 3-2 2C6 18 0 12 0 5l3-2z" transform="translate(1,1)"/></svg>
+            </div>
+            <div class="contact-item-text">
+              <label>Телефоны</label>
+              <p>{{ site.contact_phones | e | replace('\n', '<br>') | safe }}</p>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-icon">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="9" r="7"/><path d="M9 5v4l3 2"/></svg>
+            </div>
+            <div class="contact-item-text">
+              <label>Режим работы</label>
+              <p>{{ site.contact_hours | e | replace('\n', '<br>') | safe }}</p>
+            </div>
+          </div>
+
+          <!-- SOCIAL NETWORKS -->
+          <div style="margin-top:8px;">
+            <div class="contact-item-text" style="margin-bottom:14px;">
+              <label style="font-size:0.62rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:4px;">Мы в соцсетях и мессенджерах</label>
+            </div>
+            <div class="social-strip">
+              <a href="{{ site.social_instagram }}" target="_blank" class="social-btn" title="Instagram">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+                <span>Instagram</span>
+              </a>
+              <a href="{{ site.social_telegram }}" target="_blank" class="social-btn" title="Telegram">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 5L2 12.5l7 1M21 5l-4.5 15-7.5-6.5M21 5L9 13.5M9 13.5V19l3.5-3"/></svg>
+                <span>Telegram</span>
+              </a>
+              <a href="{{ site.social_vk }}" target="_blank" class="social-btn" title="ВКонтакте">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 7h4l2.5 6L11 7h4l-4 10H7L2 7z"/><path d="M14 7h4c.5 3.5-.5 6-3 7h-1"/><path d="M17 14c1.5 0 3 1.5 3 3H2"/></svg>
+                <span>ВКонтакте</span>
+              </a>
+              <a href="{{ site.social_facebook }}" target="_blank" class="social-btn" title="Facebook">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                <span>Facebook</span>
+              </a>
+              <a href="{{ site.social_viber }}" class="social-btn" title="Viber">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.37 5.07L2 22l4.93-1.37A9.96 9.96 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 10.5c.5 1 1.5 2 2.5 2.5"/><path d="M8.5 8c.17.33.5.67.5 1"/><path d="M10.5 13c.33.17.67.5 1 .5"/><path d="M13 13.5c1-.5 2-1.5 2.5-2.5"/><path d="M15.5 8c0 .5-.17.83-.5 1"/></svg>
+                <span>Viber</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="contact-form">
+        <h3>Заказать<br>звонок</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Ваше имя</label><input type="text" placeholder="Иван Иванов"></div>
+          <div class="form-group"><label>Телефон</label><input type="tel" placeholder="+375 XX XXX XX XX"></div>
+        </div>
+        <div class="form-group">
+          <label>Интересует программа</label>
+          <select>
+            <option value="">Выберите направление</option>
+            <option>Музыкальное служение</option>
+            <option>Библейско-богословское</option>
+            <option>Театральное служение</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Сообщение (необязательно)</label>
+          <textarea placeholder="Ваш вопрос или комментарий..."></textarea>
+        </div>
+        <button class="form-submit" onclick="handleSubmit(event)">Отправить запрос</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <div class="footer-logo" style="display:flex;align-items:center;gap:12px;">
+          <svg style="height:32px;width:auto;opacity:0.6;" viewBox="0 0 2048 2048" xmlns="http://www.w3.org/2000/svg">
+            <path fill="rgb(201,168,76)" d="M 563.408 430.403 C 576.145 433.628 678.372 513.149 697.694 526.463 C 716.843 539.658 737.542 551.847 758.634 561.638 C 818.56 589.457 884.238 605.575 948.594 619.54 C 977.989 625.919 1007.82 630.572 1037.05 637.633 C 1104.53 653.928 1174.59 683.386 1228.09 728.187 C 1272.91 765.73 1309.4 816.635 1314.64 876.309 C 1316.33 874.797 1318.07 873.338 1319.85 871.936 C 1363.81 837.465 1429.6 812.696 1484.96 819.892 C 1588.5 833.353 1652.04 926.722 1679.2 1019.74 C 1681.95 1029.16 1688.71 1042.19 1687.47 1051.78 C 1685.58 1054.54 1682.81 1056.06 1679.56 1056.47 C 1659.65 1059.95 1633.32 1054.47 1613.93 1057.86 C 1503.36 1077.18 1426.67 1182.34 1392.16 1282.39 C 1380.52 1316.12 1373.64 1346.49 1361.7 1378.8 C 1325.28 1477.35 1254.15 1558.24 1158.47 1602.42 C 1040.34 1656.5 907.662 1645.73 788.226 1599.53 C 730.559 1579.5 676.429 1543.78 622.729 1515.2 C 613.533 1510.3 579.421 1494.33 579.351 1484.25 C 584.686 1479.35 600.085 1480.39 607.421 1479.95 C 651.574 1477.25 696.911 1477.25 740.948 1473.99 C 757.313 1472.64 773.593 1470.4 789.717 1467.29 C 880.646 1450.18 972.551 1416.2 1026.75 1336.93 C 1019.61 1336.07 1012.51 1334.5 1005.45 1333.17 C 831.674 1300.56 670.936 1220.87 559.605 1080.66 C 469.248 966.866 429.482 837.396 389.582 700.413 C 385.204 685.385 378.542 669.204 377.855 653.774 C 377.772 651.887 379.802 650.249 381.186 649.308 C 391.417 651.086 466.927 705.134 481.688 714.841 C 492.629 722.142 503.993 728.789 515.719 734.749 C 592.663 774.517 674.781 792.188 756.766 815.023 C 756.482 814.729 756.198 814.434 755.914 814.14 L 754.522 812.645 C 750.19 808.04 747.014 803.532 743.317 798.41 C 676.416 705.722 629.105 601.179 584.763 496.363 C 576.686 477.271 566.426 458.871 560.131 439.175 C 558.924 435.401 561.422 433.154 563.408 430.403 z M 1275.75 1266.48 L 1275.36 1265.21 C 1248.5 1175.38 1296.97 1048.89 1197.98 996.895 C 1129.04 960.687 1051.83 957.713 976.525 946.249 C 919.786 937.858 863.274 928.006 807.043 916.703 C 738.934 903.421 671.602 886.426 605.35 865.792 C 578.892 857.375 553.577 847.92 527.532 838.48 C 535.671 863.289 551.484 896.526 563.173 919.881 C 620.281 1033.99 705.082 1120.15 819.088 1177.97 C 928.346 1233.38 1050.06 1255.83 1171.5 1263.85 C 1204.06 1266 1242.99 1268 1275.75 1266.48 z M 1225.12 910.727 C 1225.08 865.102 1220.44 845.007 1186.4 811.258 C 1108.86 734.375 1002.15 722.48 901.054 700.484 C 853.729 690.188 807.544 675.809 761.621 659.883 C 779.698 698.262 870.89 830.832 906.875 843.865 C 922.491 849.52 945.012 850.618 961.961 853.442 C 1037.89 866.096 1115.35 869.955 1188.54 895.638 C 1200.85 899.96 1213.67 904.436 1225.12 910.727 z M 882.268 1537.17 C 896.144 1537.75 911.894 1541.72 925.931 1543.83 C 955.834 1548.34 1009.9 1551 1038.76 1544.32 C 1108.82 1536.91 1181.63 1493.12 1225.55 1438.57 C 1238.79 1421.93 1250.42 1404.07 1260.3 1385.24 C 1264.97 1376.18 1269.23 1365.82 1273.99 1357.12 C 1255.79 1359.14 1233.58 1356.48 1215 1356.12 C 1192.2 1355.68 1170 1354.73 1147.28 1352.54 C 1138.17 1351.66 1129.31 1351.94 1119.99 1350.63 C 1092.15 1425.38 1018.42 1480.29 947.97 1512.49 C 926.628 1522.13 904.681 1530.38 882.268 1537.17 z M 1318.18 989.614 C 1348.24 1035.59 1356.35 1100.68 1353.93 1154.91 C 1360.97 1142.35 1373.67 1120.9 1383.21 1109.98 C 1429.04 1049.51 1491.48 998.421 1565.54 977.774 C 1537.53 939.193 1512.28 907.806 1461.02 909.43 C 1415.44 911.011 1381.42 935.334 1347.18 963.701 C 1337.71 971.553 1327.38 982.443 1318.18 989.614 z"/>
+          </svg>
+          <span>Библейский<br>Колледж ХВЕ</span>
+        </div>
+        <div class="footer-socials">
+          <a href="{{ site.social_instagram }}" target="_blank" class="footer-social-btn" title="Instagram">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a href="{{ site.social_telegram }}" target="_blank" class="footer-social-btn" title="Telegram">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 5L2 12.5l7 1M21 5l-4.5 15-7.5-6.5M21 5L9 13.5M9 13.5V19l3.5-3"/></svg>
+          </a>
+          <a href="{{ site.social_vk }}" target="_blank" class="footer-social-btn" title="ВКонтакте">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 7h4l2.5 6L11 7h4l-4 10H7L2 7z"/><path d="M14 7h4c.5 3.5-.5 6-3 7h-1"/><path d="M17 14c1.5 0 3 1.5 3 3H2"/></svg>
+          </a>
+          <a href="{{ site.social_facebook }}" target="_blank" class="footer-social-btn" title="Facebook">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          </a>
+          <a href="{{ site.social_viber }}" class="footer-social-btn" title="Viber">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.37 5.07L2 22l4.93-1.37A9.96 9.96 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 10.5c.5 1 1.5 2 2.5 2.5"/><path d="M8.5 8c.17.33.5.67.5 1"/><path d="M10.5 13c.33.17.67.5 1 .5"/><path d="M13 13.5c1-.5 2-1.5 2.5-2.5"/><path d="M15.5 8c0 .5-.17.83-.5 1"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer-middle">
+        <div class="footer-cross-divider">✝</div>
+        <div class="footer-reg">Духовное учебное заведение<br>«Библейский колледж христиан веры евангельской»<br>Зарегистрирован 24.04.1996 · УНН 100776710</div>
+      </div>
+      <div class="footer-right">220092, Минск, ул. Бельского, 15<br>cfnbel@gmail.com<br>+375 17 393 53 94</div>
+    </div>
+  </footer>
+
+  <!-- TEACHER MODAL -->
+  <div class="teacher-modal-overlay" id="teacherModal" onclick="if(event.target===this)closeTeacherModal()">
+    <div class="teacher-modal">
+      <button class="teacher-modal-close" onclick="closeTeacherModal()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l12 12M13 1L1 13"/></svg>
+      </button>
+      <div class="teacher-modal-header">
+        <div class="teacher-modal-avatar" id="modalAvatar"></div>
+        <div>
+          <div class="teacher-modal-name" id="modalName"></div>
+          <div class="teacher-modal-role" id="modalRole"></div>
+        </div>
+      </div>
+      <div class="teacher-modal-bio" id="modalBio"></div>
+      <div class="teacher-modal-subjects-title">Преподаваемые предметы</div>
+      <div class="teacher-modal-subjects" id="modalSubjects"></div>
+    </div>
+  </div>
+
+</div><!-- /page-main -->
+
+
+<!-- ==================== MUSIC PAGE ==================== -->
+<div class="page hidden" id="page-music">
+  <nav class="subpage-nav">
+    <span class="subpage-nav-logo" onclick="goHome()">
+      <svg viewBox="0 0 2048 2048" xmlns="http://www.w3.org/2000/svg">
+        <path fill="rgb(201,168,76)" d="M 563.408 430.403 C 576.145 433.628 678.372 513.149 697.694 526.463 C 716.843 539.658 737.542 551.847 758.634 561.638 C 818.56 589.457 884.238 605.575 948.594 619.54 C 977.989 625.919 1007.82 630.572 1037.05 637.633 C 1104.53 653.928 1174.59 683.386 1228.09 728.187 C 1272.91 765.73 1309.4 816.635 1314.64 876.309 C 1316.33 874.797 1318.07 873.338 1319.85 871.936 C 1363.81 837.465 1429.6 812.696 1484.96 819.892 C 1588.5 833.353 1652.04 926.722 1679.2 1019.74 C 1681.95 1029.16 1688.71 1042.19 1687.47 1051.78 C 1685.58 1054.54 1682.81 1056.06 1679.56 1056.47 C 1659.65 1059.95 1633.32 1054.47 1613.93 1057.86 C 1503.36 1077.18 1426.67 1182.34 1392.16 1282.39 C 1380.52 1316.12 1373.64 1346.49 1361.7 1378.8 C 1325.28 1477.35 1254.15 1558.24 1158.47 1602.42 C 1040.34 1656.5 907.662 1645.73 788.226 1599.53 C 730.559 1579.5 676.429 1543.78 622.729 1515.2 C 613.533 1510.3 579.421 1494.33 579.351 1484.25 C 584.686 1479.35 600.085 1480.39 607.421 1479.95 C 651.574 1477.25 696.911 1477.25 740.948 1473.99 C 757.313 1472.64 773.593 1470.4 789.717 1467.29 C 880.646 1450.18 972.551 1416.2 1026.75 1336.93 C 1019.61 1336.07 1012.51 1334.5 1005.45 1333.17 C 831.674 1300.56 670.936 1220.87 559.605 1080.66 C 469.248 966.866 429.482 837.396 389.582 700.413 C 385.204 685.385 378.542 669.204 377.855 653.774 C 377.772 651.887 379.802 650.249 381.186 649.308 C 391.417 651.086 466.927 705.134 481.688 714.841 C 492.629 722.142 503.993 728.789 515.719 734.749 C 592.663 774.517 674.781 792.188 756.766 815.023 L 754.522 812.645 C 750.19 808.04 747.014 803.532 743.317 798.41 C 676.416 705.722 629.105 601.179 584.763 496.363 C 576.686 477.271 566.426 458.871 560.131 439.175 C 558.924 435.401 561.422 433.154 563.408 430.403 z"/>
+      </svg>
+      <div class="subpage-nav-logo-text">
+        <span>ХДН</span>
+        <span>Библейский Колледж</span>
+      </div>
+    </span>
+    <div class="prog-switcher">
+      <button class="prog-switcher-btn active" onclick="openPage('music')">
+        Музыка
+      </button>
+      <div class="prog-switcher-divider"></div>
+      <button class="prog-switcher-btn" onclick="openPage('theology')">
+        Богословие
+      </button>
+      <div class="prog-switcher-divider"></div>
+      <button class="prog-switcher-btn" onclick="openPage('theatre')">
+        Театр
+      </button>
+    </div>
+  </nav>
+  <div class="prog-mobile-switcher">
+    <button class="prog-mobile-switcher-btn active" onclick="openPage('music')">Музыка</button>
+    <button class="prog-mobile-switcher-btn" onclick="openPage('theology')">Богословие</button>
+    <button class="prog-mobile-switcher-btn" onclick="openPage('theatre')">Театр</button>
+  </div>
+  <div style="background:var(--ink);">
+    <div class="prog-page-hero">
+      <div class="prog-page-hero-inner">
+        <button class="prog-back-btn" onclick="goHome()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg>
+          Все программы
+        </button>
+        <div class="prog-hero-tag">Программа 01 · Музыкальное служение</div>
+        <h1 class="prog-hero-title">Бакалавр искусств<br>в <em>Церковной Музыке</em></h1>
+        <p class="prog-hero-sub">Изменённые жизни изменяют народы</p>
+        <div class="prog-hero-meta">
+          <div class="prog-hero-meta-item"><label>Форма</label><span>Очно-заочная</span></div>
+          <div class="prog-hero-meta-item"><label>Сессии</label><span>4 недели в год</span></div>
+          <div class="prog-hero-meta-item"><label>Уровень 1</label><span>3 года</span></div>
+          <div class="prog-hero-meta-item"><label>Уровень 2</label><span>2,5 года</span></div>
+          <div class="prog-hero-meta-item"><label>Приём</label><span>1 авг — 15 сент 2026</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prog-body">
+
+    <div class="prog-section" id="music-specialties">
+      <h2 class="prog-section-title">Специальности <em>отделения</em></h2>
+      <div class="prog-specialties">
+        <div class="prog-specialty-card">
+          <div class="prog-specialty-num">01</div>
+          <div class="prog-specialty-name">Инструментальное исполнительство</div>
+          <div class="prog-specialty-subs">Клавишные · Гитара (электрогитара) · Бас-гитара · Ударные инструменты</div>
+          <div class="prog-specialty-qual">Квалификация: Руководитель музыкального коллектива</div>
+        </div>
+        <div class="prog-specialty-card">
+          <div class="prog-specialty-num">02</div>
+          <div class="prog-specialty-name">Пение</div>
+          <div class="prog-specialty-subs">Руководство пением в церкви</div>
+          <div class="prog-specialty-qual">Квалификация: Руководитель музыкального коллектива</div>
+        </div>
+        <div class="prog-specialty-card">
+          <div class="prog-specialty-num">03</div>
+          <div class="prog-specialty-name">Звукорежиссура</div>
+          <div class="prog-specialty-subs">Полный курс обучения — 3 года</div>
+          <div class="prog-specialty-qual">Квалификация: Звукооператор</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prog-section">
+      <h2 class="prog-section-title">Программа <em>обучения — Уровень 1</em></h2>
+      <div class="prog-curriculum">
+        <div class="prog-curriculum-block">
+          <h4>Музыкальная подготовка</h4>
+          <ul>
+            <li>Теория музыки (элементарная теория, гармония)</li>
+            <li>Сольфеджио</li>
+            <li>Фортепиано (общее)</li>
+            <li>Специальный инструмент</li>
+            <li>Инструментальный ансамбль</li>
+            <li>Вокал, вокальный ансамбль</li>
+            <li>Музыкальная литература</li>
+            <li>Композиция</li>
+            <li>Сценическая речь и культура речи</li>
+            <li>Работа в нотных редакторах</li>
+            <li>Аранжировка</li>
+            <li>Основы акустики и звукотехники</li>
+          </ul>
+        </div>
+        <div class="prog-curriculum-block">
+          <h4>Богословская часть</h4>
+          <ul>
+            <li>Обзор Нового Завета</li>
+            <li>Обзор Ветхого Завета</li>
+            <li>Введение в Библию</li>
+            <li>Герменевтика</li>
+            <li>Хвала и поклонение</li>
+            <li>История Церкви</li>
+            <li>Христианская этика</li>
+            <li>Сотериология</li>
+            <li>Миссиология</li>
+          </ul>
+          <div style="margin-top:20px;padding:16px;background:rgba(201,168,76,0.08);border-left:2px solid var(--gold);">
+            <div style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Присуждаемая степень</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">Бакалавр искусств в церковной музыке</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prog-section">
+      <h2 class="prog-section-title">Программа <em>обучения — Уровень 2</em></h2>
+      <div class="prog-curriculum">
+        <div class="prog-curriculum-block">
+          <h4>Музыкальная подготовка</h4>
+          <ul>
+            <li>Теория музыки · Сольфеджио · Гармония</li>
+            <li>Специальный инструмент</li>
+            <li>Инструментальный ансамбль</li>
+            <li>Вокал, вокальный ансамбль</li>
+            <li>История искусства</li>
+            <li>Экономика искусства</li>
+            <li>Искусство и медиа</li>
+          </ul>
+        </div>
+        <div class="prog-curriculum-block">
+          <h4>Богословская часть (расширенная)</h4>
+          <ul>
+            <li>Изучение языков оригиналов</li>
+            <li>Систематическое богословие</li>
+            <li>История религий</li>
+            <li>Миссиология</li>
+            <li>Пастыреология</li>
+            <li>Философия религии</li>
+            <li>Исследовательская работа</li>
+          </ul>
+          <div style="margin-top:20px;padding:16px;background:rgba(201,168,76,0.08);border-left:2px solid var(--gold);">
+            <div style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Присуждаемая степень</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">Магистр искусств в церковной музыке</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prog-info-grid" id="music-cost">
+      <div class="prog-info-block">
+        <h4>Стоимость обучения</h4>
+        <div class="prog-price">280 BYN</div>
+        <div class="prog-price-note">за сессию · Уровень 2</div>
+        <p style="margin-top:16px;">Оплата перечислением на расчётный счёт колледжа. Проживание и питание во время сессий студенты оплачивают отдельно.</p>
+      </div>
+      <div class="prog-info-block">
+        <h4>Вступительное испытание</h4>
+        <ul>
+          <li>Тест по музыкальной грамоте и сольфеджио</li>
+          <li>Прослушивание (исполнение любого музыкального произведения)</li>
+          <li>Собеседование</li>
+          <li>Для поступающих на звукорежиссуру — без прослушивания</li>
+        </ul>
+        <p style="margin-top:16px;">Абитуриенты без музыкального образования могут поступить на <strong style="color:var(--gold-light);">подготовительный курс</strong> (1–2 года) без сдачи теста.</p>
+      </div>
+    </div>
+
+    <div class="prog-section">
+      <h2 class="prog-section-title">Документы для <em>поступления</em></h2>
+      <div class="prog-curriculum">
+        <div class="prog-curriculum-block">
+          <h4>Перечень документов</h4>
+          <ul>
+            <li>Оригинал заполненной анкеты-заявления</li>
+            <li>2 фотографии 3×4</li>
+            <li>Копия документа об образовании</li>
+            <li>Копия паспорта (две последние страницы + регистрация)</li>
+            <li>Заявление на общежитие (при необходимости)</li>
+          </ul>
+        </div>
+        <div class="prog-curriculum-block">
+          <h4>Что необходимо студентам</h4>
+          <ul>
+            <li>Нотная и общая тетради</li>
+            <li>Ноутбук (со 2-го курса; для клавишных и звукорежиссуры — с 1-го)</li>
+            <li>Ударные: палочки, метроном, тренировочный пэд</li>
+            <li>Гитара / бас-гитара: собственный инструмент</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="prog-cta">
+    <h3>Готов начать путь?</h3>
+    <p>Приём документов: 1 августа — 15 сентября 2026 г.</p>
+    <a href="mailto:cfnbel@gmail.com" class="btn-cta">Написать в приёмную комиссию</a>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-logo">Библейский<br>Колледж ХВЕ</div>
+      <div class="footer-middle">
+        <div class="footer-cross-divider">✝</div>
+        <div class="footer-reg">«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15</div>
+      </div>
+      <div class="footer-right">cfnbel@gmail.com<br>+375 17 393 53 94</div>
+    </div>
+  </footer>
+</div><!-- /page-music -->
+
+
+<!-- ==================== THEOLOGY PAGE ==================== -->
+<div class="page hidden" id="page-theology">
+  <nav class="subpage-nav">
+    <span class="subpage-nav-logo" onclick="goHome()">
+      <svg viewBox="0 0 2048 2048" xmlns="http://www.w3.org/2000/svg">
+        <path fill="rgb(201,168,76)" d="M 563.408 430.403 C 576.145 433.628 678.372 513.149 697.694 526.463 C 716.843 539.658 737.542 551.847 758.634 561.638 C 818.56 589.457 884.238 605.575 948.594 619.54 C 977.989 625.919 1007.82 630.572 1037.05 637.633 C 1104.53 653.928 1174.59 683.386 1228.09 728.187 C 1272.91 765.73 1309.4 816.635 1314.64 876.309 C 1316.33 874.797 1318.07 873.338 1319.85 871.936 C 1363.81 837.465 1429.6 812.696 1484.96 819.892 C 1588.5 833.353 1652.04 926.722 1679.2 1019.74 C 1681.95 1029.16 1688.71 1042.19 1687.47 1051.78 C 1685.58 1054.54 1682.81 1056.06 1679.56 1056.47 C 1659.65 1059.95 1633.32 1054.47 1613.93 1057.86 C 1503.36 1077.18 1426.67 1182.34 1392.16 1282.39 C 1380.52 1316.12 1373.64 1346.49 1361.7 1378.8 C 1325.28 1477.35 1254.15 1558.24 1158.47 1602.42 C 1040.34 1656.5 907.662 1645.73 788.226 1599.53 C 730.559 1579.5 676.429 1543.78 622.729 1515.2 C 613.533 1510.3 579.421 1494.33 579.351 1484.25 C 584.686 1479.35 600.085 1480.39 607.421 1479.95 C 651.574 1477.25 696.911 1477.25 740.948 1473.99 C 757.313 1472.64 773.593 1470.4 789.717 1467.29 C 880.646 1450.18 972.551 1416.2 1026.75 1336.93 C 1019.61 1336.07 1012.51 1334.5 1005.45 1333.17 C 831.674 1300.56 670.936 1220.87 559.605 1080.66 C 469.248 966.866 429.482 837.396 389.582 700.413 C 385.204 685.385 378.542 669.204 377.855 653.774 C 377.772 651.887 379.802 650.249 381.186 649.308 C 391.417 651.086 466.927 705.134 481.688 714.841 C 492.629 722.142 503.993 728.789 515.719 734.749 C 592.663 774.517 674.781 792.188 756.766 815.023 L 754.522 812.645 C 750.19 808.04 747.014 803.532 743.317 798.41 C 676.416 705.722 629.105 601.179 584.763 496.363 C 576.686 477.271 566.426 458.871 560.131 439.175 C 558.924 435.401 561.422 433.154 563.408 430.403 z"/>
+      </svg>
+      <div class="subpage-nav-logo-text">
+        <span>ХДН</span>
+        <span>Библейский Колледж</span>
+      </div>
+    </span>
+    <div class="prog-switcher">
+      <button class="prog-switcher-btn" onclick="openPage('music')">
+        Музыка
+      </button>
+      <div class="prog-switcher-divider"></div>
+      <button class="prog-switcher-btn active" onclick="openPage('theology')">
+        Богословие
+      </button>
+      <div class="prog-switcher-divider"></div>
+      <button class="prog-switcher-btn" onclick="openPage('theatre')">
+        Театр
+      </button>
+    </div>
+  </nav>
+  <div class="prog-mobile-switcher">
+    <button class="prog-mobile-switcher-btn" onclick="openPage('music')">Музыка</button>
+    <button class="prog-mobile-switcher-btn active" onclick="openPage('theology')">Богословие</button>
+    <button class="prog-mobile-switcher-btn" onclick="openPage('theatre')">Театр</button>
+  </div>
+  <div style="background:var(--ink);">
+    <div class="prog-page-hero">
+      <div class="prog-page-hero-inner">
+        <button class="prog-back-btn" onclick="goHome()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg>
+          Все программы
+        </button>
+        <div class="prog-hero-tag">Программа 02 · Библейско-богословское</div>
+        <h1 class="prog-hero-title">Богословие<br>и <em>Христианское Служение</em></h1>
+        <p class="prog-hero-sub">Христос для народов — не просто имя, это наша Миссия</p>
+        <div class="prog-hero-meta">
+          <div class="prog-hero-meta-item"><label>Форма</label><span>Заочная (онлайн)</span></div>
+          <div class="prog-hero-meta-item"><label>Уровни</label><span>А, В, С</span></div>
+          <div class="prog-hero-meta-item"><label>Кредиты</label><span>40 / 120 / 180</span></div>
+          <div class="prog-hero-meta-item"><label>Приём</label><span>В течение года</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prog-body">
+
+    <div class="prog-section" id="theology-levels">
+      <h2 class="prog-section-title">Уровни <em>обучения</em></h2>
+      <div class="prog-levels">
+        <div class="prog-level-card">
+          <div class="prog-level-badge">Уровень А</div>
+          <div class="prog-level-title">Курс Библейских знаний</div>
+          <div class="prog-level-credits">Сертификат · 40 кредитов</div>
+          <ul class="prog-level-list">
+            <li>Обзор Нового Завета</li>
+            <li>Обзор Ветхого Завета</li>
+            <li>Введение в Библию</li>
+            <li>Герменевтика</li>
+            <li>Евангелие от Иоанна</li>
+            <li>Деяния апостолов</li>
+            <li>Хвала и поклонение</li>
+            <li>История Церкви</li>
+            <li>Церковь в плюралистическом обществе</li>
+            <li>Божье призвание</li>
+          </ul>
+        </div>
+        <div class="prog-level-card">
+          <div class="prog-level-badge">Уровень В</div>
+          <div class="prog-level-title">Бакалавр христианского служения</div>
+          <div class="prog-level-credits">120 кредитов</div>
+          <ul class="prog-level-list">
+            <li>Все предметы уровня А</li>
+            <li>Экзегетика</li>
+            <li>Синоптические евангелия</li>
+            <li>Послание к Коринфянам</li>
+            <li>Послания к Римлянам и Галатам</li>
+            <li>Пятикнижие · Исторические книги</li>
+            <li>Пророки малые и большие</li>
+            <li>Систематическое богословие</li>
+            <li>Сотериология · Христология</li>
+            <li>Миссиология · Апологетика</li>
+          </ul>
+        </div>
+        <div class="prog-level-card">
+          <div class="prog-level-badge">Уровень С</div>
+          <div class="prog-level-title">Бакалавр богословия</div>
+          <div class="prog-level-credits">180 кредитов</div>
+          <ul class="prog-level-list">
+            <li>Все предметы уровней А и В</li>
+            <li>Корпус Иоанна</li>
+            <li>Послание к Евреям</li>
+            <li>Ереси и культы</li>
+            <li>Экклесиология</li>
+            <li>Пастыреология</li>
+            <li>Гомилетика</li>
+            <li>Христианское консультирование</li>
+            <li>Введение в философию</li>
+          </ul>
+        </div>
+      </div>
+      <div style="background:var(--cream);padding:32px 40px;border-left:3px solid var(--gold);">
+        <p style="font-size:0.85rem;color:var(--ink-soft);font-weight:300;line-height:1.8;">Все предметы уровня А засчитываются при зачислении на следующий уровень. Возможно поступление сразу на уровень В или С при документальном подтверждении начального богословского образования.</p>
+      </div>
+    </div>
+
+    <div class="prog-section">
+      <h2 class="prog-section-title">Как проходит <em>обучение</em></h2>
+      <div class="prog-curriculum">
+        <div class="prog-curriculum-block">
+          <h4>Формат и сроки</h4>
+          <ul>
+            <li>Полностью онлайн — просмотр видеолекций</li>
+            <li>Чтение учебной литературы</li>
+            <li>Участие в форумах, дискуссиях, семинарах</li>
+            <li>Написание рецензий и исследовательских работ</li>
+            <li>На один предмет отводится 4–5 недель</li>
+            <li>При ответственном подходе — бакалавр за 4 года</li>
+          </ul>
+        </div>
+        <div class="prog-curriculum-block">
+          <h4>Получение степени</h4>
+          <ul>
+            <li>Бакалавр служения: практика в поместной церкви + дневник + презентация</li>
+            <li>Бакалавр богословия: успешная защита дипломной работы</li>
+            <li>Индивидуальный подход к каждому абитуриенту</li>
+            <li>Поступление возможно в течение всего года</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="prog-info-grid" id="theology-cost">
+      <div class="prog-info-block">
+        <h4>Стоимость обучения</h4>
+        <div class="prog-price">100 BYN</div>
+        <div class="prog-price-note">за предмет</div>
+        <p style="margin-top:16px;">Оплата перечислением на расчётный счёт (для резидентов РБ) или онлайн (для нерезидентов). Начало осеннего семестра — сентябрь.</p>
+      </div>
+      <div class="prog-info-block">
+        <h4>Документы для поступления</h4>
+        <ul>
+          <li>Скан заполненной анкеты-заявления (подписанной)</li>
+          <li>Фото 3×4</li>
+          <li>Копия документа об образовании</li>
+          <li>Копия паспорта</li>
+          <li>Всё подаётся в электронном виде</li>
+          <li>Отправить на: cfnbel@gmail.com</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="prog-cta">
+    <h3>Начни изучать Слово</h3>
+    <p>Приём документов в течение всего года. Начало — в любое время.</p>
+    <a href="mailto:cfnbel@gmail.com" class="btn-cta">Подать документы</a>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-logo">Библейский<br>Колледж ХВЕ</div>
+      <div class="footer-middle">
+        <div class="footer-cross-divider">✝</div>
+        <div class="footer-reg">«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15</div>
+      </div>
+      <div class="footer-right">cfnbel@gmail.com<br>+375 17 393 53 94</div>
+    </div>
+  </footer>
+</div><!-- /page-theology -->
+
+
+<!-- ==================== THEATRE PAGE ==================== -->
+<div class="page hidden" id="page-theatre">
+  <nav class="subpage-nav">
+    <span class="subpage-nav-logo" onclick="goHome()">
+      <svg viewBox="0 0 2048 2048" xmlns="http://www.w3.org/2000/svg">
+        <path fill="rgb(201,168,76)" d="M 563.408 430.403 C 576.145 433.628 678.372 513.149 697.694 526.463 C 716.843 539.658 737.542 551.847 758.634 561.638 C 818.56 589.457 884.238 605.575 948.594 619.54 C 977.989 625.919 1007.82 630.572 1037.05 637.633 C 1104.53 653.928 1174.59 683.386 1228.09 728.187 C 1272.91 765.73 1309.4 816.635 1314.64 876.309 C 1316.33 874.797 1318.07 873.338 1319.85 871.936 C 1363.81 837.465 1429.6 812.696 1484.96 819.892 C 1588.5 833.353 1652.04 926.722 1679.2 1019.74 C 1681.95 1029.16 1688.71 1042.19 1687.47 1051.78 C 1685.58 1054.54 1682.81 1056.06 1679.56 1056.47 C 1659.65 1059.95 1633.32 1054.47 1613.93 1057.86 C 1503.36 1077.18 1426.67 1182.34 1392.16 1282.39 C 1380.52 1316.12 1373.64 1346.49 1361.7 1378.8 C 1325.28 1477.35 1254.15 1558.24 1158.47 1602.42 C 1040.34 1656.5 907.662 1645.73 788.226 1599.53 C 730.559 1579.5 676.429 1543.78 622.729 1515.2 C 613.533 1510.3 579.421 1494.33 579.351 1484.25 C 584.686 1479.35 600.085 1480.39 607.421 1479.95 C 651.574 1477.25 696.911 1477.25 740.948 1473.99 C 757.313 1472.64 773.593 1470.4 789.717 1467.29 C 880.646 1450.18 972.551 1416.2 1026.75 1336.93 C 1019.61 1336.07 1012.51 1334.5 1005.45 1333.17 C 831.674 1300.56 670.936 1220.87 559.605 1080.66 C 469.248 966.866 429.482 837.396 389.582 700.413 C 385.204 685.385 378.542 669.204 377.855 653.774 C 377.772 651.887 379.802 650.249 381.186 649.308 C 391.417 651.086 466.927 705.134 481.688 714.841 C 492.629 722.142 503.993 728.789 515.719 734.749 C 592.663 774.517 674.781 792.188 756.766 815.023 L 754.522 812.645 C 750.19 808.04 747.014 803.532 743.317 798.41 C 676.416 705.722 629.105 601.179 584.763 496.363 C 576.686 477.271 566.426 458.871 560.131 439.175 C 558.924 435.401 561.422 433.154 563.408 430.403 z"/>
+      </svg>
+      <div class="subpage-nav-logo-text">
+        <span>ХДН</span>
+        <span>Библейский Колледж</span>
+      </div>
+    </span>
+    <div class="prog-switcher">
+      <button class="prog-switcher-btn" onclick="openPage('music')">
+        Музыка
+      </button>
+      <div class="prog-switcher-divider"></div>
+      <button class="prog-switcher-btn" onclick="openPage('theology')">
+        Богословие
+      </button>
+      <div class="prog-switcher-divider"></div>
+      <button class="prog-switcher-btn active" onclick="openPage('theatre')">
+        Театр
+      </button>
+    </div>
+  </nav>
+  <div class="prog-mobile-switcher">
+    <button class="prog-mobile-switcher-btn" onclick="openPage('music')">Музыка</button>
+    <button class="prog-mobile-switcher-btn" onclick="openPage('theology')">Богословие</button>
+    <button class="prog-mobile-switcher-btn active" onclick="openPage('theatre')">Театр</button>
+  </div>
+  <div style="background:var(--ink);">
+    <div class="prog-page-hero">
+      <div class="prog-page-hero-inner">
+        <button class="prog-back-btn" onclick="goHome()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg>
+          Все программы
+        </button>
+        <div class="prog-hero-tag">Программа 03 · Евангелие через творчество</div>
+        <h1 class="prog-hero-title">Бакалавр искусств<br>в <em>Театральном Служении</em></h1>
+        <p class="prog-hero-sub">Творчество — это форма проповеди Евангелия</p>
+        <div class="prog-hero-meta">
+          <div class="prog-hero-meta-item"><label>Форма</label><span>Очно-заочная</span></div>
+          <div class="prog-hero-meta-item"><label>Сессии</label><span>4 недели в год</span></div>
+          <div class="prog-hero-meta-item"><label>Срок</label><span>3 года</span></div>
+          <div class="prog-hero-meta-item"><label>Приём</label><span>до 8 февраля 2026</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prog-body">
+
+    <div class="prog-section" id="theatre-goal">
+      <h2 class="prog-section-title">Цель <em>обучения</em></h2>
+      <div style="background:var(--cream);padding:48px;border-left:3px solid var(--gold);margin-bottom:48px;">
+        <p style="font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:300;color:var(--ink);line-height:1.75;font-style:italic;">Принять и познать себя, понять, как именно вы — с вашей индивидуальностью и талантами — можете служить Божьему Царству, используя творчество как форму проповеди. Приобрести навыки для создания или развития творческого служения в вашей церкви.</p>
+        <div style="margin-top:24px;font-size:0.7rem;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);">Квалификация: Руководитель творческих проектов</div>
+      </div>
+    </div>
+
+    <div class="prog-section">
+      <h2 class="prog-section-title">Программа <em>обучения</em></h2>
+      <div class="prog-curriculum">
+        <div class="prog-curriculum-block">
+          <h4>Специальная подготовка</h4>
+          <ul>
+            <li>Мастерство актёра</li>
+            <li>Пластика</li>
+            <li>Хореография</li>
+            <li>Сценическая речь</li>
+            <li>Культура оформления церковных постановок</li>
+            <li>История театра</li>
+            <li>Режиссура</li>
+            <li>Анализ литературного произведения</li>
+            <li>Библейский взгляд на театр</li>
+            <li>Сценический вокал</li>
+          </ul>
+        </div>
+        <div class="prog-curriculum-block">
+          <h4>Богословская часть</h4>
+          <ul>
+            <li>Обзор Нового Завета</li>
+            <li>Обзор Ветхого Завета</li>
+            <li>Введение в Библию</li>
+            <li>Герменевтика</li>
+            <li>Хвала и поклонение</li>
+            <li>История Церкви</li>
+            <li>Христианская этика</li>
+            <li>Миссиология</li>
+          </ul>
+          <div style="margin-top:20px;padding:16px;background:rgba(201,168,76,0.08);border-left:2px solid var(--gold);">
+            <div style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Присуждаемая степень</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">Бакалавр искусств в области театрального служения</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prog-section">
+      <h2 class="prog-section-title">Задачи <em>специальной части</em></h2>
+      <div class="prog-specialties">
+        <div class="prog-specialty-card">
+          <div class="prog-specialty-num">✦</div>
+          <div class="prog-specialty-name">Сценическое мастерство</div>
+          <div class="prog-specialty-subs">Освоить навыки актёрской игры, пластики, сценической речи и вокала для служения в церковных постановках.</div>
+        </div>
+        <div class="prog-specialty-card">
+          <div class="prog-specialty-num">✦</div>
+          <div class="prog-specialty-name">Создание постановок</div>
+          <div class="prog-specialty-subs">Изучить методику создания церковных постановок и евангелизационных проектов городского уровня.</div>
+        </div>
+        <div class="prog-specialty-card">
+          <div class="prog-specialty-num">✦</div>
+          <div class="prog-specialty-name">Творческое служение</div>
+          <div class="prog-specialty-subs">Создать или развить творческое служение в вашей церкви — театральные постановки, евангелизационные концерты, творческие вечера.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prog-info-grid" id="theatre-cost">
+      <div class="prog-info-block">
+        <h4>Стоимость обучения</h4>
+        <div class="prog-price">280 BYN</div>
+        <div class="prog-price-note">за сессию</div>
+        <p style="margin-top:16px;">Питание и проживание студенты оплачивают самостоятельно.</p>
+        <p style="margin-top:12px;font-size:0.75rem;color:rgba(245,240,232,0.4);">Стоимость определяется в начале каждого семестра.</p>
+      </div>
+      <div class="prog-info-block">
+        <h4>Вступительное испытание</h4>
+        <ul>
+          <li>Чтение программы наизусть: отрывок из прозы (≥0,5 стр.) + стихотворение</li>
+          <li>Творческий номер: танец, песня, жонглирование, акробатика или этюд</li>
+          <li>Мотивационное письмо: «Почему я выбрал эту специальность?»</li>
+          <li>Собеседование</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="prog-section">
+      <h2 class="prog-section-title">Документы для <em>поступления</em></h2>
+      <div class="prog-curriculum">
+        <div class="prog-curriculum-block">
+          <h4>Перечень документов</h4>
+          <ul>
+            <li>Оригинал заполненной анкеты-заявления</li>
+            <li>2 фотографии 3×4</li>
+            <li>Справка о состоянии здоровья (Форма 1 здр/у-10)</li>
+            <li>Копия документа об образовании</li>
+            <li>Копия паспорта (две последние страницы + регистрация)</li>
+            <li>Заявление на общежитие (при необходимости)</li>
+          </ul>
+        </div>
+        <div class="prog-curriculum-block">
+          <h4>Преподаватели отделения</h4>
+          <ul>
+            <li>Мария Гуцева</li>
+            <li>Марина Пташникова</li>
+            <li>Светлана Елисеева</li>
+            <li>Дарья Янчина</li>
+            <li>Мария Якович</li>
+            <li>и другие практикующие служители</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="prog-cta">
+    <h3>Твори во славу Божию</h3>
+    <p>Приём документов до 8 февраля 2026 г.</p>
+    <a href="mailto:cfnbel@gmail.com" class="btn-cta">Написать в приёмную комиссию</a>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-logo">Библейский<br>Колледж ХВЕ</div>
+      <div class="footer-middle">
+        <div class="footer-cross-divider">✝</div>
+        <div class="footer-reg">«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15</div>
+      </div>
+      <div class="footer-right">cfnbel@gmail.com<br>+375 17 393 53 94</div>
+    </div>
+  </footer>
+</div><!-- /page-theatre -->
+
+
+<!-- ==================== TEACHERS PAGE ==================== -->
+<div class="page hidden" id="page-teachers">
+  <nav class="subpage-nav">
+    <span class="subpage-nav-logo" onclick="goHome()">
+      <svg viewBox="0 0 2048 2048" xmlns="http://www.w3.org/2000/svg">
+        <path fill="rgb(201,168,76)" d="M 563.408 430.403 C 576.145 433.628 678.372 513.149 697.694 526.463 C 716.843 539.658 737.542 551.847 758.634 561.638 C 818.56 589.457 884.238 605.575 948.594 619.54 C 977.989 625.919 1007.82 630.572 1037.05 637.633 C 1104.53 653.928 1174.59 683.386 1228.09 728.187 C 1272.91 765.73 1309.4 816.635 1314.64 876.309 C 1316.33 874.797 1318.07 873.338 1319.85 871.936 C 1363.81 837.465 1429.6 812.696 1484.96 819.892 C 1588.5 833.353 1652.04 926.722 1679.2 1019.74 C 1681.95 1029.16 1688.71 1042.19 1687.47 1051.78 C 1685.58 1054.54 1682.81 1056.06 1679.56 1056.47 C 1659.65 1059.95 1633.32 1054.47 1613.93 1057.86 C 1503.36 1077.18 1426.67 1182.34 1392.16 1282.39 C 1380.52 1316.12 1373.64 1346.49 1361.7 1378.8 C 1325.28 1477.35 1254.15 1558.24 1158.47 1602.42 C 1040.34 1656.5 907.662 1645.73 788.226 1599.53 C 730.559 1579.5 676.429 1543.78 622.729 1515.2 C 613.533 1510.3 579.421 1494.33 579.351 1484.25 C 584.686 1479.35 600.085 1480.39 607.421 1479.95 C 651.574 1477.25 696.911 1477.25 740.948 1473.99 C 757.313 1472.64 773.593 1470.4 789.717 1467.29 C 880.646 1450.18 972.551 1416.2 1026.75 1336.93 C 1019.61 1336.07 1012.51 1334.5 1005.45 1333.17 C 831.674 1300.56 670.936 1220.87 559.605 1080.66 C 469.248 966.866 429.482 837.396 389.582 700.413 C 385.204 685.385 378.542 669.204 377.855 653.774 C 377.772 651.887 379.802 650.249 381.186 649.308 C 391.417 651.086 466.927 705.134 481.688 714.841 C 492.629 722.142 503.993 728.789 515.719 734.749 C 592.663 774.517 674.781 792.188 756.766 815.023 L 754.522 812.645 C 750.19 808.04 747.014 803.532 743.317 798.41 C 676.416 705.722 629.105 601.179 584.763 496.363 C 576.686 477.271 566.426 458.871 560.131 439.175 C 558.924 435.401 561.422 433.154 563.408 430.403 z"/>
+      </svg>
+      <div class="subpage-nav-logo-text">
+        <span>ХДН</span>
+        <span>Библейский Колледж</span>
+      </div>
+    </span>
+  </nav>
+  <div style="background:var(--ink);">
+    <div class="prog-page-hero">
+      <div class="prog-page-hero-inner">
+        <button class="prog-back-btn" onclick="goHome()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg>
+          Все программы
+        </button>
+        <div class="prog-hero-tag">Состав · 25 преподавателей</div>
+        <h1 class="prog-hero-title">Преподаватели<br><em>Колледжа</em></h1>
+        <p class="prog-hero-sub">Практические служители церкви</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Teachers intro block -->
+  <div class="teachers-page-intro">
+    <div class="teachers-page-intro-left">
+      <div class="section-label" style="color:var(--gold);">Наши преподаватели</div>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:300;color:var(--cream);line-height:1.15;margin-top:16px;">Служители,<br><em>которые учат</em></h2>
+      <p class="teachers-page-intro-quote">Каждый преподаватель — прежде всего практикующий служитель церкви, несущий живое знание из реального опыта веры.</p>
+    </div>
+    <div class="teachers-page-intro-right">
+      <div class="teachers-page-stat">
+        <div class="teachers-page-stat-num">25+</div>
+        <div class="teachers-page-stat-label">Преподавателей<br>и наставников</div>
+      </div>
+      <div class="teachers-page-stat">
+        <div class="teachers-page-stat-num">3</div>
+        <div class="teachers-page-stat-label">Отделения<br>колледжа</div>
+      </div>
+      <div class="teachers-page-stat">
+        <div class="teachers-page-stat-num">30+</div>
+        <div class="teachers-page-stat-label">Лет совокупного<br>опыта служения</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Department filter -->
+  <div class="teachers-dept-filter" id="teachersDeptFilter">
+    <button class="teachers-dept-btn active" onclick="filterTeachers('all', this)">Все</button>
+    <button class="teachers-dept-btn" onclick="filterTeachers('music', this)">Музыкальное служение</button>
+    <button class="teachers-dept-btn" onclick="filterTeachers('theology', this)">Библейско-богословское</button>
+    <button class="teachers-dept-btn" onclick="filterTeachers('theatre', this)">Театральное служение</button>
+  </div>
+
+  <!-- Masonry grid -->
+  <div class="teachers-masonry" id="teachersFullGrid"></div>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-logo">Библейский<br>Колледж ХВЕ</div>
+      <div class="footer-middle">
+        <div class="footer-cross-divider">✝</div>
+        <div class="footer-reg">«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15</div>
+      </div>
+      <div class="footer-right">cfnbel@gmail.com<br>+375 17 393 53 94</div>
+    </div>
+  </footer>
+</div><!-- /page-teachers -->
+
+
+<!-- ==================== BOTTOM NAV (shown on mobile) ==================== -->
+<nav class="bottom-nav" id="bottomNav">
+  <div class="bottom-nav-inner" id="bottomNavInner">
+    <!-- динамически меняется -->
+  </div>
+</nav>
+
+
+<script>
+// ===================== PAGE SYSTEM =====================
+let currentPage = 'main';
+
+function openPage(name) {
+  const from = document.getElementById('page-' + currentPage);
+  const to   = document.getElementById('page-' + name);
+  if (!to || currentPage === name) return;
+
+  from.classList.add('hidden');
+  to.classList.remove('hidden');
+  to.classList.add('entering');
+  to.scrollTop = 0;
+  setTimeout(() => to.classList.remove('entering'), 500);
+
+  currentPage = name;
+  renderBottomNav();
+
+  if (name === 'teachers') renderTeachersPage();
+}
+
+function goHome() {
+  openPage('main');
+}
+
+function openTeacherModal(idx) {
+  const t = TEACHERS[idx];
+  document.getElementById('modalAvatar').textContent = t.initials;
+  document.getElementById('modalName').textContent = t.name;
+  document.getElementById('modalRole').textContent = t.role;
+  document.getElementById('modalBio').textContent = t.bio;
+  document.getElementById('modalSubjects').innerHTML = t.subjects.map(s => `<span class="teacher-modal-subject">${s}</span>`).join('');
+  document.getElementById('teacherModal').classList.add('open');
+}
+
+function closeTeacherModal() {
+  document.getElementById('teacherModal').classList.remove('open');
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTeacherModal(); });
+
+function scrollToPrograms() {
+  const el = document.querySelector('#programs');
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+
+// ===================== BOTTOM NAV =====================
+const mainNavItems = [
+  { section: 'mission', label: 'Миссия', icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>' },
+  { section: 'programs', label: 'Программы', icon: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="12" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="12" width="7" height="7" rx="1.5"/><rect x="12" y="12" width="7" height="7" rx="1.5"/>' },
+  { section: 'teachers', label: 'Препод.', icon: '<circle cx="11" cy="7" r="3.5"/><path d="M4 19c0-3.3 3.1-6 7-6s7 2.7 7 6"/>' },
+  { section: 'admission', label: 'Приём', icon: '<rect x="3" y="4" width="16" height="15" rx="2"/><path d="M3 9h16M8 2v4M14 2v4"/>' },
+  { section: 'contact', label: 'Контакты', icon: '<path d="M4 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6l-4 4V6a2 2 0 0 1 2-2z"/>' },
+];
+
+const progNavItems = {
+  music: [
+    { action: 'home',    label: 'Главное',    icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
+    { anchor: 'music-specialties', label: 'Специальности', icon: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="12" y="3" width="7" height="7" rx="1"/><rect x="3" y="12" width="7" height="7" rx="1"/><rect x="12" y="12" width="7" height="7" rx="1"/>', section: 'music-specialties' },
+    { anchor: 'music-cost',        label: 'Стоимость',     icon: '<rect x="2" y="6" width="18" height="12" rx="2"/><path d="M2 10h18"/>', section: 'music-cost' },
+    { action: 'apply',   label: 'Записаться', icon: '<path d="M12 5v14M5 12h14"/>', section: null },
+  ],
+  theology: [
+    { action: 'home',    label: 'Главное',    icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
+    { anchor: 'theology-levels', label: 'Уровни',      icon: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="12" y="3" width="7" height="7" rx="1"/><rect x="3" y="12" width="7" height="7" rx="1"/><rect x="12" y="12" width="7" height="7" rx="1"/>', section: 'theology-levels' },
+    { anchor: 'theology-cost',   label: 'Стоимость',   icon: '<rect x="2" y="6" width="18" height="12" rx="2"/><path d="M2 10h18"/>', section: 'theology-cost' },
+    { action: 'apply',   label: 'Записаться', icon: '<path d="M12 5v14M5 12h14"/>', section: null },
+  ],
+  theatre: [
+    { action: 'home',    label: 'Главное',    icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
+    { anchor: 'theatre-goal', label: 'О программе', icon: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="12" y="3" width="7" height="7" rx="1"/><rect x="3" y="12" width="7" height="7" rx="1"/><rect x="12" y="12" width="7" height="7" rx="1"/>', section: 'theatre-goal' },
+    { anchor: 'theatre-cost', label: 'Стоимость',   icon: '<rect x="2" y="6" width="18" height="12" rx="2"/><path d="M2 10h18"/>', section: 'theatre-cost' },
+    { action: 'apply',   label: 'Записаться', icon: '<path d="M12 5v14M5 12h14"/>', section: null },
+  ],
+  teachers: [
+    { action: 'home', label: 'Главное', icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
+    { anchor: 'teachersFullGrid', label: 'Состав', icon: '<circle cx="11" cy="7" r="3.5"/><path d="M4 19c0-3.3 3.1-6 7-6s7 2.7 7 6"/>', section: null },
+  ],
+};
+
+function renderBottomNav() {
+  const inner = document.getElementById('bottomNavInner');
+  const nav = document.getElementById('bottomNav');
+  inner.innerHTML = '';
+
+  if (currentPage === 'main') {
+    nav.classList.remove('bottom-nav--prog');
+    mainNavItems.forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = 'bottom-nav-item';
+      btn.setAttribute('data-section', item.section);
+      btn.innerHTML = `
+        <div class="bottom-nav-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">${item.icon}</svg>
+        </div>
+        <span class="bottom-nav-label">${item.label}</span>`;
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const pageEl = document.getElementById('page-main');
+        const target = document.getElementById(item.section);
+        const navbar = document.getElementById('navbar');
+        if (target && pageEl) {
+          const pageRect = pageEl.getBoundingClientRect();
+          const targetRect = target.getBoundingClientRect();
+          const navHeight = navbar ? navbar.getBoundingClientRect().height : 0;
+          const scrollTop = pageEl.scrollTop + (targetRect.top - pageRect.top) - navHeight;
+          pageEl.scrollTo({ top: scrollTop, behavior: 'smooth' });
+        }
+      });
+      inner.appendChild(btn);
+    });
+    updateMainNavActive();
+  } else {
+    nav.classList.add('bottom-nav--prog');
+    const items = progNavItems[currentPage] || [];
+    items.forEach((item, i) => {
+      if (i > 0) {
+        const sep = document.createElement('div');
+        sep.className = 'bottom-nav-sep';
+        inner.appendChild(sep);
+      }
+      const btn = document.createElement('button');
+      btn.className = 'bottom-nav-item' + (item.action === 'apply' ? ' bottom-nav-apply' : '');
+      if (item.section) btn.setAttribute('data-prog-section', item.section);
+      btn.innerHTML = `
+        <div class="bottom-nav-icon">
+          <svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">${item.icon}</svg>
+        </div>
+        <span class="bottom-nav-label">${item.label}</span>`;
+      if (item.action === 'home') {
+        btn.onclick = goHome;
+      } else if (item.action === 'apply') {
+        btn.onclick = openApplySheet;
+      } else if (item.anchor) {
+        btn.onclick = () => {
+          const page = document.getElementById('page-' + currentPage);
+          const el = page ? (page.querySelector('#' + item.anchor) || page.querySelector('.' + item.anchor)) : null;
+          if (el && page) {
+            const navbar = document.getElementById('navbar');
+            const bottomNav = document.getElementById('bottomNav');
+            const navH = navbar ? navbar.getBoundingClientRect().height : 0;
+            const pageRect = page.getBoundingClientRect();
+            const elRect = el.getBoundingClientRect();
+            const scrollTop = page.scrollTop + (elRect.top - pageRect.top) - navH - 8;
+            page.scrollTo({ top: scrollTop, behavior: 'smooth' });
+          }
+        };
+      }
+      inner.appendChild(btn);
+    });
+    updateProgNavActive();
+  }
+}
+
+function updateProgNavActive() {
+  const items = progNavItems[currentPage] || [];
+  const page = document.getElementById('page-' + currentPage);
+  if (!page) return;
+  let activeSection = null;
+  items.forEach(item => {
+    if (!item.section) return;
+    const el = page.querySelector('#' + item.section);
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.top <= window.innerHeight * 0.55) activeSection = item.section;
+  });
+  document.querySelectorAll('#bottomNavInner .bottom-nav-item[data-prog-section]').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-prog-section') === activeSection);
+  });
+}
+
+// Prog page scroll highlight
+['music','theology','theatre','teachers'].forEach(pg => {
+  const pageEl = document.getElementById('page-' + pg);
+  if (pageEl) pageEl.addEventListener('scroll', () => {
+    if (currentPage === pg) updateProgNavActive();
+  }, { passive: true });
+});
+
+// ===================== APPLY SHEET — implemented below in JS-driven block =====================
+
+// Main page scroll active
+const sections = ['mission','programs','rector','teachers','admission','contact'];
+function updateMainNavActive() {
+  const pageEl = document.getElementById('page-main');
+  if (!pageEl) return;
+  const pageRect = pageEl.getBoundingClientRect();
+  let current = '';
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.top - pageRect.top <= window.innerHeight * 0.5) current = id;
+  });
+  document.querySelectorAll('#bottomNavInner .bottom-nav-item').forEach(item => {
+    const sec = item.getAttribute('data-section');
+    item.classList.toggle('active', sec === current || (current === '' && sec === 'mission'));
+  });
+}
+// Listen on the page container for scroll events
+document.getElementById('page-main').addEventListener('scroll', () => {
+  if (currentPage === 'main') updateMainNavActive();
+}, { passive: true });
+window.addEventListener('scroll', () => {
+  if (currentPage === 'main') updateMainNavActive();
+}, { passive: true });
+
+// Navbar scroll
+window.addEventListener('scroll', () => {
+  if (currentPage !== 'main') return;
+  const nav = document.getElementById('navbar');
+  if (window.scrollY > 50) nav.classList.add('scrolled');
+  else nav.classList.remove('scrolled');
+});
+
+// Scroll animations
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 80);
+    }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// Smooth anchor scroll for main page
+document.querySelectorAll('#page-main a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', e => {
+    const target = document.querySelector(anchor.getAttribute('href'));
+    const pageEl = document.getElementById('page-main');
+    const navbar = document.getElementById('navbar');
+    if (target && pageEl) {
+      e.preventDefault();
+      const pageRect = pageEl.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const navHeight = navbar ? navbar.getBoundingClientRect().height : 0;
+      const scrollTop = pageEl.scrollTop + (targetRect.top - pageRect.top) - navHeight;
+      pageEl.scrollTo({ top: scrollTop, behavior: 'smooth' });
+    }
+  });
+});
+
+// Contact-form submit (the inline "Заказать звонок" form). Posts to /api/applications.
+async function handleSubmit(e) {
+  const btn = e.target;
+  const wrap = btn.closest('.contact-form');
+  if (!wrap) return;
+  const inputs = wrap.querySelectorAll('input, select, textarea');
+  const data = { name: '', phone: '', program: '', note: '' };
+  inputs.forEach(el => {
+    const lbl = (el.previousElementSibling && el.previousElementSibling.textContent || '').toLowerCase();
+    if (el.tagName === 'SELECT') data.program = el.value || '';
+    else if (lbl.includes('имя')) data.name = el.value || '';
+    else if (lbl.includes('телефон')) data.phone = el.value || '';
+    else if (el.tagName === 'TEXTAREA') data.note = el.value || '';
+  });
+  if (!data.name) {
+    btn.textContent = 'Укажите имя';
+    setTimeout(() => { btn.textContent = 'Отправить запрос'; }, 2500);
+    return;
+  }
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Отправляем…';
+  try {
+    const res = await fetch('/api/applications', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('http ' + res.status);
+    btn.textContent = 'Отправлено ✓';
+    btn.style.background = '#4a7c59';
+    btn.style.color = '#fff';
+    inputs.forEach(el => { if (el.tagName !== 'BUTTON') el.value = ''; });
+  } catch (err) {
+    btn.textContent = 'Ошибка. Повторить?';
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2500);
+    return;
+  }
+  setTimeout(() => {
+    btn.textContent = orig;
+    btn.style.background = '';
+    btn.style.color = '';
+    btn.disabled = false;
+  }, 3000);
+}
+
+// Init
+renderBottomNav();
+
+// ===================== ANIMATION SYSTEM =====================
+
+// 1. CANVAS PARTICLE SYSTEM (hero)
+(function() {
+  const canvas = document.getElementById('heroCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [], animId;
+
+  function resize() {
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+
+  function Particle() {
+    this.reset = function() {
+      this.x  = Math.random() * W;
+      this.y  = Math.random() * H;
+      this.r  = Math.random() * 1.2 + 0.2;
+      this.vx = (Math.random() - 0.5) * 0.25;
+      this.vy = -Math.random() * 0.35 - 0.05;
+      this.life = 0;
+      this.maxLife = Math.random() * 300 + 200;
+      this.gold = Math.random() > 0.55;
+    };
+    this.reset();
+    this.life = Math.random() * this.maxLife; // stagger start
+  }
+
+  function init() {
+    particles = Array.from({length: 55}, () => new Particle());
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    particles.forEach(p => {
+      p.life++;
+      if (p.life > p.maxLife) p.reset();
+      const progress = p.life / p.maxLife;
+      const alpha = progress < 0.15 ? progress / 0.15 : progress > 0.75 ? (1 - progress) / 0.25 : 1;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.gold
+        ? `rgba(201,168,76,${alpha * 0.55})`
+        : `rgba(245,240,232,${alpha * 0.2})`;
+      ctx.fill();
+      p.x += p.vx;
+      p.y += p.vy;
+    });
+    animId = requestAnimationFrame(draw);
+  }
+
+  resize();
+  init();
+  draw();
+  window.addEventListener('resize', () => { resize(); });
+})();
+
+// 2. MOUSE ORB on hero
+(function() {
+  const hero = document.querySelector('.hero');
+  const orb  = document.getElementById('heroOrb');
+  if (!hero || !orb) return;
+  let tx = 50, ty = 50, cx = 50, cy = 50;
+  hero.addEventListener('mousemove', e => {
+    const r = hero.getBoundingClientRect();
+    tx = ((e.clientX - r.left) / r.width)  * 100;
+    ty = ((e.clientY - r.top)  / r.height) * 100;
+  });
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  (function animate() {
+    cx = lerp(cx, tx, 0.04);
+    cy = lerp(cy, ty, 0.04);
+    orb.style.left = cx + '%';
+    orb.style.top  = cy + '%';
+    requestAnimationFrame(animate);
+  })();
+})();
+
+// 3. INTERSECTION OBSERVER — reveal animations
+(function() {
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      el.classList.add('visible');
+      // Stagger children
+      if (el.classList.contains('stagger-children')) {
+        el.querySelectorAll(':scope > *').forEach((child, i) => {
+          child.style.transitionDelay = (i * 0.1) + 's';
+        });
+      }
+      io.unobserve(el);
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.fade-in, .reveal-left, .reveal-right, .reveal-scale, .stagger-children').forEach(el => io.observe(el));
+})();
+
+// 4. STATS COUNT-UP animation
+(function() {
+  const statNums = document.querySelectorAll('.stat-num');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      const original = el.textContent;
+      const num = parseFloat(original.replace(/[^0-9.]/g,''));
+      if (isNaN(num)) { el.closest('.stat-item')?.classList.add('counted'); return; }
+      const suffix = original.replace(/[0-9.]/g,'');
+      let start = null;
+      const duration = 1200;
+      function step(ts) {
+        if (!start) start = ts;
+        const p = Math.min((ts - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(eased * num) + suffix;
+        if (p < 1) requestAnimationFrame(step);
+        else { el.textContent = original; el.closest('.stat-item')?.classList.add('counted'); }
+      }
+      requestAnimationFrame(step);
+      io.unobserve(el);
+    });
+  }, { threshold: 0.5 });
+  statNums.forEach(el => io.observe(el));
+})();
+
+// 5. TEACHER CARDS stagger on teachers page
+function animateTeacherCards() {
+  const cards = document.querySelectorAll('.teacher-card-v2');
+  cards.forEach((card, i) => {
+    setTimeout(() => {
+      card.classList.add('appeared');
+    }, i * 60);
+  });
+}
+
+// Patch renderTeachersPage to trigger card animations after render
+const _origRenderTeachersPage = renderTeachersPage;
+renderTeachersPage = function() {
+  _origRenderTeachersPage();
+  setTimeout(animateTeacherCards, 80);
+};
+
+// Patch filterTeachers to re-animate after filter
+const _origFilterTeachers = filterTeachers;
+filterTeachers = function(dept, btn) {
+  _origFilterTeachers(dept, btn);
+  setTimeout(animateTeacherCards, 80);
+};
+
+// 6. NAVBAR scroll shadow enhancement
+(function() {
+  const pageMain = document.getElementById('page-main');
+  const navbar   = document.getElementById('navbar');
+  if (!pageMain || !navbar) return;
+  pageMain.addEventListener('scroll', () => {
+    const s = pageMain.scrollTop;
+    navbar.classList.toggle('scrolled', s > 40);
+    navbar.style.boxShadow = s > 40 ? '0 4px 32px rgba(0,0,0,0.4)' : '';
+  });
+})();
+
+// 7. SUBTLE PARALLAX on hero content
+(function() {
+  const pageMain = document.getElementById('page-main');
+  const heroBg   = document.querySelector('.hero-bg');
+  const heroLines = document.querySelector('.hero-lines');
+  if (!pageMain || !heroBg) return;
+  pageMain.addEventListener('scroll', () => {
+    const s = pageMain.scrollTop;
+    if (s > window.innerHeight) return;
+    const pct = s / window.innerHeight;
+    heroBg.style.transform    = `translateY(${pct * 40}px)`;
+    if (heroLines) heroLines.style.transform = `translateY(${pct * 20}px)`;
+  }, { passive: true });
+})();
+</script>
+<!-- ==================== APPLY SHEET (JS-driven) ==================== -->
+<script>
+(function() {
+  var sheetEl = null, overlayEl = null;
+
+  function buildSheet() {
+    var ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:9990;background:rgba(10,8,6,0.65);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity 0.35s ease';
+    ov.addEventListener('click', window.closeApplySheet);
+
+    var sh = document.createElement('div');
+    sh.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:9991;background:var(--parchment);border-radius:20px 20px 0 0;border-top:1px solid var(--border);padding:32px 24px 56px;transform:translateY(100%);transition:transform 0.4s cubic-bezier(0.32,0.72,0,1);max-height:92vh;overflow-y:auto;will-change:transform;-webkit-overflow-scrolling:touch';
+
+    sh.innerHTML = [
+      '<div style="width:44px;height:4px;background:rgba(26,22,18,0.15);border-radius:2px;margin:0 auto 28px;"></div>',
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">',
+        '<div>',
+          '<div style="font-size:0.62rem;font-weight:600;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Библейский Колледж ХВЕ</div>',
+          '<div style="font-family:Cormorant Garamond,serif;font-size:1.8rem;font-weight:300;color:var(--ink);line-height:1.1;">Записаться<br><em style="font-style:italic;color:var(--gold);">на программу</em></div>',
+        '</div>',
+        '<button id="applySheetClose" style="width:38px;height:38px;border:1px solid var(--border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);border-radius:50%;flex-shrink:0;">',
+          '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l12 12M13 1L1 13"/></svg>',
+        '</button>',
+      '</div>',
+      '<div id="applyFormWrap" style="display:flex;flex-direction:column;gap:14px;">',
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">',
+          '<div style="display:flex;flex-direction:column;gap:5px;"><label style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);">Имя</label><input id="applyName" type="text" placeholder="Иван" style="background:var(--cream);border:1px solid var(--border);padding:11px 14px;font-size:0.9rem;color:var(--ink);outline:none;border-radius:4px;width:100%;"></div>',
+          '<div style="display:flex;flex-direction:column;gap:5px;"><label style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);">Фамилия</label><input id="applyLastname" type="text" placeholder="Иванов" style="background:var(--cream);border:1px solid var(--border);padding:11px 14px;font-size:0.9rem;color:var(--ink);outline:none;border-radius:4px;width:100%;"></div>',
+        '</div>',
+        '<div style="display:flex;flex-direction:column;gap:5px;"><label style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);">Телефон / Telegram</label><input id="applyPhone" type="tel" placeholder="+375 XX XXX XX XX" style="background:var(--cream);border:1px solid var(--border);padding:11px 14px;font-size:0.9rem;color:var(--ink);outline:none;border-radius:4px;width:100%;"></div>',
+        '<div style="display:flex;flex-direction:column;gap:5px;"><label style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);">Программа</label><select id="applyProgram" style="background:var(--cream);border:1px solid var(--border);padding:11px 14px;font-size:0.9rem;color:var(--ink);outline:none;border-radius:4px;appearance:none;width:100%;"><option value="">Выберите программу</option><option value="music">Музыкальное служение</option><option value="theology">Богословие и христианское служение</option><option value="theatre">Театральное служение</option></select></div>',
+        '<div style="display:flex;flex-direction:column;gap:5px;"><label style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);">Ваша церковь <span style="opacity:0.5;font-weight:400;">(необязательно)</span></label><input id="applyChurch" type="text" placeholder="Название и город" style="background:var(--cream);border:1px solid var(--border);padding:11px 14px;font-size:0.9rem;color:var(--ink);outline:none;border-radius:4px;width:100%;"></div>',
+        '<button id="applySubmitBtn" style="margin-top:8px;width:100%;padding:16px;background:var(--gold);border:none;font-size:0.8rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink);cursor:pointer;border-radius:4px;">Отправить заявку</button>',
+        '<p style="text-align:center;font-size:0.72rem;color:rgba(26,22,18,0.4);line-height:1.6;">Мы свяжемся с вами в течение 1–2 рабочих дней</p>',
+      '</div>',
+      '<div id="applySuccess" style="display:none;flex-direction:column;align-items:center;text-align:center;padding:24px 0 16px;">',
+        '<div style="width:64px;height:64px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;margin-bottom:24px;">',
+          '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+        '</div>',
+        '<div style="font-family:Cormorant Garamond,serif;font-size:1.9rem;font-weight:300;color:var(--ink);line-height:1.15;margin-bottom:12px;">Заявка<br><em style="font-style:italic;color:var(--gold);">отправлена</em></div>',
+        '<p style="font-size:0.88rem;color:var(--ink-soft);line-height:1.7;max-width:280px;margin-bottom:32px;">Мы свяжемся с вами в течение 1–2 рабочих дней. Спасибо, что выбрали Библейский Колледж ХВЕ.</p>',
+        '<button id="applySuccessClose" style="padding:14px 32px;background:var(--gold);border:none;font-size:0.8rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink);cursor:pointer;border-radius:4px;">Закрыть</button>',
+      '</div>'
+    ].join('');
+
+    document.body.appendChild(ov);
+    document.body.appendChild(sh);
+
+    sh.querySelector('#applySheetClose').addEventListener('click', window.closeApplySheet);
+    sh.querySelector('#applySubmitBtn').addEventListener('click', async function() {
+      var btn = sh.querySelector('#applySubmitBtn');
+      var payload = {
+        name: (sh.querySelector('#applyName').value || '').trim(),
+        lastname: (sh.querySelector('#applyLastname').value || '').trim(),
+        phone: (sh.querySelector('#applyPhone').value || '').trim(),
+        program: (sh.querySelector('#applyProgram').value || '').trim(),
+        church: (sh.querySelector('#applyChurch').value || '').trim(),
+      };
+      if (!payload.name) {
+        sh.querySelector('#applyName').focus();
+        sh.querySelector('#applyName').style.borderColor = '#d33';
+        return;
+      }
+      btn.disabled = true;
+      var origText = btn.textContent;
+      btn.textContent = 'Отправляем…';
+      try {
+        var res = await fetch('/api/applications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error('http ' + res.status);
+        sh.querySelector('#applyFormWrap').style.display = 'none';
+        var sv = sh.querySelector('#applySuccess');
+        sv.style.display = 'flex';
+        // reset form
+        ['applyName','applyLastname','applyPhone','applyChurch'].forEach(function(id){
+          var el = sh.querySelector('#'+id); if (el) el.value = '';
+        });
+      } catch (e) {
+        btn.textContent = 'Ошибка. Повторить?';
+        setTimeout(function(){ btn.textContent = origText; btn.disabled = false; }, 2500);
+        return;
+      }
+      btn.textContent = origText;
+      btn.disabled = false;
+    });
+    sh.querySelector('#applySuccessClose').addEventListener('click', window.closeApplySheet);
+
+    return { overlay: ov, sheet: sh };
+  }
+
+  window.openApplySheet = function() {
+    if (!sheetEl) {
+      var b = buildSheet();
+      overlayEl = b.overlay;
+      sheetEl = b.sheet;
+    }
+    sheetEl.querySelector('#applyFormWrap').style.display = 'flex';
+    sheetEl.querySelector('#applySuccess').style.display = 'none';
+
+    var sel = sheetEl.querySelector('#applyProgram');
+    if (sel && typeof currentPage !== 'undefined' && ['music','theology','theatre'].indexOf(currentPage) > -1) {
+      sel.value = currentPage;
+    }
+
+    overlayEl.style.opacity = '1';
+    overlayEl.style.pointerEvents = 'all';
+    sheetEl.style.transform = 'translateY(0)';
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeApplySheet = function() {
+    if (!overlayEl) return;
+    overlayEl.style.opacity = '0';
+    overlayEl.style.pointerEvents = 'none';
+    sheetEl.style.transform = 'translateY(100%)';
+    document.body.style.overflow = '';
+  };
+
+  window.submitApply = function() {};
+})();
+</script>
+
+</body>
+</html>

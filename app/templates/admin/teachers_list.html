@@ -1,0 +1,57 @@
+{% extends "admin/_base.html" %}
+{% block title %}Преподаватели{% endblock %}
+{% block content %}
+<h1>Преподаватели</h1>
+
+<div class="card">
+  <h2>Добавить преподавателя</h2>
+  <form method="post" action="/admin/teachers/new" enctype="multipart/form-data">
+    <div class="form-row">
+      <div class="form-group"><label>ФИО</label><input type="text" name="name" required></div>
+      <div class="form-group"><label>Инициалы (2 буквы)</label><input type="text" name="initials" maxlength="4" placeholder="Авто"></div>
+    </div>
+    <div class="form-group"><label>Должность / звание</label><input type="text" name="role"></div>
+    <div class="form-group"><label>Биография</label><textarea name="bio"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Предметы (через запятую)</label><input type="text" name="subjects" placeholder="Богословие, История церкви"></div>
+      <div class="form-group">
+        <label>Отделение(я)</label>
+        <input type="text" name="departments" placeholder="all" value="all">
+        <small class="muted">Через запятую: <code>all</code>, <code>music</code>, <code>theology</code>, <code>theatre</code></small>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Фото (необяз.)</label><input type="file" name="photo" accept="image/*"></div>
+      <div class="form-group"><label>Сортировка</label><input type="number" name="sort_order" value="0"></div>
+      <div class="form-group"><label><input type="checkbox" name="published" checked> Опубликовать</label></div>
+    </div>
+    <button class="btn">Создать</button>
+  </form>
+</div>
+
+<div class="card" style="padding:0;overflow-x:auto;">
+  {% if items %}
+  <table>
+    <thead><tr><th>#</th><th>Фото</th><th>ФИО / Должность</th><th>Отделения</th><th>Предметы</th><th>Сорт.</th><th>Опубл.</th><th></th></tr></thead>
+    <tbody>
+      {% for t in items %}
+      <tr>
+        <td>{{ t.id }}</td>
+        <td>{% if t.photo_url %}<img class="thumb" src="{{ t.photo_url }}">{% else %}<div style="width:48px;height:48px;border-radius:50%;background:#eee;display:flex;align-items:center;justify-content:center;font-weight:600;">{{ t.initials }}</div>{% endif %}</td>
+        <td><b>{{ t.name }}</b><div class="muted">{{ t.role }}</div></td>
+        <td>{{ (t.departments or [])|join(', ') }}</td>
+        <td>{{ (t.subjects or [])|join(', ') }}</td>
+        <td>{{ t.sort_order }}</td>
+        <td>{{ "Да" if t.published else "Нет" }}</td>
+        <td>
+          <form method="post" action="/admin/teachers/{{ t.id }}/delete" onsubmit="return confirm('Удалить?')">
+            <button class="btn btn-danger">Удалить</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<div style="padding:24px;color:#888;">Пусто.</div>{% endif %}
+</div>
+{% endblock %}

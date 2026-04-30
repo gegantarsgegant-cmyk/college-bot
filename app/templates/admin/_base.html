@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Админ{% endblock %} · Библейский Колледж</title>
+<style>
+  :root { --gold:#C9A84C; --ink:#1A1612; --cream:#F5F0E8; --parchment:#FAF6EE; --border:#E0D8C5; --danger:#c33; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--parchment); color: var(--ink); }
+  a { color: var(--ink); }
+  header.topbar {
+    background: #1A1612; color: var(--cream); padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  header.topbar .brand { display:flex; align-items:center; gap:10px; }
+  header.topbar .brand .dot { width:10px; height:10px; background:var(--gold); border-radius:50%; }
+  header.topbar nav a {
+    color: rgba(245,240,232,0.7); text-decoration: none; padding: 6px 10px; margin-right:6px;
+    border-radius:4px; font-size: 0.9rem;
+  }
+  header.topbar nav a.active, header.topbar nav a:hover { color: var(--gold); background: rgba(201,168,76,0.08); }
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+  .card { background:#fff; border:1px solid var(--border); border-radius:8px; padding:20px; margin-bottom:20px; }
+  h1 { font-size: 1.6rem; margin: 0 0 16px; font-weight: 600; }
+  h2 { font-size: 1.15rem; margin: 0 0 12px; font-weight: 600; color:#3a342c; }
+  table { width:100%; border-collapse: collapse; font-size: 0.92rem; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background:#fafafa; font-weight: 600; }
+  .btn {
+    display: inline-block; padding: 9px 16px; background: var(--gold); color: var(--ink);
+    border:none; border-radius: 4px; text-decoration: none; font-weight: 600;
+    cursor: pointer; font-size: 0.88rem;
+  }
+  .btn-secondary { background:#eee; color: var(--ink); }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-link { background: none; padding: 0; color: #06c; text-decoration: underline; }
+  input[type=text], input[type=tel], input[type=email], input[type=password], input[type=number],
+  input[type=datetime-local], input[type=file], select, textarea {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: 4px;
+    font-size: 0.92rem; font-family: inherit; background: #fff;
+  }
+  textarea { min-height: 100px; resize: vertical; }
+  label { display: block; font-size: 0.78rem; font-weight: 600; color: #555; letter-spacing: 0.04em; margin-bottom: 4px; text-transform: uppercase; }
+  .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .form-group { margin-bottom: 14px; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+  .stat-tile { background: #fff; border: 1px solid var(--border); border-radius:6px; padding: 14px; }
+  .stat-tile .num { font-size: 1.6rem; font-weight: 700; color: var(--gold); }
+  .stat-tile .lbl { font-size: 0.78rem; color: #666; text-transform: uppercase; letter-spacing: 0.05em; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+  .pill-new { background: #fde8c8; color: #8a5a00; }
+  .pill-progress { background: #d6e9ff; color: #1a4d8f; }
+  .pill-accepted { background: #d3f0d3; color: #1f6a1f; }
+  .pill-rejected { background: #f5cccc; color: #8a1f1f; }
+  .filters { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .filters a { padding: 4px 10px; border: 1px solid var(--border); border-radius: 14px; text-decoration: none; font-size: 0.82rem; background: #fff; }
+  .filters a.active { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+  .row-actions form { display: inline; }
+  details { margin: 8px 0; }
+  details summary { cursor: pointer; font-weight: 600; }
+  .muted { color: #888; }
+  .error { color: var(--danger); padding: 8px; background:#fbe6e6; border-radius:4px; margin-bottom:12px; }
+  img.thumb { max-width: 80px; max-height: 80px; border-radius: 4px; }
+</style>
+</head>
+<body>
+{% if admin %}
+<header class="topbar">
+  <div class="brand">
+    <span class="dot"></span>
+    <span>Админ-панель · Библейский Колледж</span>
+  </div>
+  <nav>
+    <a href="/admin/" {% if request.url.path == "/admin/" %}class="active"{% endif %}>Дашборд</a>
+    <a href="/admin/applications" {% if "/applications" in request.url.path %}class="active"{% endif %}>Заявки</a>
+    <a href="/admin/news" {% if "/news" in request.url.path %}class="active"{% endif %}>Новости</a>
+    <a href="/admin/events" {% if "/events" in request.url.path %}class="active"{% endif %}>События</a>
+    <a href="/admin/teachers" {% if "/teachers" in request.url.path %}class="active"{% endif %}>Преподаватели</a>
+    <a href="/admin/gallery" {% if "/gallery" in request.url.path %}class="active"{% endif %}>Галерея</a>
+    <a href="/admin/documents" {% if "/documents" in request.url.path %}class="active"{% endif %}>Документы</a>
+    <a href="/admin/settings" {% if "/settings" in request.url.path %}class="active"{% endif %}>Настройки</a>
+  </nav>
+  <form method="post" action="/admin/logout" style="margin:0;">
+    <button class="btn btn-secondary" type="submit">Выйти</button>
+  </form>
+</header>
+{% endif %}
+<div class="container">
+  {% block content %}{% endblock %}
+</div>
+</body>
+</html>
