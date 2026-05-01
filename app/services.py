@@ -76,6 +76,32 @@ async def ensure_default_settings(session: AsyncSession) -> None:
     await session.commit()
 
 
+async def ensure_default_teachers(session: AsyncSession) -> None:
+    """Seed teachers from the original site template on first run only."""
+    count = (
+        await session.execute(select(models.Teacher.id).limit(1))
+    ).scalar_one_or_none()
+    if count is not None:
+        return
+    from .seed_teachers import DEFAULT_TEACHERS
+
+    for i, t in enumerate(DEFAULT_TEACHERS):
+        session.add(
+            models.Teacher(
+                name=t["name"],
+                initials=t.get("initials", ""),
+                role=t.get("role", ""),
+                bio=t.get("bio", ""),
+                subjects=t.get("subjects", []),
+                departments=t.get("departments", ["all"]),
+                photo_url=None,
+                sort_order=i,
+                published=True,
+            )
+        )
+    await session.commit()
+
+
 # ---------------- Applications ----------------
 
 async def create_application(session: AsyncSession, data: dict[str, Any]) -> models.Application:

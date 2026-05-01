@@ -8,7 +8,7 @@
   </div>
   <div class="row">
     <a href="/admin/applications?status=new" class="btn"><span>📥</span>Новые заявки {% if counts.apps.new %}<span style="background:rgba(0,0,0,0.18);padding:2px 8px;border-radius:999px;font-size:11px;margin-left:6px;">{{ counts.apps.new }}</span>{% endif %}</a>
-    <a href="/admin/news" class="btn btn-ghost"><span>＋</span>Новость</a>
+    <a href="/admin/teachers" class="btn btn-ghost"><span>＋</span>Преподаватель</a>
   </div>
 </div>
 
@@ -43,16 +43,6 @@
 
 <h2 style="margin-top:24px;">Контент сайта</h2>
 <div class="stat-grid">
-  <a class="stat-tile" href="/admin/news">
-    <div class="stat-head"><span>Новости</span><span>📰</span></div>
-    <div class="num">{{ counts.news }}</div>
-    <div class="lbl">записей</div>
-  </a>
-  <a class="stat-tile" href="/admin/events">
-    <div class="stat-head"><span>События</span><span>📅</span></div>
-    <div class="num">{{ counts.events }}</div>
-    <div class="lbl">в календаре</div>
-  </a>
   <a class="stat-tile" href="/admin/teachers">
     <div class="stat-head"><span>Преподаватели</span><span>👥</span></div>
     <div class="num">{{ counts.teachers }}</div>

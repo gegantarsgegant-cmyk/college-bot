@@ -61,27 +61,37 @@
     {% if app.admin_comment %}<div class="meta"><span class="ic">📝</span><span style="color:var(--muted);">{{ app.admin_comment }}</span></div>{% endif %}
 
     <hr class="sep">
-    <form method="post" action="/admin/applications/{{ app.id }}/status">
-      <div class="quick" style="margin-bottom:10px;">
-        <button name="new_status" value="in_progress" class="btn btn-sm btn-secondary">⏳ В работу</button>
-        <button name="new_status" value="accepted" class="btn btn-sm btn-secondary">✅ Принять</button>
-        <button name="new_status" value="rejected" class="btn btn-sm btn-secondary">✖ Отклонить</button>
-        <button name="new_status" value="new" class="btn btn-sm btn-secondary">↻ Новая</button>
-      </div>
-      <details>
-        <summary class="muted" style="font-size:12px;cursor:pointer;">+ комментарий и сменить статус</summary>
-        <div style="margin-top:10px;display:grid;grid-template-columns:1fr auto auto;gap:8px;">
-          <input type="text" name="admin_comment" placeholder="Комментарий (необязательно)" value="{{ app.admin_comment or '' }}">
-          <select name="new_status">
-            <option value="new" {% if app.status=='new' %}selected{% endif %}>Новая</option>
-            <option value="in_progress" {% if app.status=='in_progress' %}selected{% endif %}>В работе</option>
-            <option value="accepted" {% if app.status=='accepted' %}selected{% endif %}>Принята</option>
-            <option value="rejected" {% if app.status=='rejected' %}selected{% endif %}>Отклонена</option>
-          </select>
-          <button class="btn btn-sm">OK</button>
-        </div>
-      </details>
-    </form>
+    <div class="quick" style="margin-bottom:10px;">
+      <form method="post" action="/admin/applications/{{ app.id }}/status" style="display:inline;">
+        <input type="hidden" name="new_status" value="in_progress">
+        <button class="btn btn-sm {% if app.status=='in_progress' %}btn-secondary active{% else %}btn-secondary{% endif %}">⏳ В работу</button>
+      </form>
+      <form method="post" action="/admin/applications/{{ app.id }}/status" style="display:inline;">
+        <input type="hidden" name="new_status" value="accepted">
+        <button class="btn btn-sm {% if app.status=='accepted' %}btn-secondary active{% else %}btn-secondary{% endif %}">✅ Принять</button>
+      </form>
+      <form method="post" action="/admin/applications/{{ app.id }}/status" style="display:inline;">
+        <input type="hidden" name="new_status" value="rejected">
+        <button class="btn btn-sm {% if app.status=='rejected' %}btn-secondary active{% else %}btn-secondary{% endif %}">✖ Отклонить</button>
+      </form>
+      <form method="post" action="/admin/applications/{{ app.id }}/status" style="display:inline;">
+        <input type="hidden" name="new_status" value="new">
+        <button class="btn btn-sm {% if app.status=='new' %}btn-secondary active{% else %}btn-secondary{% endif %}">↻ Новая</button>
+      </form>
+    </div>
+    <details>
+      <summary class="muted" style="font-size:12px;cursor:pointer;">+ комментарий и сменить статус</summary>
+      <form method="post" action="/admin/applications/{{ app.id }}/status" style="margin-top:10px;display:grid;grid-template-columns:1fr auto auto;gap:8px;">
+        <input type="text" name="admin_comment" placeholder="Комментарий (необязательно)" value="{{ app.admin_comment or '' }}">
+        <select name="new_status">
+          <option value="new" {% if app.status=='new' %}selected{% endif %}>Новая</option>
+          <option value="in_progress" {% if app.status=='in_progress' %}selected{% endif %}>В работе</option>
+          <option value="accepted" {% if app.status=='accepted' %}selected{% endif %}>Принята</option>
+          <option value="rejected" {% if app.status=='rejected' %}selected{% endif %}>Отклонена</option>
+        </select>
+        <button class="btn btn-sm">OK</button>
+      </form>
+    </details>
   </div>
   {% endfor %}
 </div>
