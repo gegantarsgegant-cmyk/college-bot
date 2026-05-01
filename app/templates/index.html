@@ -847,14 +847,34 @@
     font-size: 0.95rem;
     font-weight: 300;
     outline: none;
-    transition: border-color 0.3s;
+    transition: border-color 0.3s, background 0.3s;
     width: 100%;
     appearance: none;
+    -webkit-appearance: none;
+    border-radius: 2px;
   }
   .form-group input:focus,
   .form-group textarea:focus,
-  .form-group select:focus { border-color: var(--gold); }
+  .form-group select:focus { border-color: var(--gold); background: rgba(255,255,255,0.08); }
   .form-group textarea { resize: none; height: 100px; }
+  /* Custom select dropdown — gold chevron, dark options */
+  .form-group select {
+    color-scheme: dark;
+    cursor: pointer;
+    padding-right: 44px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8' fill='none' stroke='%23C9A84C' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='1 1 7 7 13 1'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 12px 7px;
+  }
+  .form-group select:hover { border-color: rgba(201,168,76,0.4); }
+  .form-group select option {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 12px;
+    font-family: 'Jost', sans-serif;
+  }
+  .form-group select option:disabled { color: rgba(245,240,232,0.4); }
   .form-submit {
     width: 100%;
     padding: 16px;
@@ -3650,7 +3670,7 @@ filterTeachers = function(dept, btn) {
           '<div style="display:flex;flex-direction:column;gap:5px;"><label style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);">Фамилия</label><input id="applyLastname" type="text" placeholder="Иванов" style="background:var(--cream);border:1px solid var(--border);padding:11px 14px;font-size:0.9rem;color:var(--ink);outline:none;border-radius:4px;width:100%;"></div>',
         '</div>',
         '<div style="display:flex;flex-direction:column;gap:5px;"><label style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);">Телефон / Telegram</label><input id="applyPhone" type="tel" placeholder="+375 XX XXX XX XX" style="background:var(--cream);border:1px solid var(--border);padding:11px 14px;font-size:0.9rem;color:var(--ink);outline:none;border-radius:4px;width:100%;"></div>',
-        '<div style="display:flex;flex-direction:column;gap:5px;"><label style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);">Программа</label><select id="applyProgram" style="background:var(--cream);border:1px solid var(--border);padding:11px 14px;font-size:0.9rem;color:var(--ink);outline:none;border-radius:4px;appearance:none;width:100%;"><option value="">Выберите программу</option><option value="music">Музыкальное служение</option><option value="theology">Богословие и христианское служение</option><option value="theatre">Театральное служение</option></select></div>',
+        '<div style="display:flex;flex-direction:column;gap:5px;"><label style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);">Программа</label><select id="applyProgram" class="apply-select" style="background:var(--cream);border:1px solid var(--border);padding:11px 44px 11px 14px;font-size:0.9rem;color:var(--ink);outline:none;border-radius:4px;appearance:none;-webkit-appearance:none;width:100%;cursor:pointer;background-image:url(\'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2214%22 height=%228%22 viewBox=%220 0 14 8%22 fill=%22none%22 stroke=%22%23C9A84C%22 stroke-width=%221.6%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpolyline points=%221 1 7 7 13 1%22/%3E%3C/svg%3E\');background-repeat:no-repeat;background-position:right 14px center;background-size:12px 7px;"><option value="">Выберите программу</option><option value="music">Музыкальное служение</option><option value="theology">Богословие и христианское служение</option><option value="theatre">Театральное служение</option></select></div>',
         '<div style="display:flex;flex-direction:column;gap:5px;"><label style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);">Ваша церковь <span style="opacity:0.5;font-weight:400;">(необязательно)</span></label><input id="applyChurch" type="text" placeholder="Название и город" style="background:var(--cream);border:1px solid var(--border);padding:11px 14px;font-size:0.9rem;color:var(--ink);outline:none;border-radius:4px;width:100%;"></div>',
         '<button id="applySubmitBtn" style="margin-top:8px;width:100%;padding:16px;background:var(--gold);border:none;font-size:0.8rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink);cursor:pointer;border-radius:4px;">Отправить заявку</button>',
         '<p style="text-align:center;font-size:0.72rem;color:rgba(26,22,18,0.4);line-height:1.6;">Мы свяжемся с вами в течение 1–2 рабочих дней</p>',

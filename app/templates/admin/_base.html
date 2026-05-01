@@ -137,8 +137,52 @@
   }
   input:focus, select:focus, textarea:focus { border-color: var(--gold-line); background: rgba(0,0,0,0.55);}
   textarea { min-height: 110px; resize: vertical; }
+  select {
+    color-scheme: dark; cursor: pointer;
+    appearance: none; -webkit-appearance: none;
+    padding-right: 40px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8' fill='none' stroke='%23C9A84C' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='1 1 7 7 13 1'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; background-size: 12px 7px;
+  }
+  select option { background: var(--ink, #1c1814); color: var(--text); padding: 10px; }
   input[type=file] { padding: 8px; background: rgba(0,0,0,0.2); }
   input[type=checkbox] { accent-color: var(--gold); width: 16px; height: 16px; }
+
+  /* Custom file picker — wraps native <input type=file> via JS */
+  .file-pick {
+    display: flex; align-items: stretch; gap: 0;
+    width: 100%;
+    border: 1px dashed var(--gold-line);
+    border-radius: 10px;
+    background: rgba(0,0,0,0.25);
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .file-pick:hover { border-color: var(--gold); background: rgba(201,168,76,0.07); }
+  .file-pick.has-file { border-style: solid; }
+  .file-pick > input[type=file] {
+    position: absolute; left: -9999px; opacity: 0; pointer-events: none;
+  }
+  .file-pick .fp-btn {
+    flex-shrink: 0;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 18px;
+    background: var(--gold); color: var(--ink);
+    font-weight: 700; font-size: 13px; letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .file-pick .fp-btn::before { content: '📎'; font-size: 15px; }
+  .file-pick .fp-name {
+    flex: 1; min-width: 0;
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 16px;
+    font-size: 13.5px; color: var(--muted);
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  }
+  .file-pick.has-file .fp-name { color: var(--text); }
+  .file-pick.has-file .fp-name::before { content: '✓'; color: var(--gold); font-weight: 700; flex-shrink: 0; }
+  .file-pick .fp-name .fp-size { color: var(--muted); margin-left: auto; padding-left: 12px; flex-shrink: 0; font-size: 12px; }
   ::placeholder { color: rgba(155,144,130,0.7); }
   .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
   .form-group { margin-bottom: 14px; }
@@ -370,5 +414,60 @@
 {% else %}
 {% block content_anon %}{% endblock %}
 {% endif %}
+
+<script>
+// Auto-upgrade native <input type="file"> into a styled file picker.
+(function () {
+  function fmtSize(n) {
+    if (!n) return '';
+    if (n < 1024) return n + ' Б';
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' КБ';
+    return (n / 1048576).toFixed(2) + ' МБ';
+  }
+  function upgrade(input) {
+    if (input.dataset.fpUpgraded === '1') return;
+    input.dataset.fpUpgraded = '1';
+    var label = document.createElement('label');
+    label.className = 'file-pick';
+    var btn = document.createElement('span');
+    btn.className = 'fp-btn';
+    btn.textContent = 'Выберите файл';
+    var name = document.createElement('span');
+    name.className = 'fp-name';
+    name.dataset.placeholder = input.getAttribute('placeholder') || 'Файл не выбран';
+    name.textContent = name.dataset.placeholder;
+    var size = document.createElement('span');
+    size.className = 'fp-size';
+    name.appendChild(size);
+    label.appendChild(btn);
+    label.appendChild(name);
+    input.parentNode.insertBefore(label, input);
+    label.appendChild(input);
+    input.addEventListener('change', function () {
+      var f = input.files && input.files[0];
+      if (f) {
+        // Update text — keep size span at the end
+        name.childNodes[0].nodeValue = f.name;
+        size.textContent = fmtSize(f.size);
+        label.classList.add('has-file');
+      } else {
+        name.childNodes[0].nodeValue = name.dataset.placeholder;
+        size.textContent = '';
+        label.classList.remove('has-file');
+      }
+    });
+  }
+  function scan(root) {
+    var inputs = (root || document).querySelectorAll('input[type="file"]:not([data-fp-skip])');
+    inputs.forEach(upgrade);
+  }
+  if (document.readyState !== 'loading') scan();
+  else document.addEventListener('DOMContentLoaded', function () { scan(); });
+  // Re-scan when <details> are opened / dynamic content is added.
+  document.addEventListener('toggle', function (e) {
+    if (e.target && e.target.tagName === 'DETAILS') scan(e.target);
+  }, true);
+})();
+</script>
 </body>
 </html>
