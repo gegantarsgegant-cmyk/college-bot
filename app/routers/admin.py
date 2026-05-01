@@ -500,6 +500,44 @@ def _new_doc_slug() -> str:
     return _secrets.token_urlsafe(8)
 
 
+def _gather_disk_info() -> dict[str, Any]:
+    """Disk usage stats for the admin Files page."""
+    import shutil
+    from pathlib import Path
+
+    from ..config import UPLOADS_DIR
+
+    try:
+        total, used, free = shutil.disk_usage(str(UPLOADS_DIR))
+    except OSError:
+        total = used = free = 0
+
+    uploads_bytes = 0
+    files_count = 0
+    try:
+        upath = Path(UPLOADS_DIR)
+        if upath.exists():
+            for p in upath.rglob("*"):
+                if p.is_file():
+                    try:
+                        uploads_bytes += p.stat().st_size
+                        files_count += 1
+                    except OSError:
+                        continue
+    except OSError:
+        pass
+
+    pct = round(used * 100 / total, 1) if total else 0.0
+    return {
+        "total": total,
+        "used": used,
+        "free": free,
+        "used_pct": pct,
+        "uploads_bytes": uploads_bytes,
+        "uploads_files_count": files_count,
+    }
+
+
 @router.get("/documents", response_class=HTMLResponse)
 async def documents_list(request: Request, session: AsyncSession = Depends(get_session)):
     if not current_admin(request):
@@ -510,7 +548,8 @@ async def documents_list(request: Request, session: AsyncSession = Depends(get_s
         )
     ).scalars().all()
     return await _render(
-        request, session, "admin/documents_list.html", {"items": rows}
+        request, session, "admin/documents_list.html",
+        {"items": rows, "disk": _gather_disk_info()},
     )
 
 

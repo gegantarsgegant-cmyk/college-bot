@@ -43,7 +43,38 @@
   .doc-icon { width:48px; height:48px; font-size:12px; }
 }
 .copied-flash { color: var(--gold, #c9a14a) !important; }
+
+/* Disk usage card */
+.disk-card { padding:18px 20px; }
+.disk-head { display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+.disk-title { font-size:13px; color:var(--muted); letter-spacing:0.14em; text-transform:uppercase; }
+.disk-amount { font-family:'Cormorant Garamond', serif; font-size:1.6rem; color:var(--text); line-height:1.1; }
+.disk-amount em { font-style:normal; color:var(--gold); font-weight:600; }
+.disk-amount small { font-size:13px; color:var(--muted); margin-left:6px; font-family:'Jost', sans-serif; letter-spacing:0; text-transform:none; }
+.disk-bar { position:relative; height:10px; background:rgba(255,255,255,0.05); border-radius:999px; overflow:hidden; border:1px solid var(--line, rgba(201,168,76,0.15)); }
+.disk-bar-fill {
+  position:absolute; left:0; top:0; bottom:0;
+  background:linear-gradient(90deg, var(--gold) 0%, #e8c97a 100%);
+  border-radius:999px;
+  transition: width .4s ease;
+}
+.disk-bar-fill.warn { background:linear-gradient(90deg, #d8a534 0%, #e8b446 100%); }
+.disk-bar-fill.alert { background:linear-gradient(90deg, #c95454 0%, #e07070 100%); }
+.disk-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:10px 18px; margin-top:14px; font-size:12.5px; color:var(--muted); }
+.disk-grid div { display:flex; flex-direction:column; gap:2px; }
+.disk-grid b { color:var(--text); font-weight:600; font-size:14px; letter-spacing:0; }
+.disk-grid .col-uploads b { color:var(--gold); }
 </style>
+
+{% macro humanbytes(n) -%}
+{%- if n is none or n == 0 -%}0 Б
+{%- elif n < 1024 -%}{{ n }} Б
+{%- elif n < 1048576 -%}{{ '%.1f'|format(n / 1024) }} КБ
+{%- elif n < 1073741824 -%}{{ '%.1f'|format(n / 1048576) }} МБ
+{%- elif n < 1099511627776 -%}{{ '%.2f'|format(n / 1073741824) }} ГБ
+{%- else -%}{{ '%.2f'|format(n / 1099511627776) }} ТБ
+{%- endif -%}
+{% endmacro %}
 
 <div class="main-header">
   <div>
@@ -51,6 +82,37 @@
     <div class="page-subtitle">Внутренний файлообменник колледжа · загрузил → поделился ссылкой</div>
   </div>
 </div>
+
+{% if disk %}
+<div class="card disk-card">
+  <div class="disk-head">
+    <div>
+      <div class="disk-title">Свободное место на диске</div>
+      <div class="disk-amount">
+        <em>{{ humanbytes(disk.free) }}</em>
+        <small>из {{ humanbytes(disk.total) }} · занято {{ disk.used_pct }}%</small>
+      </div>
+    </div>
+    {% if disk.used_pct < 80 %}
+    <div style="font-size:12px;color:var(--muted);">✓ Места достаточно — можно загружать файлы</div>
+    {% elif disk.used_pct < 90 %}
+    <div style="font-size:12px;color:#d8a534;">⚠ Свободного места осталось мало — следите за объёмом</div>
+    {% else %}
+    <div style="font-size:12px;color:#c95454;">⛔ Диск почти заполнен — освободите место</div>
+    {% endif %}
+  </div>
+  <div class="disk-bar">
+    <div class="disk-bar-fill {% if disk.used_pct >= 90 %}alert{% elif disk.used_pct >= 80 %}warn{% endif %}"
+         style="width: {{ disk.used_pct }}%;"></div>
+  </div>
+  <div class="disk-grid">
+    <div><span>Всего</span><b>{{ humanbytes(disk.total) }}</b></div>
+    <div><span>Занято</span><b>{{ humanbytes(disk.used) }}</b></div>
+    <div><span>Свободно</span><b>{{ humanbytes(disk.free) }}</b></div>
+    <div class="col-uploads"><span>Файлообменник занимает</span><b>{{ humanbytes(disk.uploads_bytes) }}<span style="color:var(--muted);font-weight:400;font-size:12px;letter-spacing:0;"> · {{ disk.uploads_files_count }} файл{% if disk.uploads_files_count % 10 == 1 and disk.uploads_files_count % 100 != 11 %}{% elif disk.uploads_files_count % 10 in [2,3,4] and disk.uploads_files_count % 100 not in [12,13,14] %}а{% else %}ов{% endif %}</span></b></div>
+  </div>
+</div>
+{% endif %}
 
 <details class="card">
   <summary style="cursor:pointer;list-style:none;"><h2 style="margin:0;">＋ Загрузить файл</h2></summary>
