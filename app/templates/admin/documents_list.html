@@ -1,53 +1,161 @@
 {% extends "admin/_base.html" %}
-{% block title %}Документы{% endblock %}
+{% block title %}Файлы{% endblock %}
 {% block content %}
+<style>
+.docs-list { display:flex; flex-direction:column; gap:14px; }
+.doc-row {
+  display:grid;
+  grid-template-columns: 56px 1fr auto;
+  gap:18px; align-items:center;
+  background: var(--card, #1c1814);
+  border:1px solid var(--border, rgba(201,161,74,0.15));
+  border-radius: 14px; padding:18px 20px;
+  transition: border-color .15s ease;
+}
+.doc-row:hover { border-color: rgba(201,161,74,0.4); }
+.doc-row.muted { opacity: 0.55; }
+.doc-icon {
+  width:56px; height:56px; border-radius:12px;
+  background: linear-gradient(135deg, rgba(201,161,74,0.16), rgba(201,161,74,0.04));
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Cormorant Garamond', serif; font-size:14px; font-weight:600;
+  letter-spacing:0.04em; color: var(--gold, #c9a14a); text-transform:uppercase;
+  border:1px solid rgba(201,161,74,0.25);
+}
+.doc-info { min-width:0; }
+.doc-title { font-weight:600; font-size:15px; color:var(--text,#f1ead7); margin-bottom:4px; word-break:break-word; }
+.doc-fname { font-size:12px; color:var(--muted,#a39684); margin-bottom:6px; word-break:break-all; }
+.doc-meta { display:flex; flex-wrap:wrap; gap:10px 14px; font-size:11.5px; color:var(--muted,#a39684); }
+.doc-meta b { color:var(--text,#f1ead7); font-weight:500; }
+.doc-meta .lock { color:var(--gold,#c9a14a); }
+.doc-actions { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+.doc-actions .btn { white-space:nowrap; }
+.share-link {
+  display:flex; gap:6px; margin-top:10px; padding:8px 10px;
+  background: rgba(0,0,0,0.25); border-radius:8px;
+  font-family: ui-monospace, monospace; font-size:11.5px; color:var(--muted);
+  align-items:center;
+}
+.share-link input { flex:1; background:transparent; border:none; color:inherit; outline:none; font:inherit; }
+@media (max-width: 720px) {
+  .doc-row { grid-template-columns: 48px 1fr; }
+  .doc-actions { grid-column: 1 / -1; justify-content:flex-start; }
+  .doc-icon { width:48px; height:48px; font-size:12px; }
+}
+.copied-flash { color: var(--gold, #c9a14a) !important; }
+</style>
+
 <div class="main-header">
   <div>
-    <h1 class="page-title">Документы</h1>
-    <div class="page-subtitle">PDF / DOCX и другие файлы для скачивания</div>
+    <h1 class="page-title">Файлы</h1>
+    <div class="page-subtitle">Внутренний файлообменник колледжа · загрузил → поделился ссылкой</div>
   </div>
 </div>
 
-<details class="card" open>
-  <summary style="cursor:pointer;list-style:none;"><h2 style="margin:0;">＋ Загрузить документ</h2></summary>
+<details class="card">
+  <summary style="cursor:pointer;list-style:none;"><h2 style="margin:0;">＋ Загрузить файл</h2></summary>
   <hr class="sep">
   <form method="post" action="/admin/documents/new" enctype="multipart/form-data">
-    <div class="form-group"><label>Название</label><input type="text" name="title" required></div>
-    <div class="form-group"><label>Описание</label><textarea name="description"></textarea></div>
+    <div class="form-group">
+      <label>Файл</label>
+      <input type="file" name="file" required>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;">До 100 МБ. Документы, изображения, аудио, видео, архивы.</div>
+    </div>
+    <div class="form-group">
+      <label>Описание (необязательно)</label>
+      <textarea name="description" rows="2" placeholder="Что внутри файла, для кого, и т.п. — будет видно на странице скачивания"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Заголовок (необязательно)</label>
+      <input type="text" name="title" placeholder="Если оставить пустым — будет имя файла">
+    </div>
     <div class="form-row">
-      <div class="form-group"><label>Файл</label><input type="file" name="file" required></div>
-      <div class="form-group"><label>Сортировка</label><input type="number" name="sort_order" value="0"></div>
-      <div class="form-group" style="display:flex;align-items:flex-end;"><label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:14px;color:var(--text);font-weight:500;"><input type="checkbox" name="published" checked> Опубликовать</label></div>
+      <div class="form-group">
+        <label>Пароль (необязательно)</label>
+        <input type="text" name="password" placeholder="Без пароля если пусто">
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">Запрашивается перед скачиванием</div>
+      </div>
+      <div class="form-group">
+        <label>Лимит скачиваний</label>
+        <input type="number" name="max_downloads" min="1" placeholder="∞ если пусто">
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">После исчерпания файл недоступен</div>
+      </div>
+      <div class="form-group" style="display:flex;align-items:flex-end;">
+        <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:14px;color:var(--text);font-weight:500;">
+          <input type="checkbox" name="published" checked>Опубликовать сразу
+        </label>
+      </div>
     </div>
     <button class="btn"><span>＋</span>Загрузить</button>
   </form>
 </details>
 
 {% if items %}
-<div class="app-list">
+<div class="docs-list" style="margin-top:18px;">
   {% for d in items %}
-  <div class="app-card">
-    <div class="app-head">
-      <div class="grow">
-        <div class="app-name">📄 {{ d.title }}</div>
-        <div class="app-id">№{{ d.id }}</div>
+  {% set ext = (d.original_filename or d.file_url or '').rsplit('.', 1)[-1] | lower %}
+  {% set share_url = (request.url.scheme + '://' + request.url.netloc + '/d/' + d.slug) if d.slug else '' %}
+  <div class="doc-row {% if not d.published %}muted{% endif %}">
+    <div class="doc-icon">{{ ext if ext and ext|length <= 5 else 'FILE' }}</div>
+    <div class="doc-info">
+      <div class="doc-title">{{ d.title or d.original_filename }}</div>
+      {% if d.original_filename and d.original_filename != d.title %}
+      <div class="doc-fname">{{ d.original_filename }}</div>
+      {% endif %}
+      {% if d.description %}<div class="doc-fname" style="color:var(--text);margin-bottom:8px;">{{ d.description }}</div>{% endif %}
+      <div class="doc-meta">
+        <span><b>{{ ((d.size_bytes or 0) / 1048576) | round(2) }} МБ</b></span>
+        {% if d.created_at %}<span>{{ d.created_at.strftime('%d.%m.%Y %H:%M') }}</span>{% endif %}
+        <span>↓ <b>{{ d.download_count or 0 }}{% if d.max_downloads %} / {{ d.max_downloads }}{% endif %}</b></span>
+        {% if d.password_hash %}<span class="lock">🔒 пароль</span>{% endif %}
+        {% if not d.published %}<span style="color:#c97a4a;">скрыт</span>{% endif %}
       </div>
-      {% if d.published %}<span class="pill pill-published">Опубл.</span>{% else %}<span class="pill pill-draft">Черновик</span>{% endif %}
+      {% if d.slug %}
+      <div class="share-link">
+        <span>🔗</span>
+        <input type="text" readonly value="{{ share_url }}" onclick="this.select()" id="link-{{ d.id }}">
+        <button type="button" class="btn btn-sm btn-secondary" onclick="copyLink({{ d.id }}, this)">Копировать</button>
+      </div>
+      {% endif %}
     </div>
-    {% if d.description %}<div class="note">{{ d.description }}</div>{% endif %}
-    <div class="meta"><span class="ic">🔗</span><span><a href="{{ d.file_url }}" target="_blank">Открыть файл</a></span></div>
-    <hr class="sep">
-    <form method="post" action="/admin/documents/{{ d.id }}/delete" onsubmit="return confirm('Удалить документ?')">
-      <button class="btn btn-sm btn-danger">✖ Удалить</button>
-    </form>
+    <div class="doc-actions">
+      <form method="post" action="/admin/documents/{{ d.id }}/toggle" style="margin:0;">
+        <button class="btn btn-sm btn-secondary" title="{{ 'Скрыть' if d.published else 'Опубликовать' }}">
+          {% if d.published %}👁 Скрыть{% else %}👁 Показать{% endif %}
+        </button>
+      </form>
+      <form method="post" action="/admin/documents/{{ d.id }}/delete" style="margin:0;" onsubmit="return confirm('Удалить файл навсегда?')">
+        <button class="btn btn-sm btn-danger">✖ Удалить</button>
+      </form>
+    </div>
   </div>
   {% endfor %}
 </div>
 {% else %}
-<div class="card empty">
-  <div style="font-size:48px;margin-bottom:8px;">📄</div>
-  <div class="big">Документов пока нет</div>
-  <div>Загрузите первый файл через форму выше.</div>
+<div class="card empty" style="margin-top:18px;">
+  <div style="font-size:48px;margin-bottom:8px;">📁</div>
+  <div class="big">Файлов пока нет</div>
+  <div>Загрузите первый — получите ссылку, которой можно поделиться.</div>
 </div>
 {% endif %}
+
+<script>
+function copyLink(id, btn) {
+  const inp = document.getElementById('link-' + id);
+  if (!inp) return;
+  inp.select();
+  try {
+    navigator.clipboard.writeText(inp.value);
+  } catch (_) {
+    document.execCommand('copy');
+  }
+  const orig = btn.textContent;
+  btn.textContent = 'Скопировано ✓';
+  btn.classList.add('copied-flash');
+  setTimeout(function () {
+    btn.textContent = orig;
+    btn.classList.remove('copied-flash');
+  }, 1600);
+}
+</script>
 {% endblock %}

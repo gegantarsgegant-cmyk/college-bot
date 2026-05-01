@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ doc.title or doc.original_filename }} — {{ site.site_title or 'Библейский Колледж ХВЕ' }}</title>
+<link rel="icon" href="/static/favicon/favicon.ico">
+<link rel="preload" href="/static/fonts/fonts.css" as="style">
+<link rel="stylesheet" href="/static/fonts/fonts.css">
+<style>
+:root {
+  --gold: #C9A84C;
+  --gold-light: #E8C97A;
+  --gold-dim: rgba(201,168,76,0.15);
+  --cream: #F5F0E8;
+  --ink: #1A1612;
+  --ink-soft: #3D3530;
+  --parchment: #FAF6EE;
+  --border: rgba(201,168,76,0.3);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Jost', sans-serif;
+  background: var(--parchment);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px 20px;
+  font-size: 17px;
+}
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity: 0.4;
+}
+
+.share-shell { position: relative; z-index: 1; width: 100%; max-width: 560px; }
+
+.brand {
+  text-align: center; margin-bottom: 28px; color: var(--ink-soft);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem; letter-spacing: 0.18em; text-transform: uppercase;
+}
+.brand a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 2px; }
+.brand a:hover { color: var(--gold); border-color: var(--gold); }
+
+.card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 40px 36px 32px;
+  box-shadow: 0 30px 80px -40px rgba(26, 22, 18, 0.45);
+  text-align: center;
+}
+
+.icon {
+  width: 96px; height: 96px; margin: 0 auto 20px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.4rem; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  box-shadow: 0 14px 40px -16px rgba(201,168,76,0.7);
+}
+
+h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 400; font-size: 1.9rem; line-height: 1.2;
+  color: var(--ink); margin-bottom: 8px;
+  word-break: break-word;
+}
+.fname {
+  font-size: 0.85rem; color: var(--ink-soft); opacity: 0.7;
+  margin-bottom: 18px; word-break: break-all;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.desc {
+  margin: 18px 0;
+  padding: 16px 20px;
+  background: var(--cream);
+  border-left: 3px solid var(--gold);
+  text-align: left;
+  font-size: 0.97rem; line-height: 1.6;
+  color: var(--ink-soft);
+  border-radius: 0 8px 8px 0;
+}
+
+.meta {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px;
+  margin: 14px 0 22px;
+  font-size: 0.83rem; color: var(--ink-soft); opacity: 0.85;
+}
+.meta b { color: var(--ink); font-weight: 600; }
+.meta .lock { color: var(--gold); font-weight: 600; }
+
+form { margin-top: 8px; }
+.pwd {
+  width: 100%; padding: 14px 16px; margin-bottom: 14px;
+  border: 1px solid var(--border); border-radius: 10px;
+  background: #fff; color: var(--ink);
+  font: inherit; outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+  text-align: center; letter-spacing: 0.08em;
+}
+.pwd:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-dim); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, var(--ink) 0%, #2a2420 100%);
+  color: #fff;
+  border: none; border-radius: 10px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem; font-weight: 500; letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+  box-shadow: 0 14px 30px -16px rgba(26, 22, 18, 0.55);
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 18px 36px -16px rgba(26, 22, 18, 0.65); }
+.btn:active { transform: translateY(0); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.error {
+  padding: 12px 14px; margin-bottom: 14px; border-radius: 8px;
+  background: rgba(201, 84, 84, 0.12); color: #b34a4a;
+  font-size: 0.9rem; border: 1px solid rgba(201, 84, 84, 0.3);
+}
+
+.exhausted {
+  padding: 22px;
+  background: rgba(201, 84, 84, 0.08);
+  border: 1px solid rgba(201, 84, 84, 0.25);
+  border-radius: 10px;
+  color: #b34a4a;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+}
+
+.foot {
+  margin-top: 22px; text-align: center; font-size: 0.78rem;
+  color: var(--ink-soft); opacity: 0.55;
+}
+
+@media (max-width: 480px) {
+  .card { padding: 28px 20px 24px; }
+  h1 { font-size: 1.5rem; }
+  .icon { width: 80px; height: 80px; font-size: 1.1rem; }
+}
+</style>
+</head>
+<body>
+<div class="share-shell">
+  <div class="brand"><a href="/">{{ site.site_title or 'Библейский Колледж ХВЕ' }}</a></div>
+
+  <div class="card">
+    {% set ext = (doc.original_filename or doc.file_url or '').rsplit('.', 1)[-1] | lower %}
+    <div class="icon">{{ ext if ext and ext|length <= 5 else 'FILE' }}</div>
+
+    <h1>{{ doc.title or doc.original_filename }}</h1>
+    {% if doc.original_filename and doc.original_filename != doc.title %}
+    <div class="fname">{{ doc.original_filename }}</div>
+    {% endif %}
+
+    {% if doc.description %}
+    <div class="desc">{{ doc.description }}</div>
+    {% endif %}
+
+    <div class="meta">
+      <span><b>{{ ((doc.size_bytes or 0) / 1048576) | round(2) }} МБ</b></span>
+      <span>↓ <b>{{ doc.download_count or 0 }}{% if doc.max_downloads %} из {{ doc.max_downloads }}{% endif %}</b></span>
+      {% if doc.password_hash %}<span class="lock">🔒 защищён паролем</span>{% endif %}
+    </div>
+
+    {% if exhausted %}
+    <div class="exhausted">
+      Лимит скачиваний исчерпан.<br>
+      Обратитесь к администрации, если файл вам всё ещё нужен.
+    </div>
+    {% else %}
+    <form method="post" action="/d/{{ doc.slug }}/download">
+      {% if error %}<div class="error">{{ error }}</div>{% endif %}
+      {% if doc.password_hash %}
+      <input class="pwd" type="password" name="password" placeholder="Введите пароль" autocomplete="off" autofocus required>
+      {% endif %}
+      <button class="btn" type="submit">⬇ Скачать</button>
+    </form>
+    {% endif %}
+  </div>
+
+  <div class="foot">© {{ site.site_title or 'Библейский Колледж ХВЕ' }} · защищённое скачивание</div>
+</div>
+</body>
+</html>

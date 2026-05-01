@@ -32,6 +32,15 @@ DEFAULT_SETTINGS: dict[str, str] = {
     "stats_years": "30+",
     "stats_degrees": "5+",
     "stats_callings": "∞",
+    # Cookie / consent banner shown on first visit. Disabled by default.
+    "cookie_banner_enabled": "0",
+    "cookie_banner_text": (
+        "Мы используем файлы cookie для корректной работы сайта и улучшения "
+        "пользовательского опыта. Продолжая пользоваться сайтом, вы "
+        "соглашаетесь с этим, а также с пользовательским соглашением."
+    ),
+    "cookie_banner_terms_url": "",
+    "cookie_banner_button_text": "Принимаю",
 }
 
 

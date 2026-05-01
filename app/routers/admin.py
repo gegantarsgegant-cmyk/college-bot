@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import secrets as _secrets
 from typing import Any
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, UploadFile
@@ -26,7 +27,7 @@ from ..services import (
     set_setting,
     update_application_status,
 )
-from ..uploads import save_document, save_image
+from ..uploads import save_document, save_image, save_shared_file  # noqa: F401
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -492,19 +493,34 @@ async def gallery_delete(request: Request, gid: int, session: AsyncSession = Dep
     return RedirectResponse("/admin/gallery", status_code=303)
 
 
-# ----------------- Documents -----------------
+# ----------------- Documents (mini file-sharing service) -----------------
+
+
+def _new_doc_slug() -> str:
+    return _secrets.token_urlsafe(8)
+
 
 @router.get("/documents", response_class=HTMLResponse)
 async def documents_list(request: Request, session: AsyncSession = Depends(get_session)):
-    return await _crud_list(request, session, models.Document, "admin/documents_list.html")
+    if not current_admin(request):
+        return _redirect_login()
+    rows = (
+        await session.execute(
+            select(models.Document).order_by(models.Document.created_at.desc())
+        )
+    ).scalars().all()
+    return await _render(
+        request, session, "admin/documents_list.html", {"items": rows}
+    )
 
 
 @router.post("/documents/new")
 async def documents_create(
     request: Request,
-    title: str = Form(...),
     description: str = Form(""),
-    sort_order: int = Form(0),
+    title: str = Form(""),
+    password: str = Form(""),
+    max_downloads: str = Form(""),
     published: str = Form("on"),
     file: UploadFile | None = None,
     session: AsyncSession = Depends(get_session),
@@ -513,16 +529,50 @@ async def documents_create(
         return _redirect_login()
     if not file or not file.filename:
         raise HTTPException(400, "File required")
-    url = save_document(file)
+    url, original_name, size_bytes, mime = save_shared_file(file)
+    # Generate unique slug
+    while True:
+        slug = _new_doc_slug()
+        existing = (
+            await session.execute(select(models.Document).where(models.Document.slug == slug))
+        ).scalar_one_or_none()
+        if existing is None:
+            break
+    max_d_int: int | None = None
+    if max_downloads.strip():
+        try:
+            v = int(max_downloads)
+            max_d_int = v if v > 0 else None
+        except ValueError:
+            max_d_int = None
     obj = models.Document(
-        title=title,
-        description=description,
+        title=(title.strip() or original_name)[:255],
+        description=description.strip(),
         file_url=url,
-        sort_order=sort_order,
+        slug=slug,
+        original_filename=original_name,
+        size_bytes=size_bytes,
+        mime_type=mime,
+        password_hash=hash_password(password) if password.strip() else None,
+        max_downloads=max_d_int,
+        download_count=0,
         published=(published == "on"),
     )
     session.add(obj)
     await session.commit()
+    return RedirectResponse("/admin/documents", status_code=303)
+
+
+@router.post("/documents/{did}/toggle")
+async def documents_toggle(
+    request: Request, did: int, session: AsyncSession = Depends(get_session)
+):
+    if not current_admin(request):
+        return _redirect_login()
+    obj = await session.get(models.Document, did)
+    if obj is not None:
+        obj.published = not obj.published
+        await session.commit()
     return RedirectResponse("/admin/documents", status_code=303)
 
 
@@ -532,6 +582,17 @@ async def documents_delete(request: Request, did: int, session: AsyncSession = D
         return _redirect_login()
     obj = await session.get(models.Document, did)
     if obj is not None:
+        # Best-effort delete the underlying file too.
+        try:
+            from ..config import UPLOADS_DIR
+
+            if obj.file_url:
+                fname = obj.file_url.rsplit("/", 1)[-1]
+                p = UPLOADS_DIR / fname
+                if p.is_file():
+                    p.unlink()
+        except Exception:  # noqa: BLE001
+            pass
         await session.delete(obj)
         await session.commit()
     return RedirectResponse("/admin/documents", status_code=303)
@@ -552,13 +613,18 @@ async def settings_get(request: Request, session: AsyncSession = Depends(get_ses
     )
 
 
+_BOOLEAN_SETTINGS = {"cookie_banner_enabled"}
+
+
 @router.post("/settings")
 async def settings_save(request: Request, session: AsyncSession = Depends(get_session)):
     if not current_admin(request):
         return _redirect_login()
     form = await request.form()
     for k in DEFAULT_SETTINGS:
-        if k in form:
+        if k in _BOOLEAN_SETTINGS:
+            await set_setting(session, k, "1" if k in form else "0")
+        elif k in form:
             await set_setting(session, k, str(form[k]))
     return RedirectResponse("/admin/settings", status_code=303)
 

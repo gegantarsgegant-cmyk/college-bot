@@ -3745,5 +3745,87 @@ filterTeachers = function(dept, btn) {
 })();
 </script>
 
+{% if site.cookie_banner_enabled == '1' %}
+<div id="cookieBanner" class="cookie-banner" style="display:none;">
+  <div class="cookie-banner-inner">
+    <div class="cookie-text">
+      {{ site.cookie_banner_text | nl2br }}
+      {% if site.cookie_banner_terms_url %}
+      <a href="{{ site.cookie_banner_terms_url }}" target="_blank" rel="noopener" class="cookie-link">Подробнее →</a>
+      {% endif %}
+    </div>
+    <button type="button" id="cookieBannerAccept" class="cookie-accept">{{ site.cookie_banner_button_text or 'Принимаю' }}</button>
+  </div>
+</div>
+<style>
+.cookie-banner {
+  position: fixed; left: 16px; right: 16px; bottom: 16px;
+  z-index: 9998;
+  background: var(--ink);
+  color: var(--cream);
+  border: 1px solid var(--gold);
+  border-radius: 14px;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,0.5);
+  font-family: 'Jost', sans-serif;
+  animation: cookieIn 0.4s cubic-bezier(.2,.7,.3,1.2) both;
+}
+@keyframes cookieIn {
+  from { transform: translateY(120%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.cookie-banner-inner {
+  display: flex; align-items: center; gap: 20px;
+  padding: 18px 22px;
+  max-width: 980px; margin: 0 auto;
+}
+.cookie-text {
+  flex: 1; font-size: 14px; line-height: 1.55; color: var(--cream-dark);
+}
+.cookie-link {
+  display: inline-block; margin-left: 8px;
+  color: var(--gold); text-decoration: none;
+  border-bottom: 1px solid rgba(201,168,76,0.5);
+  padding-bottom: 1px;
+}
+.cookie-link:hover { border-color: var(--gold); }
+.cookie-accept {
+  flex-shrink: 0;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+  color: var(--ink);
+  border: none; border-radius: 8px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 15px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.cookie-accept:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -8px rgba(201,168,76,0.7); }
+@media (max-width: 600px) {
+  .cookie-banner { left: 8px; right: 8px; bottom: 8px; }
+  .cookie-banner-inner { flex-direction: column; align-items: stretch; gap: 12px; padding: 14px 16px; }
+  .cookie-accept { width: 100%; }
+  .cookie-text { font-size: 13px; }
+}
+</style>
+<script>
+(function () {
+  try {
+    if (localStorage.getItem('cookieAccepted') === '1') return;
+  } catch (_) { /* private mode — show anyway */ }
+  var banner = document.getElementById('cookieBanner');
+  if (!banner) return;
+  banner.style.display = 'block';
+  document.getElementById('cookieBannerAccept').addEventListener('click', function () {
+    try { localStorage.setItem('cookieAccepted', '1'); } catch (_) {}
+    banner.style.transition = 'transform .35s ease, opacity .35s ease';
+    banner.style.transform = 'translateY(120%)';
+    banner.style.opacity = '0';
+    setTimeout(function () { banner.remove(); }, 380);
+  });
+})();
+</script>
+{% endif %}
+
 </body>
 </html>
