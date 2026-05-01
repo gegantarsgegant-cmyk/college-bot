@@ -1,10 +1,19 @@
 {% extends "admin/_base.html" %}
 {% block title %}Преподаватели{% endblock %}
 {% block content %}
-<h1>Преподаватели</h1>
+<div class="main-header">
+  <div>
+    <h1 class="page-title">Преподаватели</h1>
+    <div class="page-subtitle">Список появится на сайте в разделе «Преподаватели»</div>
+  </div>
+</div>
 
-<div class="card">
-  <h2>Добавить преподавателя</h2>
+<details class="card" open>
+  <summary style="cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+    <h2 style="margin:0;">＋ Добавить преподавателя</h2>
+    <span class="muted" style="font-size:13px;">кликните, чтобы свернуть</span>
+  </summary>
+  <hr class="sep">
   <form method="post" action="/admin/teachers/new" enctype="multipart/form-data">
     <div class="form-row">
       <div class="form-group"><label>ФИО</label><input type="text" name="name" required></div>
@@ -17,41 +26,69 @@
       <div class="form-group">
         <label>Отделение(я)</label>
         <input type="text" name="departments" placeholder="all" value="all">
-        <small class="muted">Через запятую: <code>all</code>, <code>music</code>, <code>theology</code>, <code>theatre</code></small>
+        <span class="hint">Через запятую: <code>all</code>, <code>music</code>, <code>theology</code>, <code>theatre</code></span>
       </div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Фото (необяз.)</label><input type="file" name="photo" accept="image/*"></div>
+      <div class="form-group"><label>Фото</label><input type="file" name="photo" accept="image/*"></div>
       <div class="form-group"><label>Сортировка</label><input type="number" name="sort_order" value="0"></div>
-      <div class="form-group"><label><input type="checkbox" name="published" checked> Опубликовать</label></div>
+      <div class="form-group" style="display:flex;align-items:flex-end;"><label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:14px;color:var(--text);font-weight:500;"><input type="checkbox" name="published" checked> Опубликовать сразу</label></div>
     </div>
-    <button class="btn">Создать</button>
+    <button class="btn"><span>＋</span>Создать</button>
   </form>
-</div>
+</details>
 
-<div class="card" style="padding:0;overflow-x:auto;">
-  {% if items %}
-  <table>
-    <thead><tr><th>#</th><th>Фото</th><th>ФИО / Должность</th><th>Отделения</th><th>Предметы</th><th>Сорт.</th><th>Опубл.</th><th></th></tr></thead>
-    <tbody>
-      {% for t in items %}
-      <tr>
-        <td>{{ t.id }}</td>
-        <td>{% if t.photo_url %}<img class="thumb" src="{{ t.photo_url }}">{% else %}<div style="width:48px;height:48px;border-radius:50%;background:#eee;display:flex;align-items:center;justify-content:center;font-weight:600;">{{ t.initials }}</div>{% endif %}</td>
-        <td><b>{{ t.name }}</b><div class="muted">{{ t.role }}</div></td>
-        <td>{{ (t.departments or [])|join(', ') }}</td>
-        <td>{{ (t.subjects or [])|join(', ') }}</td>
-        <td>{{ t.sort_order }}</td>
-        <td>{{ "Да" if t.published else "Нет" }}</td>
-        <td>
-          <form method="post" action="/admin/teachers/{{ t.id }}/delete" onsubmit="return confirm('Удалить?')">
-            <button class="btn btn-danger">Удалить</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}<div style="padding:24px;color:#888;">Пусто.</div>{% endif %}
+{% if items %}
+<div class="app-list">
+  {% for t in items %}
+  <div class="app-card">
+    <div class="row" style="align-items:flex-start;">
+      {% if t.photo_url %}<img class="thumb" src="{{ t.photo_url }}" style="width:64px;height:64px;">{% else %}<div class="avatar-fallback" style="width:64px;height:64px;font-size:22px;">{{ t.initials }}</div>{% endif %}
+      <div class="grow">
+        <div class="app-name">{{ t.name }}</div>
+        <div class="muted" style="font-size:13px;">{{ t.role or '—' }}</div>
+      </div>
+      {% if t.published %}<span class="pill pill-published">Опубл.</span>{% else %}<span class="pill pill-draft">Черновик</span>{% endif %}
+    </div>
+    {% if t.subjects %}<div class="meta"><span class="ic">📚</span><span>{{ t.subjects|join(', ') }}</span></div>{% endif %}
+    {% if t.departments %}<div class="meta"><span class="ic">🏛</span><span>{{ t.departments|join(', ') }}</span></div>{% endif %}
+    {% if t.bio %}<div class="note">{{ t.bio }}</div>{% endif %}
+
+    <hr class="sep">
+    <div class="quick">
+      <details style="flex:1;">
+        <summary class="btn btn-sm btn-secondary" style="display:inline-flex;list-style:none;">✎ Редактировать</summary>
+        <form method="post" action="/admin/teachers/{{ t.id }}/edit" enctype="multipart/form-data" style="margin-top:12px;">
+          <div class="form-row">
+            <div class="form-group"><label>ФИО</label><input type="text" name="name" value="{{ t.name }}" required></div>
+            <div class="form-group"><label>Инициалы</label><input type="text" name="initials" value="{{ t.initials }}" maxlength="4"></div>
+          </div>
+          <div class="form-group"><label>Должность</label><input type="text" name="role" value="{{ t.role }}"></div>
+          <div class="form-group"><label>Биография</label><textarea name="bio">{{ t.bio }}</textarea></div>
+          <div class="form-row">
+            <div class="form-group"><label>Предметы</label><input type="text" name="subjects" value="{{ (t.subjects or [])|join(', ') }}"></div>
+            <div class="form-group"><label>Отделения</label><input type="text" name="departments" value="{{ (t.departments or [])|join(', ') }}"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Заменить фото</label><input type="file" name="photo" accept="image/*"></div>
+            <div class="form-group"><label>Сортировка</label><input type="number" name="sort_order" value="{{ t.sort_order }}"></div>
+            <div class="form-group" style="display:flex;align-items:flex-end;"><label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:14px;color:var(--text);font-weight:500;"><input type="checkbox" name="published" {% if t.published %}checked{% endif %}> Опубликовать</label></div>
+          </div>
+          <button class="btn btn-sm">Сохранить</button>
+        </form>
+      </details>
+      <form method="post" action="/admin/teachers/{{ t.id }}/delete" onsubmit="return confirm('Удалить «{{ t.name }}»?')">
+        <button class="btn btn-sm btn-danger">✖ Удалить</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
 </div>
+{% else %}
+<div class="card empty">
+  <div style="font-size:48px;margin-bottom:8px;">👥</div>
+  <div class="big">Пока нет преподавателей</div>
+  <div>Добавьте первого через форму выше — он сразу появится на сайте.</div>
+</div>
+{% endif %}
 {% endblock %}

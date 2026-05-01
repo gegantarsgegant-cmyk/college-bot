@@ -1,42 +1,52 @@
 {% extends "admin/_base.html" %}
 {% block title %}Новости{% endblock %}
 {% block content %}
-<h1>Новости</h1>
+<div class="main-header">
+  <div>
+    <h1 class="page-title">Новости</h1>
+    <div class="page-subtitle">Записи на главной странице сайта</div>
+  </div>
+</div>
 
-<div class="card">
-  <h2>Добавить новость</h2>
+<details class="card" open>
+  <summary style="cursor:pointer;list-style:none;"><h2 style="margin:0;">＋ Добавить новость</h2></summary>
+  <hr class="sep">
   <form method="post" action="/admin/news/new" enctype="multipart/form-data">
     <div class="form-group"><label>Заголовок</label><input type="text" name="title" required></div>
     <div class="form-group"><label>Текст</label><textarea name="body" required></textarea></div>
     <div class="form-row">
-      <div class="form-group"><label>Изображение (необяз.)</label><input type="file" name="image" accept="image/*"></div>
-      <div class="form-group"><label><input type="checkbox" name="published" checked> Опубликовать</label></div>
+      <div class="form-group"><label>Изображение</label><input type="file" name="image" accept="image/*"></div>
+      <div class="form-group" style="display:flex;align-items:flex-end;"><label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:14px;color:var(--text);font-weight:500;"><input type="checkbox" name="published" checked> Опубликовать</label></div>
     </div>
-    <button class="btn">Создать</button>
+    <button class="btn"><span>＋</span>Создать</button>
   </form>
-</div>
+</details>
 
-<div class="card" style="padding:0;overflow-x:auto;">
-  {% if items %}
-  <table>
-    <thead><tr><th>#</th><th>Заголовок</th><th>Изобр.</th><th>Опубл.</th><th>Создано</th><th></th></tr></thead>
-    <tbody>
-      {% for n in items %}
-      <tr>
-        <td>{{ n.id }}</td>
-        <td><b>{{ n.title }}</b><div class="muted">{{ n.body[:120] }}{% if n.body|length > 120 %}…{% endif %}</div></td>
-        <td>{% if n.image_url %}<img class="thumb" src="{{ n.image_url }}">{% endif %}</td>
-        <td>{{ "Да" if n.published else "Нет" }}</td>
-        <td>{{ n.created_at.strftime('%d.%m.%Y') }}</td>
-        <td>
-          <form method="post" action="/admin/news/{{ n.id }}/delete" onsubmit="return confirm('Удалить?')">
-            <button class="btn btn-danger">Удалить</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}<div style="padding:24px;color:#888;">Пусто.</div>{% endif %}
+{% if items %}
+<div class="app-list">
+  {% for n in items %}
+  <div class="app-card">
+    <div class="app-head">
+      <div class="grow">
+        <div class="app-name">{{ n.title }}</div>
+        <div class="app-id">№{{ n.id }} · {{ n.created_at.strftime('%d.%m.%Y') }}</div>
+      </div>
+      {% if n.published %}<span class="pill pill-published">Опубл.</span>{% else %}<span class="pill pill-draft">Черновик</span>{% endif %}
+    </div>
+    {% if n.image_url %}<img src="{{ n.image_url }}" style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;border:1px solid var(--line);">{% endif %}
+    <div class="note">{{ n.body[:240] }}{% if n.body|length > 240 %}…{% endif %}</div>
+    <hr class="sep">
+    <form method="post" action="/admin/news/{{ n.id }}/delete" onsubmit="return confirm('Удалить новость?')">
+      <button class="btn btn-sm btn-danger">✖ Удалить</button>
+    </form>
+  </div>
+  {% endfor %}
 </div>
+{% else %}
+<div class="card empty">
+  <div style="font-size:48px;margin-bottom:8px;">📰</div>
+  <div class="big">Новостей пока нет</div>
+  <div>Добавьте первую запись через форму выше.</div>
+</div>
+{% endif %}
 {% endblock %}

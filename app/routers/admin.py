@@ -20,6 +20,7 @@ from ..db import get_session
 from ..security import hash_password, verify_password
 from ..services import (
     DEFAULT_SETTINGS,
+    application_stats,
     get_settings_dict,
     list_applications,
     set_setting,
@@ -33,6 +34,39 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 def _redirect_login() -> RedirectResponse:
     return RedirectResponse("/admin/login", status_code=303)
+
+
+async def _new_apps_count(session: AsyncSession) -> int:
+    from sqlalchemy import func
+
+    return int(
+        (
+            await session.execute(
+                select(func.count(models.Application.id)).where(
+                    models.Application.status == models.ApplicationStatus.new.value
+                )
+            )
+        ).scalar_one()
+    )
+
+
+async def _render(
+    request: Request,
+    session: AsyncSession,
+    template: str,
+    ctx: dict[str, Any] | None = None,
+):
+    """TemplateResponse wrapper that always injects `admin` + `new_apps_count`."""
+    admin = current_admin(request)
+    if not admin:
+        return _redirect_login()
+    full = {
+        "admin": admin,
+        "new_apps_count": await _new_apps_count(session),
+    }
+    if ctx:
+        full.update(ctx)
+    return templates.TemplateResponse(request, template, full)
 
 
 def _ensure_admin(request: Request) -> dict[str, Any]:
@@ -153,30 +187,29 @@ async def tg_auth_submit(
 
 @router.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request, session: AsyncSession = Depends(get_session)):
-    admin = current_admin(request)
-    if not admin:
+    if not current_admin(request):
         return _redirect_login()
 
+    from sqlalchemy import func
+
+    async def _count(model) -> int:
+        return int(
+            (await session.execute(select(func.count(model.id)))).scalar_one()
+        )
+
+    apps = await application_stats(session)
     counts = {
-        "applications_new": len(await list_applications(session, status="new")),
-        "news": (
-            await session.execute(select(models.News))
-        ).scalars().all().__len__(),
-        "events": (
-            await session.execute(select(models.Event))
-        ).scalars().all().__len__(),
-        "teachers": (
-            await session.execute(select(models.Teacher))
-        ).scalars().all().__len__(),
-        "gallery": (
-            await session.execute(select(models.GalleryItem))
-        ).scalars().all().__len__(),
-        "documents": (
-            await session.execute(select(models.Document))
-        ).scalars().all().__len__(),
+        "apps": apps,
+        "news": await _count(models.News),
+        "events": await _count(models.Event),
+        "teachers": await _count(models.Teacher),
+        "gallery": await _count(models.GalleryItem),
+        "documents": await _count(models.Document),
     }
-    return templates.TemplateResponse(
-        request, "admin/dashboard.html", {"admin": admin, "counts": counts}
+    recent_apps = await list_applications(session, limit=5)
+    return await _render(
+        request, session, "admin/dashboard.html",
+        {"counts": counts, "recent_apps": recent_apps},
     )
 
 
@@ -188,14 +221,13 @@ async def applications_list(
     status: str = "",
     session: AsyncSession = Depends(get_session),
 ):
-    admin = current_admin(request)
-    if not admin:
+    if not current_admin(request):
         return _redirect_login()
     apps = await list_applications(session, status=status or None, limit=500)
-    return templates.TemplateResponse(
-        request,
-        "admin/applications.html",
-        {"admin": admin, "applications": apps, "status": status},
+    stats = await application_stats(session)
+    return await _render(
+        request, session, "admin/applications.html",
+        {"applications": apps, "status": status, "stats": stats},
     )
 
 
@@ -224,14 +256,13 @@ async def _crud_list(
     template: str,
     extra_ctx: dict | None = None,
 ):
-    admin = current_admin(request)
-    if not admin:
+    if not current_admin(request):
         return _redirect_login()
     items = (await session.execute(select(model))).scalars().all()
-    ctx = {"admin": admin, "items": items}
+    ctx: dict[str, Any] = {"items": items}
     if extra_ctx:
         ctx.update(extra_ctx)
-    return templates.TemplateResponse(request, template, ctx)
+    return await _render(request, session, template, ctx)
 
 
 # ----------------- News -----------------
@@ -373,6 +404,40 @@ async def teachers_create(
     return RedirectResponse("/admin/teachers", status_code=303)
 
 
+@router.post("/teachers/{tid}/edit")
+async def teachers_update(
+    request: Request,
+    tid: int,
+    name: str = Form(...),
+    initials: str = Form(""),
+    role: str = Form(""),
+    bio: str = Form(""),
+    subjects: str = Form(""),
+    departments: str = Form("all"),
+    sort_order: int = Form(0),
+    published: str = Form(""),
+    photo: UploadFile | None = None,
+    session: AsyncSession = Depends(get_session),
+):
+    if not current_admin(request):
+        return _redirect_login()
+    obj = await session.get(models.Teacher, tid)
+    if obj is None:
+        raise HTTPException(404, "Not found")
+    if photo and photo.filename:
+        obj.photo_url = save_image(photo)
+    obj.name = name
+    obj.initials = initials or "".join(p[0].upper() for p in name.split()[:2])
+    obj.role = role
+    obj.bio = bio
+    obj.subjects = [s.strip() for s in subjects.split(",") if s.strip()]
+    obj.departments = [d.strip() for d in departments.split(",") if d.strip()] or ["all"]
+    obj.sort_order = sort_order
+    obj.published = published == "on"
+    await session.commit()
+    return RedirectResponse("/admin/teachers", status_code=303)
+
+
 @router.post("/teachers/{tid}/delete")
 async def teachers_delete(request: Request, tid: int, session: AsyncSession = Depends(get_session)):
     if not current_admin(request):
@@ -476,14 +541,11 @@ async def documents_delete(request: Request, did: int, session: AsyncSession = D
 
 @router.get("/settings", response_class=HTMLResponse)
 async def settings_get(request: Request, session: AsyncSession = Depends(get_session)):
-    admin = current_admin(request)
-    if not admin:
+    if not current_admin(request):
         return _redirect_login()
-    return templates.TemplateResponse(
-        request,
-        "admin/settings.html",
+    return await _render(
+        request, session, "admin/settings.html",
         {
-            "admin": admin,
             "site": await get_settings_dict(session),
             "keys": list(DEFAULT_SETTINGS.keys()),
         },

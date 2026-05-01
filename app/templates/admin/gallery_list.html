@@ -1,36 +1,48 @@
 {% extends "admin/_base.html" %}
 {% block title %}Галерея{% endblock %}
 {% block content %}
-<h1>Галерея</h1>
+<div class="main-header">
+  <div>
+    <h1 class="page-title">Галерея</h1>
+    <div class="page-subtitle">Фотографии для раздела галереи на сайте</div>
+  </div>
+</div>
 
-<div class="card">
-  <h2>Добавить фото</h2>
+<details class="card" open>
+  <summary style="cursor:pointer;list-style:none;"><h2 style="margin:0;">＋ Загрузить фото</h2></summary>
+  <hr class="sep">
   <form method="post" action="/admin/gallery/new" enctype="multipart/form-data">
     <div class="form-row">
-      <div class="form-group"><label>Подпись</label><input type="text" name="title"></div>
-      <div class="form-group"><label>Файл</label><input type="file" name="image" accept="image/*" required></div>
+      <div class="form-group"><label>Подпись (необяз.)</label><input type="text" name="title"></div>
       <div class="form-group"><label>Сортировка</label><input type="number" name="sort_order" value="0"></div>
-      <div class="form-group"><label><input type="checkbox" name="published" checked> Опубликовать</label></div>
     </div>
-    <button class="btn">Загрузить</button>
+    <div class="form-row">
+      <div class="form-group"><label>Файл</label><input type="file" name="image" accept="image/*" required></div>
+      <div class="form-group" style="display:flex;align-items:flex-end;"><label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:14px;color:var(--text);font-weight:500;"><input type="checkbox" name="published" checked> Опубликовать</label></div>
+    </div>
+    <button class="btn"><span>＋</span>Загрузить</button>
   </form>
-</div>
+</details>
 
-<div class="card">
-  {% if items %}
-  <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));gap:12px;">
-    {% for g in items %}
-    <div style="border:1px solid var(--border);border-radius:6px;overflow:hidden;background:#fff;">
-      <img src="{{ g.image_url }}" style="width:100%;height:140px;object-fit:cover;display:block;">
-      <div style="padding:8px;font-size:0.85rem;">
-        <div>{{ g.title }}</div>
-        <form method="post" action="/admin/gallery/{{ g.id }}/delete" style="margin-top:6px;" onsubmit="return confirm('Удалить?')">
-          <button class="btn btn-danger" style="font-size:0.78rem;padding:4px 10px;">Удалить</button>
-        </form>
-      </div>
+{% if items %}
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;">
+  {% for g in items %}
+  <div class="app-card" style="padding:0;overflow:hidden;">
+    <img src="{{ g.image_url }}" style="width:100%;aspect-ratio:1;object-fit:cover;">
+    <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <div style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ g.title or '—' }}</div>
+      <form method="post" action="/admin/gallery/{{ g.id }}/delete" onsubmit="return confirm('Удалить фото?')" style="margin:0;">
+        <button class="btn btn-sm btn-danger" style="padding:4px 8px;">✖</button>
+      </form>
     </div>
-    {% endfor %}
   </div>
-  {% else %}<div style="color:#888;">Пусто.</div>{% endif %}
+  {% endfor %}
 </div>
+{% else %}
+<div class="card empty">
+  <div style="font-size:48px;margin-bottom:8px;">🖼</div>
+  <div class="big">Галерея пуста</div>
+  <div>Загрузите первое фото через форму выше.</div>
+</div>
+{% endif %}
 {% endblock %}

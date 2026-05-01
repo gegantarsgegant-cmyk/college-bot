@@ -1,43 +1,53 @@
 {% extends "admin/_base.html" %}
 {% block title %}Документы{% endblock %}
 {% block content %}
-<h1>Документы</h1>
+<div class="main-header">
+  <div>
+    <h1 class="page-title">Документы</h1>
+    <div class="page-subtitle">PDF / DOCX и другие файлы для скачивания</div>
+  </div>
+</div>
 
-<div class="card">
-  <h2>Загрузить документ</h2>
+<details class="card" open>
+  <summary style="cursor:pointer;list-style:none;"><h2 style="margin:0;">＋ Загрузить документ</h2></summary>
+  <hr class="sep">
   <form method="post" action="/admin/documents/new" enctype="multipart/form-data">
     <div class="form-group"><label>Название</label><input type="text" name="title" required></div>
     <div class="form-group"><label>Описание</label><textarea name="description"></textarea></div>
     <div class="form-row">
-      <div class="form-group"><label>Файл (PDF/DOC/XLS/TXT)</label><input type="file" name="file" required></div>
+      <div class="form-group"><label>Файл</label><input type="file" name="file" required></div>
       <div class="form-group"><label>Сортировка</label><input type="number" name="sort_order" value="0"></div>
-      <div class="form-group"><label><input type="checkbox" name="published" checked> Опубликовать</label></div>
+      <div class="form-group" style="display:flex;align-items:flex-end;"><label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:14px;color:var(--text);font-weight:500;"><input type="checkbox" name="published" checked> Опубликовать</label></div>
     </div>
-    <button class="btn">Загрузить</button>
+    <button class="btn"><span>＋</span>Загрузить</button>
   </form>
-</div>
+</details>
 
-<div class="card" style="padding:0;overflow-x:auto;">
-  {% if items %}
-  <table>
-    <thead><tr><th>#</th><th>Название</th><th>Файл</th><th>Сорт.</th><th>Опубл.</th><th></th></tr></thead>
-    <tbody>
-      {% for d in items %}
-      <tr>
-        <td>{{ d.id }}</td>
-        <td><b>{{ d.title }}</b><div class="muted">{{ d.description[:120] }}</div></td>
-        <td><a href="{{ d.file_url }}" target="_blank">скачать</a></td>
-        <td>{{ d.sort_order }}</td>
-        <td>{{ "Да" if d.published else "Нет" }}</td>
-        <td>
-          <form method="post" action="/admin/documents/{{ d.id }}/delete" onsubmit="return confirm('Удалить?')">
-            <button class="btn btn-danger">Удалить</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}<div style="padding:24px;color:#888;">Пусто.</div>{% endif %}
+{% if items %}
+<div class="app-list">
+  {% for d in items %}
+  <div class="app-card">
+    <div class="app-head">
+      <div class="grow">
+        <div class="app-name">📄 {{ d.title }}</div>
+        <div class="app-id">№{{ d.id }}</div>
+      </div>
+      {% if d.published %}<span class="pill pill-published">Опубл.</span>{% else %}<span class="pill pill-draft">Черновик</span>{% endif %}
+    </div>
+    {% if d.description %}<div class="note">{{ d.description }}</div>{% endif %}
+    <div class="meta"><span class="ic">🔗</span><span><a href="{{ d.file_url }}" target="_blank">Открыть файл</a></span></div>
+    <hr class="sep">
+    <form method="post" action="/admin/documents/{{ d.id }}/delete" onsubmit="return confirm('Удалить документ?')">
+      <button class="btn btn-sm btn-danger">✖ Удалить</button>
+    </form>
+  </div>
+  {% endfor %}
 </div>
+{% else %}
+<div class="card empty">
+  <div style="font-size:48px;margin-bottom:8px;">📄</div>
+  <div class="big">Документов пока нет</div>
+  <div>Загрузите первый файл через форму выше.</div>
+</div>
+{% endif %}
 {% endblock %}

@@ -105,6 +105,23 @@ async def list_applications(
     return list((await session.execute(stmt)).scalars().all())
 
 
+async def application_stats(session: AsyncSession) -> dict[str, int]:
+    """Counts of applications per status, plus total."""
+    from sqlalchemy import func
+
+    rows = (
+        await session.execute(
+            select(models.Application.status, func.count(models.Application.id))
+            .group_by(models.Application.status)
+        )
+    ).all()
+    counts = {s.value: 0 for s in models.ApplicationStatus}
+    for status, n in rows:
+        counts[status] = n
+    counts["total"] = sum(counts.values())
+    return counts
+
+
 async def update_application_status(
     session: AsyncSession, app_id: int, status: str, admin_comment: str = ""
 ) -> models.Application | None:

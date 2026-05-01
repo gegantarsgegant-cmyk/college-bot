@@ -1,68 +1,95 @@
 {% extends "admin/_base.html" %}
 {% block title %}Заявки{% endblock %}
 {% block content %}
-<h1>Заявки</h1>
+<div class="main-header">
+  <div>
+    <h1 class="page-title">Заявки</h1>
+    <div class="page-subtitle">Все обращения через форму на сайте</div>
+  </div>
+</div>
+
+<div class="stat-grid" style="margin-bottom:18px;">
+  <a class="stat-tile{% if not status %} gold{% endif %}" href="/admin/applications">
+    <div class="stat-head"><span>Всего</span><span>📊</span></div>
+    <div class="num">{{ stats.total or 0 }}</div>
+  </a>
+  <a class="stat-tile{% if status=='new' %} gold{% endif %}" href="/admin/applications?status=new">
+    <div class="stat-head"><span>Новые</span><span>📥</span></div>
+    <div class="num">{{ stats.new or 0 }}</div>
+  </a>
+  <a class="stat-tile{% if status=='in_progress' %} gold{% endif %}" href="/admin/applications?status=in_progress">
+    <div class="stat-head"><span>В работе</span><span>⏳</span></div>
+    <div class="num">{{ stats.in_progress or 0 }}</div>
+  </a>
+  <a class="stat-tile{% if status=='accepted' %} gold{% endif %}" href="/admin/applications?status=accepted">
+    <div class="stat-head"><span>Принято</span><span>✅</span></div>
+    <div class="num">{{ stats.accepted or 0 }}</div>
+  </a>
+  <a class="stat-tile{% if status=='rejected' %} gold{% endif %}" href="/admin/applications?status=rejected">
+    <div class="stat-head"><span>Отклонено</span><span>✖</span></div>
+    <div class="num">{{ stats.rejected or 0 }}</div>
+  </a>
+</div>
 
 <div class="filters">
   <a href="/admin/applications" class="{% if not status %}active{% endif %}">Все</a>
-  <a href="/admin/applications?status=new" class="{% if status=='new' %}active{% endif %}">Новые</a>
-  <a href="/admin/applications?status=in_progress" class="{% if status=='in_progress' %}active{% endif %}">В работе</a>
-  <a href="/admin/applications?status=accepted" class="{% if status=='accepted' %}active{% endif %}">Принятые</a>
-  <a href="/admin/applications?status=rejected" class="{% if status=='rejected' %}active{% endif %}">Отклонённые</a>
+  <a href="/admin/applications?status=new" class="{% if status=='new' %}active{% endif %}">📥 Новые</a>
+  <a href="/admin/applications?status=in_progress" class="{% if status=='in_progress' %}active{% endif %}">⏳ В работе</a>
+  <a href="/admin/applications?status=accepted" class="{% if status=='accepted' %}active{% endif %}">✅ Принятые</a>
+  <a href="/admin/applications?status=rejected" class="{% if status=='rejected' %}active{% endif %}">✖ Отклонённые</a>
 </div>
 
-<div class="card" style="padding:0;overflow-x:auto;">
-  {% if applications %}
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Имя</th>
-        <th>Контакт</th>
-        <th>Программа</th>
-        <th>Церковь</th>
-        <th>Сообщение</th>
-        <th>Создано</th>
-        <th>Статус</th>
-        <th>Действия</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for app in applications %}
-      <tr>
-        <td>{{ app.id }}</td>
-        <td><b>{{ app.name }} {{ app.lastname }}</b></td>
-        <td>{{ app.phone }}</td>
-        <td>{{ app.program }}</td>
-        <td>{{ app.church }}</td>
-        <td style="max-width:240px;">{{ app.note }}</td>
-        <td>{{ app.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
-        <td>
-          {% if app.status == "new" %}<span class="pill pill-new">Новая</span>
-          {% elif app.status == "in_progress" %}<span class="pill pill-progress">В работе</span>
-          {% elif app.status == "accepted" %}<span class="pill pill-accepted">Принята</span>
-          {% elif app.status == "rejected" %}<span class="pill pill-rejected">Отклонена</span>
-          {% else %}{{ app.status }}{% endif %}
-          {% if app.admin_comment %}<div class="muted" style="font-size:0.78rem;">{{ app.admin_comment }}</div>{% endif %}
-        </td>
-        <td class="row-actions">
-          <form method="post" action="/admin/applications/{{ app.id }}/status">
-            <select name="new_status" style="width:auto;display:inline-block;">
-              <option value="new" {% if app.status=='new' %}selected{% endif %}>Новая</option>
-              <option value="in_progress" {% if app.status=='in_progress' %}selected{% endif %}>В работе</option>
-              <option value="accepted" {% if app.status=='accepted' %}selected{% endif %}>Принять</option>
-              <option value="rejected" {% if app.status=='rejected' %}selected{% endif %}>Отклонить</option>
-            </select>
-            <input type="text" name="admin_comment" placeholder="Комментарий" style="width:140px;display:inline-block;">
-            <button class="btn" type="submit">OK</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <div style="padding:24px;color:#888;">Заявок нет.</div>
-  {% endif %}
+{% if applications %}
+<div class="app-list">
+  {% for app in applications %}
+  <div class="app-card" id="app-{{ app.id }}">
+    <div class="app-head">
+      <div>
+        <div class="app-name">{{ app.name }} {{ app.lastname }}</div>
+        <div class="app-id">Заявка №{{ app.id }} · {{ app.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+      </div>
+      {% if app.status == "new" %}<span class="pill pill-new">Новая</span>
+      {% elif app.status == "in_progress" %}<span class="pill pill-progress">В работе</span>
+      {% elif app.status == "accepted" %}<span class="pill pill-accepted">Принята</span>
+      {% elif app.status == "rejected" %}<span class="pill pill-rejected">Отклонена</span>{% endif %}
+    </div>
+
+    {% if app.phone %}<div class="meta"><span class="ic">☎</span><span><a href="tel:{{ app.phone }}" style="color:var(--text);">{{ app.phone }}</a></span></div>{% endif %}
+    {% if app.program %}<div class="meta"><span class="ic">🎓</span><span>{{ app.program }}</span></div>{% endif %}
+    {% if app.church %}<div class="meta"><span class="ic">⛪</span><span>{{ app.church }}</span></div>{% endif %}
+    {% if app.note %}<div class="note">{{ app.note }}</div>{% endif %}
+    {% if app.admin_comment %}<div class="meta"><span class="ic">📝</span><span style="color:var(--muted);">{{ app.admin_comment }}</span></div>{% endif %}
+
+    <hr class="sep">
+    <form method="post" action="/admin/applications/{{ app.id }}/status">
+      <div class="quick" style="margin-bottom:10px;">
+        <button name="new_status" value="in_progress" class="btn btn-sm btn-secondary">⏳ В работу</button>
+        <button name="new_status" value="accepted" class="btn btn-sm btn-secondary">✅ Принять</button>
+        <button name="new_status" value="rejected" class="btn btn-sm btn-secondary">✖ Отклонить</button>
+        <button name="new_status" value="new" class="btn btn-sm btn-secondary">↻ Новая</button>
+      </div>
+      <details>
+        <summary class="muted" style="font-size:12px;cursor:pointer;">+ комментарий и сменить статус</summary>
+        <div style="margin-top:10px;display:grid;grid-template-columns:1fr auto auto;gap:8px;">
+          <input type="text" name="admin_comment" placeholder="Комментарий (необязательно)" value="{{ app.admin_comment or '' }}">
+          <select name="new_status">
+            <option value="new" {% if app.status=='new' %}selected{% endif %}>Новая</option>
+            <option value="in_progress" {% if app.status=='in_progress' %}selected{% endif %}>В работе</option>
+            <option value="accepted" {% if app.status=='accepted' %}selected{% endif %}>Принята</option>
+            <option value="rejected" {% if app.status=='rejected' %}selected{% endif %}>Отклонена</option>
+          </select>
+          <button class="btn btn-sm">OK</button>
+        </div>
+      </details>
+    </form>
+  </div>
+  {% endfor %}
 </div>
+{% else %}
+<div class="card empty">
+  <div style="font-size:48px;margin-bottom:8px;">📭</div>
+  <div class="big">Заявок пока нет</div>
+  <div>Когда кто-то отправит форму на сайте — заявка появится здесь и придёт в Telegram.</div>
+</div>
+{% endif %}
 {% endblock %}

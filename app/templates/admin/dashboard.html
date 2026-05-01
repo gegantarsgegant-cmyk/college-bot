@@ -1,34 +1,101 @@
 {% extends "admin/_base.html" %}
 {% block title %}Дашборд{% endblock %}
 {% block content %}
-<h1>Дашборд</h1>
+<div class="main-header">
+  <div>
+    <h1 class="page-title">Добрый день, <em>{{ admin.u or admin.username }}</em></h1>
+    <div class="page-subtitle">Что происходит на сайте сегодня</div>
+  </div>
+  <div class="row">
+    <a href="/admin/applications?status=new" class="btn"><span>📥</span>Новые заявки {% if counts.apps.new %}<span style="background:rgba(0,0,0,0.18);padding:2px 8px;border-radius:999px;font-size:11px;margin-left:6px;">{{ counts.apps.new }}</span>{% endif %}</a>
+    <a href="/admin/news" class="btn btn-ghost"><span>＋</span>Новость</a>
+  </div>
+</div>
 
+<h2 style="margin-top:8px;">Заявки</h2>
 <div class="stat-grid">
-  <a class="stat-tile" href="/admin/applications?status=new" style="text-decoration:none;color:inherit;">
-    <div class="num">{{ counts.applications_new }}</div>
-    <div class="lbl">Новых заявок</div>
+  <a class="stat-tile gold" href="/admin/applications?status=new">
+    <div class="stat-head"><span>Новые</span><span>📥</span></div>
+    <div class="num">{{ counts.apps.new or 0 }}</div>
+    <div class="lbl">не обработано</div>
   </a>
-  <a class="stat-tile" href="/admin/news" style="text-decoration:none;color:inherit;">
-    <div class="num">{{ counts.news }}</div>
-    <div class="lbl">Новостей</div>
+  <a class="stat-tile" href="/admin/applications?status=in_progress">
+    <div class="stat-head"><span>В работе</span><span>⏳</span></div>
+    <div class="num">{{ counts.apps.in_progress or 0 }}</div>
+    <div class="lbl">в обработке</div>
   </a>
-  <a class="stat-tile" href="/admin/events" style="text-decoration:none;color:inherit;">
-    <div class="num">{{ counts.events }}</div>
-    <div class="lbl">Событий</div>
+  <a class="stat-tile" href="/admin/applications?status=accepted">
+    <div class="stat-head"><span>Принято</span><span>✅</span></div>
+    <div class="num">{{ counts.apps.accepted or 0 }}</div>
+    <div class="lbl">положительный ответ</div>
   </a>
-  <a class="stat-tile" href="/admin/teachers" style="text-decoration:none;color:inherit;">
-    <div class="num">{{ counts.teachers }}</div>
-    <div class="lbl">Преподавателей</div>
+  <a class="stat-tile" href="/admin/applications?status=rejected">
+    <div class="stat-head"><span>Отклонено</span><span>✖</span></div>
+    <div class="num">{{ counts.apps.rejected or 0 }}</div>
+    <div class="lbl">не подошли</div>
   </a>
-  <a class="stat-tile" href="/admin/gallery" style="text-decoration:none;color:inherit;">
-    <div class="num">{{ counts.gallery }}</div>
-    <div class="lbl">Галерея</div>
-  </a>
-  <a class="stat-tile" href="/admin/documents" style="text-decoration:none;color:inherit;">
-    <div class="num">{{ counts.documents }}</div>
-    <div class="lbl">Документов</div>
+  <a class="stat-tile" href="/admin/applications">
+    <div class="stat-head"><span>Всего</span><span>📊</span></div>
+    <div class="num">{{ counts.apps.total or 0 }}</div>
+    <div class="lbl">за всё время</div>
   </a>
 </div>
+
+<h2 style="margin-top:24px;">Контент сайта</h2>
+<div class="stat-grid">
+  <a class="stat-tile" href="/admin/news">
+    <div class="stat-head"><span>Новости</span><span>📰</span></div>
+    <div class="num">{{ counts.news }}</div>
+    <div class="lbl">записей</div>
+  </a>
+  <a class="stat-tile" href="/admin/events">
+    <div class="stat-head"><span>События</span><span>📅</span></div>
+    <div class="num">{{ counts.events }}</div>
+    <div class="lbl">в календаре</div>
+  </a>
+  <a class="stat-tile" href="/admin/teachers">
+    <div class="stat-head"><span>Преподаватели</span><span>👥</span></div>
+    <div class="num">{{ counts.teachers }}</div>
+    <div class="lbl">на сайте</div>
+  </a>
+  <a class="stat-tile" href="/admin/gallery">
+    <div class="stat-head"><span>Галерея</span><span>🖼</span></div>
+    <div class="num">{{ counts.gallery }}</div>
+    <div class="lbl">фотографий</div>
+  </a>
+  <a class="stat-tile" href="/admin/documents">
+    <div class="stat-head"><span>Документы</span><span>📄</span></div>
+    <div class="num">{{ counts.documents }}</div>
+    <div class="lbl">файлов</div>
+  </a>
+</div>
+
+{% if recent_apps %}
+<div class="card" style="margin-top:24px;">
+  <div class="card-header">
+    <h2 style="margin:0;">Последние заявки</h2>
+    <a href="/admin/applications" class="btn btn-ghost btn-sm">Все заявки →</a>
+  </div>
+  <div class="app-list">
+    {% for app in recent_apps %}
+    <div class="app-card">
+      <div class="app-head">
+        <div>
+          <div class="app-name">{{ app.name }} {{ app.lastname }}</div>
+          <div class="app-id">№{{ app.id }} · {{ app.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+        </div>
+        {% if app.status == "new" %}<span class="pill pill-new">Новая</span>
+        {% elif app.status == "in_progress" %}<span class="pill pill-progress">В работе</span>
+        {% elif app.status == "accepted" %}<span class="pill pill-accepted">Принята</span>
+        {% elif app.status == "rejected" %}<span class="pill pill-rejected">Отклонена</span>{% endif %}
+      </div>
+      {% if app.phone %}<div class="meta"><span class="ic">☎</span><span>{{ app.phone }}</span></div>{% endif %}
+      {% if app.program %}<div class="meta"><span class="ic">🎓</span><span>{{ app.program }}</span></div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 
 <div class="card" style="margin-top:24px;">
   <h2>Сменить пароль</h2>
@@ -36,7 +103,7 @@
     <div class="form-row">
       <div class="form-group">
         <label>Новый пароль</label>
-        <input type="password" name="new_password" minlength="6" required>
+        <input type="password" name="new_password" minlength="6" required placeholder="Минимум 6 символов">
       </div>
       <div class="form-group" style="display:flex;align-items:flex-end;">
         <button class="btn">Сохранить</button>

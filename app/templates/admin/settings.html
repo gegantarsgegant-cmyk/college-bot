@@ -1,37 +1,53 @@
 {% extends "admin/_base.html" %}
 {% block title %}Настройки{% endblock %}
 {% block content %}
-<h1>Настройки сайта</h1>
+<div class="main-header">
+  <div>
+    <h1 class="page-title">Настройки <em>сайта</em></h1>
+    <div class="page-subtitle">Контакты, соцсети и тексты главной страницы</div>
+  </div>
+  <button form="settings-form" class="btn" type="submit"><span>💾</span>Сохранить всё</button>
+</div>
 
-<form method="post" action="/admin/settings">
+<form method="post" action="/admin/settings" id="settings-form">
   <div class="card">
-    <h2>Общие</h2>
+    <div class="card-header"><h2>📌 Заголовки</h2></div>
     <div class="form-group"><label>Название сайта</label><input type="text" name="site_title" value="{{ site.site_title }}"></div>
-    <div class="form-group"><label>Подзаголовок «hero»</label><input type="text" name="hero_eyebrow" value="{{ site.hero_eyebrow }}"></div>
-    <div class="form-group"><label>Девиз «hero»</label><input type="text" name="hero_subtitle" value="{{ site.hero_subtitle }}"></div>
-  </div>
-
-  <div class="card">
-    <h2>Контакты</h2>
-    <div class="form-group"><label>Адрес</label><textarea name="contact_address" rows="3">{{ site.contact_address }}</textarea></div>
-    <div class="form-group"><label>Email</label><textarea name="contact_email" rows="3">{{ site.contact_email }}</textarea></div>
-    <div class="form-group"><label>Телефоны</label><textarea name="contact_phones" rows="3">{{ site.contact_phones }}</textarea></div>
-    <div class="form-group"><label>Режим работы</label><textarea name="contact_hours" rows="3">{{ site.contact_hours }}</textarea></div>
-  </div>
-
-  <div class="card">
-    <h2>Социальные сети</h2>
     <div class="form-row">
-      <div class="form-group"><label>Instagram</label><input type="text" name="social_instagram" value="{{ site.social_instagram }}"></div>
-      <div class="form-group"><label>Telegram-канал</label><input type="text" name="social_telegram" value="{{ site.social_telegram }}"></div>
-      <div class="form-group"><label>VK</label><input type="text" name="social_vk" value="{{ site.social_vk }}"></div>
-      <div class="form-group"><label>Facebook</label><input type="text" name="social_facebook" value="{{ site.social_facebook }}"></div>
-      <div class="form-group"><label>Viber</label><input type="text" name="social_viber" value="{{ site.social_viber }}"></div>
+      <div class="form-group"><label>Подзаголовок «hero»</label><input type="text" name="hero_eyebrow" value="{{ site.hero_eyebrow }}"></div>
+      <div class="form-group"><label>Девиз «hero»</label><input type="text" name="hero_subtitle" value="{{ site.hero_subtitle }}"></div>
     </div>
   </div>
 
   <div class="card">
-    <h2>Статистика на главной</h2>
+    <div class="card-header"><h2>📍 Контакты</h2></div>
+    <div class="form-row">
+      <div class="form-group"><label>Адрес</label><textarea name="contact_address" rows="3">{{ site.contact_address }}</textarea></div>
+      <div class="form-group"><label>Режим работы</label><textarea name="contact_hours" rows="3">{{ site.contact_hours }}</textarea></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Email</label><textarea name="contact_email" rows="3">{{ site.contact_email }}</textarea></div>
+      <div class="form-group"><label>Телефоны</label><textarea name="contact_phones" rows="3">{{ site.contact_phones }}</textarea></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Email в подвале</label><input type="text" name="footer_email" value="{{ site.footer_email }}"></div>
+      <div class="form-group"><label>Телефон в подвале</label><input type="text" name="footer_phone" value="{{ site.footer_phone }}"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h2>🌐 Соцсети</h2></div>
+    <div class="form-row">
+      <div class="form-group"><label>📷 Instagram</label><input type="url" name="social_instagram" placeholder="https://instagram.com/…" value="{{ site.social_instagram }}"></div>
+      <div class="form-group"><label>✈ Telegram</label><input type="url" name="social_telegram" placeholder="https://t.me/…" value="{{ site.social_telegram }}"></div>
+      <div class="form-group"><label>🆅 VK</label><input type="url" name="social_vk" placeholder="https://vk.com/…" value="{{ site.social_vk }}"></div>
+      <div class="form-group"><label>📘 Facebook</label><input type="url" name="social_facebook" placeholder="https://facebook.com/…" value="{{ site.social_facebook }}"></div>
+      <div class="form-group"><label>📞 Viber</label><input type="text" name="social_viber" placeholder="viber://chat?number=…" value="{{ site.social_viber }}"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h2>📊 Статистика на главной</h2></div>
     <div class="form-row">
       <div class="form-group"><label>Направления</label><input type="text" name="stats_directions" value="{{ site.stats_directions }}"></div>
       <div class="form-group"><label>Лет служения</label><input type="text" name="stats_years" value="{{ site.stats_years }}"></div>
@@ -40,6 +56,6 @@
     </div>
   </div>
 
-  <button class="btn" type="submit">Сохранить</button>
+  <button class="btn" type="submit"><span>💾</span>Сохранить</button>
 </form>
 {% endblock %}
