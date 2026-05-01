@@ -2342,7 +2342,7 @@
             </div>
             <div class="contact-item-text">
               <label>Адрес</label>
-              <p>{{ site.contact_address | e | replace('\n', '<br>') | safe }}</p>
+              <p>{{ site.contact_address | nl2br }}</p>
             </div>
           </div>
           <div class="contact-item">
@@ -2351,7 +2351,7 @@
             </div>
             <div class="contact-item-text">
               <label>Электронная почта</label>
-              <p>{{ site.contact_email | e | replace('\n', '<br>') | safe }}</p>
+              <p>{{ site.contact_email | nl2br }}</p>
             </div>
           </div>
           <div class="contact-item">
@@ -2360,7 +2360,7 @@
             </div>
             <div class="contact-item-text">
               <label>Телефоны</label>
-              <p>{{ site.contact_phones | e | replace('\n', '<br>') | safe }}</p>
+              <p>{{ site.contact_phones | nl2br }}</p>
             </div>
           </div>
           <div class="contact-item">
@@ -2369,7 +2369,7 @@
             </div>
             <div class="contact-item-text">
               <label>Режим работы</label>
-              <p>{{ site.contact_hours | e | replace('\n', '<br>') | safe }}</p>
+              <p>{{ site.contact_hours | nl2br }}</p>
             </div>
           </div>
 

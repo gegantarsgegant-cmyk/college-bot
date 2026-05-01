@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import re
+
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from markupsafe import Markup, escape
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import TEMPLATES_DIR, settings
@@ -18,6 +21,24 @@ from ..services import (
 
 router = APIRouter()
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+
+
+_BR_RE = re.compile(r"<\s*br\s*/?\s*>", re.IGNORECASE)
+
+
+def nl2br(value: str | None) -> Markup:
+    """Render multi-line settings as HTML: escape, then turn \\n and literal
+    <br> tags entered by admins into real <br> elements."""
+    if not value:
+        return Markup("")
+    # Normalise both real newlines and admin-entered <br> tags to a sentinel,
+    # escape everything, then put real <br> back.
+    text = _BR_RE.sub("\n", str(value))
+    escaped = escape(text)
+    return Markup(str(escaped).replace("\n", "<br>"))
+
+
+templates.env.filters["nl2br"] = nl2br
 
 
 @router.get("/", response_class=HTMLResponse)
