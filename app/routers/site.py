@@ -44,6 +44,57 @@ def nl2br(value: str | None) -> Markup:
 templates.env.filters["nl2br"] = nl2br
 
 
+async def _published_programs(session: AsyncSession) -> list[dict]:
+    progs = (
+        await session.execute(
+            select(models.Program)
+            .where(models.Program.published.is_(True))
+            .order_by(models.Program.sort_order, models.Program.id)
+        )
+    ).scalars().all()
+    if not progs:
+        return []
+    pids = [p.id for p in progs]
+    spec_rows = (
+        await session.execute(
+            select(models.ProgramSpecialty)
+            .where(models.ProgramSpecialty.program_id.in_(pids))
+            .order_by(
+                models.ProgramSpecialty.program_id,
+                models.ProgramSpecialty.sort_order,
+                models.ProgramSpecialty.id,
+            )
+        )
+    ).scalars().all()
+    specs_by: dict[int, list[dict]] = {}
+    for s in spec_rows:
+        specs_by.setdefault(s.program_id, []).append(
+            {
+                "num": s.num,
+                "name": s.name,
+                "subs": s.subs,
+                "qualification": s.qualification,
+            }
+        )
+    return [
+        {
+            "slug": p.slug,
+            "number": p.number,
+            "tag": p.tag,
+            "title": p.title,
+            "description": p.description,
+            "form_label": p.form_label,
+            "term_label": p.term_label,
+            "degree_label": p.degree_label,
+            "tuition_amount": p.tuition_amount,
+            "tuition_note": p.tuition_note,
+            "documents": p.documents or [],
+            "specialties": specs_by.get(p.id, []),
+        }
+        for p in progs
+    ]
+
+
 @router.get("/", response_class=HTMLResponse)
 async def index(request: Request, session: AsyncSession = Depends(get_session)):
     site = await get_settings_dict(session)
@@ -70,6 +121,7 @@ async def index(request: Request, session: AsyncSession = Depends(get_session)):
             "teachers": teachers_data,
             "gallery": await published_gallery(session),
             "documents": await published_documents(session),
+            "programs": await _published_programs(session),
             "PUBLIC_URL": settings.PUBLIC_URL,
             "BOT_USERNAME": "",  # filled in via /api/site-info if you want a Mini App link
         },

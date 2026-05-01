@@ -85,6 +85,47 @@ async def ensure_default_settings(session: AsyncSession) -> None:
     await session.commit()
 
 
+async def ensure_default_programs(session: AsyncSession) -> None:
+    """Seed the 3 default programs (music/theology/theatre) on first run."""
+    existing = (
+        await session.execute(select(models.Program.id).limit(1))
+    ).scalar_one_or_none()
+    if existing is not None:
+        return
+    from .seed_programs import DEFAULT_PROGRAMS
+
+    for i, p in enumerate(DEFAULT_PROGRAMS):
+        prog = models.Program(
+            slug=p["slug"],
+            number=p.get("number", ""),
+            tag=p.get("tag", ""),
+            title=p["title"],
+            description=p.get("description", ""),
+            form_label=p.get("form_label", ""),
+            term_label=p.get("term_label", ""),
+            degree_label=p.get("degree_label", ""),
+            tuition_amount=p.get("tuition_amount", ""),
+            tuition_note=p.get("tuition_note", ""),
+            documents=p.get("documents", []),
+            sort_order=i,
+            published=True,
+        )
+        session.add(prog)
+        await session.flush()  # get prog.id
+        for j, s in enumerate(p.get("specialties", [])):
+            session.add(
+                models.ProgramSpecialty(
+                    program_id=prog.id,
+                    num=s.get("num", ""),
+                    name=s["name"],
+                    subs=s.get("subs", ""),
+                    qualification=s.get("qualification", ""),
+                    sort_order=j,
+                )
+            )
+    await session.commit()
+
+
 async def ensure_default_teachers(session: AsyncSession) -> None:
     """Seed teachers from the original site template on first run only."""
     count = (

@@ -450,6 +450,217 @@ async def teachers_delete(request: Request, tid: int, session: AsyncSession = De
     return RedirectResponse("/admin/teachers", status_code=303)
 
 
+# ----------------- Programs -----------------
+
+def _parse_lines(s: str) -> list[str]:
+    return [ln.strip() for ln in (s or "").replace("\r", "").split("\n") if ln.strip()]
+
+
+@router.get("/programs", response_class=HTMLResponse)
+async def programs_list(request: Request, session: AsyncSession = Depends(get_session)):
+    if not current_admin(request):
+        return _redirect_login()
+    progs = (
+        await session.execute(
+            select(models.Program).order_by(models.Program.sort_order, models.Program.id)
+        )
+    ).scalars().all()
+    spec_rows = (
+        await session.execute(
+            select(models.ProgramSpecialty).order_by(
+                models.ProgramSpecialty.program_id,
+                models.ProgramSpecialty.sort_order,
+                models.ProgramSpecialty.id,
+            )
+        )
+    ).scalars().all()
+    specs_by_program: dict[int, list] = {}
+    for s in spec_rows:
+        specs_by_program.setdefault(s.program_id, []).append(s)
+    return await _render(
+        request,
+        session,
+        "admin/programs_list.html",
+        {"items": progs, "specs_by_program": specs_by_program},
+    )
+
+
+@router.post("/programs/new")
+async def programs_create(
+    request: Request,
+    slug: str = Form(...),
+    number: str = Form(""),
+    tag: str = Form(""),
+    title: str = Form(...),
+    description: str = Form(""),
+    form_label: str = Form(""),
+    term_label: str = Form(""),
+    degree_label: str = Form(""),
+    tuition_amount: str = Form(""),
+    tuition_note: str = Form(""),
+    documents: str = Form(""),
+    sort_order: int = Form(0),
+    published: str = Form("on"),
+    session: AsyncSession = Depends(get_session),
+):
+    if not current_admin(request):
+        return _redirect_login()
+    obj = models.Program(
+        slug=slug.strip().lower()[:32],
+        number=number.strip()[:8],
+        tag=tag.strip()[:120],
+        title=title.strip()[:255],
+        description=description.strip(),
+        form_label=form_label.strip()[:120],
+        term_label=term_label.strip()[:255],
+        degree_label=degree_label.strip()[:255],
+        tuition_amount=tuition_amount.strip()[:64],
+        tuition_note=tuition_note.strip()[:500],
+        documents=_parse_lines(documents),
+        sort_order=sort_order,
+        published=(published == "on"),
+    )
+    session.add(obj)
+    await session.commit()
+    return RedirectResponse("/admin/programs", status_code=303)
+
+
+@router.post("/programs/{pid}/edit")
+async def programs_update(
+    request: Request,
+    pid: int,
+    slug: str = Form(...),
+    number: str = Form(""),
+    tag: str = Form(""),
+    title: str = Form(...),
+    description: str = Form(""),
+    form_label: str = Form(""),
+    term_label: str = Form(""),
+    degree_label: str = Form(""),
+    tuition_amount: str = Form(""),
+    tuition_note: str = Form(""),
+    documents: str = Form(""),
+    sort_order: int = Form(0),
+    published: str = Form(""),
+    session: AsyncSession = Depends(get_session),
+):
+    if not current_admin(request):
+        return _redirect_login()
+    obj = await session.get(models.Program, pid)
+    if obj is None:
+        raise HTTPException(404, "Not found")
+    obj.slug = slug.strip().lower()[:32]
+    obj.number = number.strip()[:8]
+    obj.tag = tag.strip()[:120]
+    obj.title = title.strip()[:255]
+    obj.description = description.strip()
+    obj.form_label = form_label.strip()[:120]
+    obj.term_label = term_label.strip()[:255]
+    obj.degree_label = degree_label.strip()[:255]
+    obj.tuition_amount = tuition_amount.strip()[:64]
+    obj.tuition_note = tuition_note.strip()[:500]
+    obj.documents = _parse_lines(documents)
+    obj.sort_order = sort_order
+    obj.published = (published == "on")
+    await session.commit()
+    return RedirectResponse("/admin/programs", status_code=303)
+
+
+@router.post("/programs/{pid}/delete")
+async def programs_delete(
+    request: Request, pid: int, session: AsyncSession = Depends(get_session)
+):
+    if not current_admin(request):
+        return _redirect_login()
+    obj = await session.get(models.Program, pid)
+    if obj is not None:
+        # also delete its specialties
+        specs = (
+            await session.execute(
+                select(models.ProgramSpecialty).where(
+                    models.ProgramSpecialty.program_id == pid
+                )
+            )
+        ).scalars().all()
+        for s in specs:
+            await session.delete(s)
+        await session.delete(obj)
+        await session.commit()
+    return RedirectResponse("/admin/programs", status_code=303)
+
+
+@router.post("/programs/{pid}/specialties/new")
+async def programs_specialty_create(
+    request: Request,
+    pid: int,
+    num: str = Form(""),
+    name: str = Form(...),
+    subs: str = Form(""),
+    qualification: str = Form(""),
+    sort_order: int = Form(0),
+    session: AsyncSession = Depends(get_session),
+):
+    if not current_admin(request):
+        return _redirect_login()
+    prog = await session.get(models.Program, pid)
+    if prog is None:
+        raise HTTPException(404, "Program not found")
+    session.add(
+        models.ProgramSpecialty(
+            program_id=pid,
+            num=num.strip()[:8],
+            name=name.strip()[:255],
+            subs=subs.strip(),
+            qualification=qualification.strip()[:500],
+            sort_order=sort_order,
+        )
+    )
+    await session.commit()
+    return RedirectResponse("/admin/programs", status_code=303)
+
+
+@router.post("/programs/{pid}/specialties/{sid}/edit")
+async def programs_specialty_update(
+    request: Request,
+    pid: int,
+    sid: int,
+    num: str = Form(""),
+    name: str = Form(...),
+    subs: str = Form(""),
+    qualification: str = Form(""),
+    sort_order: int = Form(0),
+    session: AsyncSession = Depends(get_session),
+):
+    if not current_admin(request):
+        return _redirect_login()
+    obj = await session.get(models.ProgramSpecialty, sid)
+    if obj is None or obj.program_id != pid:
+        raise HTTPException(404, "Specialty not found")
+    obj.num = num.strip()[:8]
+    obj.name = name.strip()[:255]
+    obj.subs = subs.strip()
+    obj.qualification = qualification.strip()[:500]
+    obj.sort_order = sort_order
+    await session.commit()
+    return RedirectResponse("/admin/programs", status_code=303)
+
+
+@router.post("/programs/{pid}/specialties/{sid}/delete")
+async def programs_specialty_delete(
+    request: Request,
+    pid: int,
+    sid: int,
+    session: AsyncSession = Depends(get_session),
+):
+    if not current_admin(request):
+        return _redirect_login()
+    obj = await session.get(models.ProgramSpecialty, sid)
+    if obj is not None and obj.program_id == pid:
+        await session.delete(obj)
+        await session.commit()
+    return RedirectResponse("/admin/programs", status_code=303)
+
+
 # ----------------- Gallery -----------------
 
 @router.get("/gallery", response_class=HTMLResponse)

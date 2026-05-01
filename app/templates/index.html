@@ -2087,50 +2087,22 @@
       <h2 class="section-title">Программы<br><em>Подготовки</em></h2>
     </div>
     <div class="programs-grid">
-      <button class="program-card fade-in" onclick="openPage('music')">
+      {% for prog in programs %}
+      <button class="program-card fade-in" onclick="openPage('{{ prog.slug }}')">
         <div class="program-arrow">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L12 2M12 2H5M12 2V9"/></svg>
         </div>
-        <div class="program-number">01</div>
-        <div class="program-tag">Музыкальное служение</div>
-        <h3 class="program-title">Бакалавр искусств в церковной музыке</h3>
-        <p class="program-desc">Практические навыки музыкального служения и технического обеспечения. Богословская и музыкальная подготовка в едином курсе.</p>
+        {% if prog.number %}<div class="program-number">{{ prog.number }}</div>{% endif %}
+        {% if prog.tag %}<div class="program-tag">{{ prog.tag }}</div>{% endif %}
+        <h3 class="program-title">{{ prog.title }}</h3>
+        {% if prog.description %}<p class="program-desc">{{ prog.description }}</p>{% endif %}
         <div class="program-meta">
-          <div class="program-meta-item"><span>Форма</span><span>Очно-заочная · 4 сессии/год</span></div>
-          <div class="program-meta-item"><span>Срок</span><span>Уровень 1 — 3 года · Уровень 2 — 2,5 года</span></div>
-          <div class="program-meta-item"><span>Степень</span><span>Бакалавр искусств</span></div>
+          {% if prog.form_label %}<div class="program-meta-item"><span>Форма</span><span>{{ prog.form_label }}</span></div>{% endif %}
+          {% if prog.term_label %}<div class="program-meta-item"><span>Срок</span><span>{{ prog.term_label }}</span></div>{% endif %}
+          {% if prog.degree_label %}<div class="program-meta-item"><span>Степень</span><span>{{ prog.degree_label }}</span></div>{% endif %}
         </div>
       </button>
-
-      <button class="program-card fade-in" onclick="openPage('theology')">
-        <div class="program-arrow">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L12 2M12 2H5M12 2V9"/></svg>
-        </div>
-        <div class="program-number">02</div>
-        <div class="program-tag">Библейско-богословское</div>
-        <h3 class="program-title">Богословие и христианское служение</h3>
-        <p class="program-desc">Изучение Священного Писания на трёх уровнях — от базового сертификата до степени бакалавра богословия. Полностью онлайн.</p>
-        <div class="program-meta">
-          <div class="program-meta-item"><span>Форма</span><span>Заочная (онлайн)</span></div>
-          <div class="program-meta-item"><span>Уровень А</span><span>Сертификат библейских знаний</span></div>
-          <div class="program-meta-item"><span>Уровень B/C</span><span>Бакалавр служения / богословия</span></div>
-        </div>
-      </button>
-
-      <button class="program-card fade-in" onclick="openPage('theatre')">
-        <div class="program-arrow">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L12 2M12 2H5M12 2V9"/></svg>
-        </div>
-        <div class="program-number">03</div>
-        <div class="program-tag">Евангелие через творчество</div>
-        <h3 class="program-title">Бакалавр искусств в театральном служении</h3>
-        <p class="program-desc">Практические навыки церковного театрального служения. Сочетание богословской и специальной подготовки для служения творчеством.</p>
-        <div class="program-meta">
-          <div class="program-meta-item"><span>Форма</span><span>Очно-заочная · 4 сессии/год</span></div>
-          <div class="program-meta-item"><span>Срок</span><span>3 года</span></div>
-          <div class="program-meta-item"><span>Степень</span><span>Бакалавр искусств</span></div>
-        </div>
-      </button>
+      {% endfor %}
     </div>
   </section>
 

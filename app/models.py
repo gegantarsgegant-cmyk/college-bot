@@ -115,6 +115,39 @@ class Application(Base):
     notified_message_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
 
+class Program(Base):
+    """A study program shown on the homepage and as a sub-page."""
+
+    __tablename__ = "programs"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    slug: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    number: Mapped[str] = mapped_column(String(8), default="")
+    tag: Mapped[str] = mapped_column(String(120), default="")
+    title: Mapped[str] = mapped_column(String(255))
+    description: Mapped[str] = mapped_column(Text, default="")
+    form_label: Mapped[str] = mapped_column(String(120), default="")
+    term_label: Mapped[str] = mapped_column(String(255), default="")
+    degree_label: Mapped[str] = mapped_column(String(255), default="")
+    tuition_amount: Mapped[str] = mapped_column(String(64), default="")
+    tuition_note: Mapped[str] = mapped_column(String(500), default="")
+    documents: Mapped[list] = mapped_column(JSON, default=list)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    published: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class ProgramSpecialty(Base):
+    """A specialty / track inside a program (e.g. 'Звукорежиссура')."""
+
+    __tablename__ = "program_specialties"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    program_id: Mapped[int] = mapped_column(Integer, index=True)
+    num: Mapped[str] = mapped_column(String(8), default="")
+    name: Mapped[str] = mapped_column(String(255))
+    subs: Mapped[str] = mapped_column(Text, default="")
+    qualification: Mapped[str] = mapped_column(String(500), default="")
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
+
+
 class BotUser(Base):
     """Telegram users who interacted with the bot. Used to broadcast news."""
 
@@ -137,6 +170,8 @@ __all__ = [
     "Event",
     "GalleryItem",
     "News",
+    "Program",
+    "ProgramSpecialty",
     "Setting",
     "Teacher",
 ]
