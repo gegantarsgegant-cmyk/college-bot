@@ -97,9 +97,9 @@ async def _published_programs(session: AsyncSession) -> list[dict]:
     ]
 
 
-async def homepage_context(session: AsyncSession) -> dict:
+async def homepage_context(session: AsyncSession, lang: str = "ru") -> dict:
     """Shared context for the public homepage and the admin visual editor."""
-    site = await get_settings_dict(session)
+    site = await get_settings_dict(session, lang=lang)
     teachers = await published_teachers(session)
     teachers_data = [
         {
@@ -141,7 +141,7 @@ def _attach_lang(response, request: Request, lang: str):
 @router.get("/", response_class=HTMLResponse)
 async def index(request: Request, session: AsyncSession = Depends(get_session)):
     lang = pick_language(request)
-    ctx = await homepage_context(session)
+    ctx = await homepage_context(session, lang=lang)
     ctx["lang"] = lang
     response = templates.TemplateResponse(request, "index.html", ctx)
     return _attach_lang(response, request, lang)
@@ -162,8 +162,8 @@ async def donate_page(request: Request, session: AsyncSession = Depends(get_sess
     so the church admin can edit ЕРИП code, bank account, etc. via
     /admin/settings without touching the template.
     """
-    site = await get_settings_dict(session)
     lang = pick_language(request)
+    site = await get_settings_dict(session, lang=lang)
     response = templates.TemplateResponse(
         request, "donate.html", {"site": site, "lang": lang}
     )
@@ -192,8 +192,8 @@ async def file_share_page(
     session: AsyncSession = Depends(get_session),
 ):
     d = await _get_doc_by_slug(slug, session)
-    site = await get_settings_dict(session)
     lang = pick_language(request)
+    site = await get_settings_dict(session, lang=lang)
     response = templates.TemplateResponse(
         request,
         "file_share.html",
@@ -216,8 +216,8 @@ async def file_share_download(
     session: AsyncSession = Depends(get_session),
 ):
     d = await _get_doc_by_slug(slug, session)
-    site = await get_settings_dict(session)
     lang = pick_language(request)
+    site = await get_settings_dict(session, lang=lang)
     err_pw = {"ru": "Неверный пароль", "be": "Няправільны пароль", "en": "Wrong password"}.get(lang, "Неверный пароль")
     if _is_exhausted(d):
         return templates.TemplateResponse(

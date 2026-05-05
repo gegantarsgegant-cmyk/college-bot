@@ -23,7 +23,9 @@ from ..db import get_session
 from ..security import hash_password, verify_password
 from ..services import (
     DEFAULT_SETTINGS,
+    LOCALIZED_LANGS,
     application_stats,
+    get_settings_all_langs,
     get_settings_dict,
     list_applications,
     set_setting,
@@ -1087,7 +1089,8 @@ async def settings_get(request: Request, session: AsyncSession = Depends(get_ses
     return await _render(
         request, session, "admin/settings.html",
         {
-            "site": await get_settings_dict(session),
+            "site": await get_settings_dict(session),  # canonical RU values
+            "site_i18n": await get_settings_all_langs(session),
             "keys": list(DEFAULT_SETTINGS.keys()),
         },
     )
@@ -1101,11 +1104,29 @@ async def settings_save(request: Request, session: AsyncSession = Depends(get_se
     if not current_admin(request):
         return _redirect_login()
     form = await request.form()
+    # 1) Canonical (RU) values + booleans
     for k in DEFAULT_SETTINGS:
         if k in _BOOLEAN_SETTINGS:
             await set_setting(session, k, "1" if k in form else "0")
         elif k in form:
             await set_setting(session, k, str(form[k]))
+    # 2) Localized variants (BE / EN). Empty string means "no admin override"
+    #    — drop any existing row so the built-in translation can shine through.
+    for k in DEFAULT_SETTINGS:
+        if k in _BOOLEAN_SETTINGS:
+            continue
+        for lng in LOCALIZED_LANGS:
+            field = f"{k}__{lng}"
+            if field not in form:
+                continue
+            value = str(form[field]).strip()
+            if value:
+                await set_setting(session, field, value)
+            else:
+                obj = await session.get(models.Setting, field)
+                if obj is not None:
+                    await session.delete(obj)
+                    await session.commit()
     return RedirectResponse("/admin/settings", status_code=303)
 
 

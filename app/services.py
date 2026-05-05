@@ -17,6 +17,11 @@ DEFAULT_SETTINGS: dict[str, str] = {
     "site_title": "Библейский Колледж ХВЕ",
     "hero_eyebrow": "Духовное учебное заведение · Минск, Беларусь",
     "hero_subtitle": "Бог ищет лидеров будущих перемен",
+    # Two-line navbar logo. Top line is small/uppercase, main is the brand.
+    "nav_logo_top": "ХДН",
+    "nav_logo_main": "Библейский Колледж",
+    # Footer brand block. Allow <br> for line breaks.
+    "footer_logo": "Библейский<br>Колледж ХВЕ",
     "contact_address": "220092, г. Минск, ул. Бельского, 15, оф. 103\nрядом со ст. м. «Спортивная»",
     "contact_email": "cfnbel@gmail.com — приёмная комиссия\nadmin@biblecollege.by — администратор",
     "contact_phones": "+375 17 393 53 94\n+375 29 602 32 32\n+375 33 660 32 32",
@@ -61,13 +66,142 @@ DEFAULT_SETTINGS: dict[str, str] = {
 }
 
 
-async def get_settings_dict(session: AsyncSession) -> dict[str, str]:
-    """Return all settings as a dict, with defaults filled in."""
+# Pre-seeded BE / EN translations of the default Russian settings. Admins can
+# override any of these in /admin/settings; we just ship sensible defaults so
+# the public site looks complete in all three languages out of the box.
+DEFAULT_SETTINGS_I18N: dict[str, dict[str, str]] = {
+    "be": {
+        "site_title": "Біблейскі Каледж ХВЕ",
+        "hero_eyebrow": "Духоўная навучальная ўстанова · Мінск, Беларусь",
+        "hero_subtitle": "Бог шукае лідараў будучых пераменаў",
+        "nav_logo_top": "ХВЕ",
+        "nav_logo_main": "Біблейскі Каледж",
+        "footer_logo": "Біблейскі<br>Каледж ХВЕ",
+        "contact_address": "220092, г. Мінск, вул. Бельскага, 15, оф. 103\nпоруч са ст. м. «Спартыўная»",
+        "contact_email": "cfnbel@gmail.com — прыёмная камісія\nadmin@biblecollege.by — адміністратар",
+        "contact_phones": "+375 17 393 53 94\n+375 29 602 32 32\n+375 33 660 32 32",
+        "contact_hours": "Панядзелак — пятніца\n10:00 – 18:00",
+        "cookie_banner_text": (
+            "Мы выкарыстоўваем файлы cookie для карэктнай работы сайта і "
+            "паляпшэння карыстальніцкага вопыту. Працягваючы карыстацца "
+            "сайтам, вы згаджаецеся з гэтым, а таксама з карыстальніцкай "
+            "пагадненнем."
+        ),
+        "cookie_banner_button_text": "Прымаю",
+        "donate_eyebrow": "Падтрымаць каледж",
+        "donate_title": "Ваша ахвяраванне — гэта служэнне",
+        "donate_lead": (
+            "Кожнае ахвяраванне дапамагае нам навучаць новых служыцеляў, "
+            "падтрымліваць выкладчыкаў і развіваць праграмы Біблейскага каледжа. "
+            "Дзякуй, што вы з намі."
+        ),
+        "donate_erip_path": "Адукацыя і развіццё → Вышэйшая, сярэдняя → Біблейскі Каледж ХДН",
+        "donate_bank_name": "ААТ «Беларусбанк», г. Мінск",
+        "donate_bank_recipient": "ХДН «Біблейскі Каледж»",
+        "donate_thank_you": "Хай дабраславіць вас Гасподзь!",
+    },
+    "en": {
+        "site_title": "Bible College of CFEF",
+        "hero_eyebrow": "Theological educational institution · Minsk, Belarus",
+        "hero_subtitle": "God is looking for leaders of tomorrow's change",
+        "nav_logo_top": "CFEF",
+        "nav_logo_main": "Bible College",
+        "footer_logo": "Bible<br>College of CFEF",
+        "contact_address": "220092, Minsk, Belskogo str. 15, office 103\nnext to «Sportivnaya» metro station",
+        "contact_email": "cfnbel@gmail.com — admissions office\nadmin@biblecollege.by — administrator",
+        "contact_phones": "+375 17 393 53 94\n+375 29 602 32 32\n+375 33 660 32 32",
+        "contact_hours": "Monday – Friday\n10:00 – 18:00",
+        "cookie_banner_text": (
+            "We use cookies to make the site work correctly and to improve "
+            "your experience. By continuing to use this site you agree to "
+            "our cookie policy and terms of use."
+        ),
+        "cookie_banner_button_text": "I agree",
+        "donate_eyebrow": "Support the college",
+        "donate_title": "Your gift is a ministry",
+        "donate_lead": (
+            "Every gift helps us train new ministers, support our faculty, "
+            "and grow the programs of the Bible College. Thank you for "
+            "standing with us."
+        ),
+        "donate_erip_path": "Education and development → Higher, secondary → Bible College CFEF",
+        "donate_bank_name": "JSC «Belarusbank», Minsk",
+        "donate_bank_recipient": "CFEF «Bible College»",
+        "donate_thank_you": "May the Lord bless you!",
+    },
+}
+
+
+# Languages with per-language overrides for settings. Convention: stored as
+# `<base_key>__<lang>` in the Setting table (double-underscore is not used by
+# any base key). The base key is the Russian default. When rendering the site
+# in BE/EN, we look up the localized variant first; if it's missing or blank
+# we fall back to the base (RU) value so nothing ever "breaks".
+LOCALIZED_LANGS: tuple[str, ...] = ("be", "en")
+
+
+async def get_settings_dict(
+    session: AsyncSession, lang: str = "ru"
+) -> dict[str, str]:
+    """Return all settings as a dict (localized to ``lang``), with defaults filled in.
+
+    Resolution order for each key:
+      1. ``<key>__<lang>`` row in the DB (admin-edited override)
+      2. ``<key>`` row in the DB (canonical RU value, possibly admin-edited)
+      3. Built-in BE/EN translation from ``DEFAULT_SETTINGS_I18N`` (only if lang != ru)
+      4. Built-in RU default from ``DEFAULT_SETTINGS``
+    """
     rows = (await session.execute(select(models.Setting))).scalars().all()
     out = dict(DEFAULT_SETTINGS)
+    if lang in DEFAULT_SETTINGS_I18N:
+        out.update(DEFAULT_SETTINGS_I18N[lang])
+    overrides: dict[str, str] = {}
     for r in rows:
-        out[r.key] = r.value
+        if "__" in r.key:
+            base, _, suffix = r.key.partition("__")
+            if suffix == lang and (r.value or "").strip():
+                overrides[base] = r.value
+            continue
+        # Canonical RU row from the DB. If the admin edited the RU value but
+        # left BE/EN blank, this row should NOT silently overwrite our
+        # built-in BE/EN translation; it only takes effect when lang == 'ru'
+        # OR when no built-in translation exists for that key.
+        if lang == "ru" or r.key not in DEFAULT_SETTINGS_I18N.get(lang, {}):
+            out[r.key] = r.value
+    out.update(overrides)
     return out
+
+
+async def get_settings_all_langs(
+    session: AsyncSession,
+) -> dict[str, dict[str, str]]:
+    """Return settings as ``{base_key: {"ru": ..., "be": ..., "en": ...}}``
+    for use by the admin UI when rendering language tabs. Built-in BE/EN
+    translations show through as the default placeholder so the admin can
+    see what the public site is currently using.
+    """
+    rows = (await session.execute(select(models.Setting))).scalars().all()
+    by_key: dict[str, dict[str, str]] = {}
+    for k, v in DEFAULT_SETTINGS.items():
+        entry = {"ru": v}
+        for lng in LOCALIZED_LANGS:
+            entry[lng] = DEFAULT_SETTINGS_I18N.get(lng, {}).get(k, "")
+        by_key[k] = entry
+    for r in rows:
+        if "__" in r.key:
+            base, _, suffix = r.key.partition("__")
+            if suffix in LOCALIZED_LANGS:
+                by_key.setdefault(
+                    base,
+                    {"ru": "", **{lng: DEFAULT_SETTINGS_I18N.get(lng, {}).get(base, "") for lng in LOCALIZED_LANGS}},
+                )
+                # Empty admin row means "no override" — show empty input,
+                # let the placeholder/built-in default fall through.
+                by_key[base][suffix] = r.value
+            continue
+        by_key.setdefault(r.key, {"ru": "", **{lng: "" for lng in LOCALIZED_LANGS}})
+        by_key[r.key]["ru"] = r.value
+    return by_key
 
 
 async def set_setting(session: AsyncSession, key: str, value: str) -> None:
