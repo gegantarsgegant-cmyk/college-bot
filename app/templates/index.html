@@ -1,5 +1,6 @@
+{% set _l = lang|default('ru') %}
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="{{ _l }}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -2007,15 +2008,34 @@
     </svg>
     <div class="hero-content">
       <div class="hero-eyebrow">{{ site.hero_eyebrow }}</div>
-      <h1 class="hero-title" data-cms="hero.title">Библейский<br><em>Колледж</em></h1>
+      <h1 class="hero-title" data-cms="hero.title">
+        {%- if _l == 'en' %}Bible<br><em>College</em>
+        {%- else %}Библейский<br><em>Колледж</em>
+        {%- endif %}
+      </h1>
       <p class="hero-sub">{{ site.hero_subtitle }}</p>
       <div class="hero-cta">
-        <button class="btn-primary" onclick="scrollToPrograms()">Выбрать программу</button>
-        <a href="#mission" class="btn-outline">Узнать больше</a>
+        <button class="btn-primary" onclick="scrollToPrograms()">
+          {%- if _l == 'en' %}Choose a program
+          {%- elif _l == 'be' %}Выбраць праграму
+          {%- else %}Выбрать программу
+          {%- endif %}
+        </button>
+        <a href="#mission" class="btn-outline">
+          {%- if _l == 'en' %}Learn more
+          {%- elif _l == 'be' %}Даведацца больш
+          {%- else %}Узнать больше
+          {%- endif %}
+        </a>
       </div>
     </div>
     <div class="hero-scroll">
-      <span>Далее</span>
+      <span>
+        {%- if _l == 'en' %}Scroll
+        {%- elif _l == 'be' %}Далей
+        {%- else %}Далее
+        {%- endif %}
+      </span>
       <div class="scroll-line"></div>
     </div>
   </section>
@@ -2023,10 +2043,10 @@
   <!-- STATS -->
   <div class="stats-bar">
     <div class="stats-inner stagger-children">
-      <div class="stat-item"><div class="stat-num">{{ site.stats_directions }}</div><div class="stat-label" data-cms="stats.label1">Направления</div></div>
-      <div class="stat-item"><div class="stat-num">{{ site.stats_years }}</div><div class="stat-label" data-cms="stats.label2">Лет служения</div></div>
-      <div class="stat-item"><div class="stat-num">{{ site.stats_degrees }}</div><div class="stat-label" data-cms="stats.label3">Степеней</div></div>
-      <div class="stat-item"><div class="stat-num">{{ site.stats_callings }}</div><div class="stat-label" data-cms="stats.label4">Призваний</div></div>
+      <div class="stat-item"><div class="stat-num">{{ site.stats_directions }}</div><div class="stat-label" data-cms="stats.label1">{% if _l == 'en' %}Directions{% elif _l == 'be' %}Накірункі{% else %}Направления{% endif %}</div></div>
+      <div class="stat-item"><div class="stat-num">{{ site.stats_years }}</div><div class="stat-label" data-cms="stats.label2">{% if _l == 'en' %}Years of service{% elif _l == 'be' %}Гадоў служэння{% else %}Лет служения{% endif %}</div></div>
+      <div class="stat-item"><div class="stat-num">{{ site.stats_degrees }}</div><div class="stat-label" data-cms="stats.label3">{% if _l == 'en' %}Degrees{% elif _l == 'be' %}Ступеняў{% else %}Степеней{% endif %}</div></div>
+      <div class="stat-item"><div class="stat-num">{{ site.stats_callings }}</div><div class="stat-label" data-cms="stats.label4">{% if _l == 'en' %}Callings{% elif _l == 'be' %}Пакліканняў{% else %}Призваний{% endif %}</div></div>
     </div>
   </div>
 
@@ -2037,21 +2057,52 @@
       <!-- LEAD -->
       <div class="mission-lead">
         <div class="reveal-left">
-          <div class="section-label" data-cms="mission.label">Почему мы</div>
-          <h2 class="section-title" data-cms="mission.title">Не просто<br><em>учёба</em></h2>
+          <div class="section-label" data-cms="mission.label">{% if _l == 'en' %}Why us{% elif _l == 'be' %}Чаму мы{% else %}Почему мы{% endif %}</div>
+          <h2 class="section-title" data-cms="mission.title">
+            {%- if _l == 'en' %}More than just<br><em>study</em>
+            {%- elif _l == 'be' %}Не проста<br><em>вучоба</em>
+            {%- else %}Не просто<br><em>учёба</em>
+            {%- endif %}
+          </h2>
           <p class="mission-lead-text" data-cms="mission.lead">
-            Большинство людей знают Библию — но <strong>не знают, что с ней делать.</strong>
-            Чувствуют призвание — но не понимают, куда оно ведёт.
-            Хотят служить — но не имеют инструментов.<br><br>
-            Библейский колледж ХВЕ существует для тех, кто готов перейти
-            от «верю» к <strong>«действую».</strong> Здесь вера встречается с практикой,
-            а призвание обретает форму.
+            {% if _l == 'en' %}
+              Most people know the Bible — but <strong>don't know what to do with it.</strong>
+              They sense a calling — but don't understand where it leads.
+              They want to serve — but lack the tools.<br><br>
+              The Pentecostal Bible College exists for those ready to move
+              from "I believe" to <strong>"I act."</strong> Here faith meets practice,
+              and a calling takes shape.
+            {% elif _l == 'be' %}
+              Большасць людзей ведаюць Біблію — але <strong>не ведаюць, што з ёй рабіць.</strong>
+              Адчуваюць пакліканне — але не разумеюць, куды яно вядзе.
+              Хочуць служыць — але не маюць інструментаў.<br><br>
+              Біблейскі каледж ХВЕ існуе для тых, хто гатовы перайсці
+              ад «веру» да <strong>«дзейнічаю».</strong> Тут вера сустракаецца з практыкай,
+              а пакліканне набывае форму.
+            {% else %}
+              Большинство людей знают Библию — но <strong>не знают, что с ней делать.</strong>
+              Чувствуют призвание — но не понимают, куда оно ведёт.
+              Хотят служить — но не имеют инструментов.<br><br>
+              Библейский колледж ХВЕ существует для тех, кто готов перейти
+              от «верю» к <strong>«действую».</strong> Здесь вера встречается с практикой,
+              а призвание обретает форму.
+            {% endif %}
           </p>
         </div>
         <div>
           <div class="mission-lead-quote">
-            <p data-cms="mission.quote">«Бог ищет не идеальных — Он ищет готовых. Готовых учиться, расти и идти туда, куда большинство не решается.»</p>
-            <cite data-cms="mission.cite">Пётр Ашейчик · Ректор</cite>
+            <p data-cms="mission.quote">
+              {%- if _l == 'en' %}"God seeks not the perfect — He seeks the ready. Those ready to learn, grow, and go where most don't dare."
+              {%- elif _l == 'be' %}«Бог шукае не дасканалых — Ён шукае гатовых. Гатовых вучыцца, расці і ісці туды, куды большасць не адважваецца.»
+              {%- else %}«Бог ищет не идеальных — Он ищет готовых. Готовых учиться, расти и идти туда, куда большинство не решается.»
+              {%- endif %}
+            </p>
+            <cite data-cms="mission.cite">
+              {%- if _l == 'en' %}Petr Asheychik · Rector
+              {%- elif _l == 'be' %}Пётр Ашэйчык · Рэктар
+              {%- else %}Пётр Ашейчик · Ректор
+              {%- endif %}
+            </cite>
           </div>
         </div>
       </div>
@@ -2059,37 +2110,90 @@
       <hr class="mission-divider">
 
       <!-- REASONS -->
-      <div class="mission-reasons-label" data-cms="mission.reasons_label">3 причины, которые меняют всё</div>
+      <div class="mission-reasons-label" data-cms="mission.reasons_label">
+        {%- if _l == 'en' %}3 reasons that change everything
+        {%- elif _l == 'be' %}3 прычыны, якія мяняюць усё
+        {%- else %}3 причины, которые меняют всё
+        {%- endif %}
+      </div>
       <div class="mission-reasons">
 
         <div class="mission-reason">
           <div class="mission-reason-num">01</div>
-          <div class="mission-reason-title" data-cms="mission.r1.title">Ты уйдёшь с ответами, а не вопросами</div>
+          <div class="mission-reason-title" data-cms="mission.r1.title">
+            {%- if _l == 'en' %}You'll leave with answers, not questions
+            {%- elif _l == 'be' %}Ты сыдзеш з адказамі, а не з пытаннямі
+            {%- else %}Ты уйдёшь с ответами, а не вопросами
+            {%- endif %}
+          </div>
           <div class="mission-reason-body" data-cms="mission.r1.body">
-            Многие годами ходят на службы и так и не понимают,
-            <strong>как самостоятельно читать и понимать Библию.</strong>
-            Здесь ты изучишь герменевтику, экзегетику, богословие —
-            и научишься слышать Бога в тексте, а не только через чужую проповедь.
+            {% if _l == 'en' %}
+              Many people attend services for years yet still don't understand
+              <strong>how to read and interpret the Bible on their own.</strong>
+              Here you'll study hermeneutics, exegesis, theology — and learn
+              to hear God in the text, not only through someone else's sermon.
+            {% elif _l == 'be' %}
+              Многія гадамі ходзяць на набажэнствы і так і не разумеюць,
+              <strong>як самастойна чытаць і разумець Біблію.</strong>
+              Тут ты вывучыш герменеўтыку, экзегетыку, багаслоўе —
+              і навучышся чуць Бога ў тэксце, а не толькі праз чужую пропаведзь.
+            {% else %}
+              Многие годами ходят на службы и так и не понимают,
+              <strong>как самостоятельно читать и понимать Библию.</strong>
+              Здесь ты изучишь герменевтику, экзегетику, богословие —
+              и научишься слышать Бога в тексте, а не только через чужую проповедь.
+            {% endif %}
           </div>
         </div>
 
         <div class="mission-reason">
           <div class="mission-reason-num">02</div>
-          <div class="mission-reason-title" data-cms="mission.r2.title">Призвание становится профессией</div>
+          <div class="mission-reason-title" data-cms="mission.r2.title">
+            {%- if _l == 'en' %}A calling becomes a profession
+            {%- elif _l == 'be' %}Пакліканне становіцца прафесіяй
+            {%- else %}Призвание становится профессией
+            {%- endif %}
+          </div>
           <div class="mission-reason-body" data-cms="mission.r2.body">
-            Желание служить — это начало. Но без знаний оно быстро упирается в стену.
-            <strong>Государственно признанный диплом бакалавра</strong> открывает двери
-            в профессиональное служение — в Беларуси и за её пределами.
+            {% if _l == 'en' %}
+              The desire to serve is the start. But without knowledge it quickly hits a wall.
+              <strong>A state-recognised bachelor's degree</strong> opens the doors to
+              professional ministry — in Belarus and beyond.
+            {% elif _l == 'be' %}
+              Жаданне служыць — гэта пачатак. Але без ведаў яно хутка натыкаецца на сцяну.
+              <strong>Дзяржаўна прызнаны дыплом бакалаўра</strong> адкрывае дзверы
+              ў прафесійнае служэнне — у Беларусі і за яе межамі.
+            {% else %}
+              Желание служить — это начало. Но без знаний оно быстро упирается в стену.
+              <strong>Государственно признанный диплом бакалавра</strong> открывает двери
+              в профессиональное служение — в Беларуси и за её пределами.
+            {% endif %}
           </div>
         </div>
 
         <div class="mission-reason">
           <div class="mission-reason-num">03</div>
-          <div class="mission-reason-title" data-cms="mission.r3.title">Формат, который работает для занятых</div>
+          <div class="mission-reason-title" data-cms="mission.r3.title">
+            {%- if _l == 'en' %}A format that works for the busy
+            {%- elif _l == 'be' %}Фармат, які працуе для занятых
+            {%- else %}Формат, который работает для занятых
+            {%- endif %}
+          </div>
           <div class="mission-reason-body" data-cms="mission.r3.body">
-            Очно-заочная форма — <strong>4 сессии в год.</strong>
-            Ты продолжаешь работать, служить в своей церкви, жить своей жизнью —
-            и при этом системно растёшь. Не нужно бросать всё. Нужно просто начать.
+            {% if _l == 'en' %}
+              Part-time format — <strong>4 sessions per year.</strong>
+              You keep working, serving in your church, living your life —
+              and at the same time you grow systematically. No need to drop everything.
+              You only need to begin.
+            {% elif _l == 'be' %}
+              Завочна-сесійная форма — <strong>4 сесіі на год.</strong>
+              Ты працягваеш працаваць, служыць у сваёй царкве, жыць сваім жыццём —
+              і пры гэтым сістэмна растзеш. Не трэба кідаць усё. Трэба проста пачаць.
+            {% else %}
+              Очно-заочная форма — <strong>4 сессии в год.</strong>
+              Ты продолжаешь работать, служить в своей церкви, жить своей жизнью —
+              и при этом системно растёшь. Не нужно бросать всё. Нужно просто начать.
+            {% endif %}
           </div>
         </div>
 
@@ -2099,19 +2203,39 @@
       <div class="mission-stats">
         <div class="mission-stat">
           <div class="mission-stat-num">20+</div>
-          <div class="mission-stat-text">лет подготовки служителей</div>
+          <div class="mission-stat-text">
+            {%- if _l == 'en' %}years training ministers
+            {%- elif _l == 'be' %}гадоў падрыхтоўкі служыцеляў
+            {%- else %}лет подготовки служителей
+            {%- endif %}
+          </div>
         </div>
         <div class="mission-stat">
           <div class="mission-stat-num">25</div>
-          <div class="mission-stat-text">практикующих преподавателей</div>
+          <div class="mission-stat-text">
+            {%- if _l == 'en' %}practising faculty
+            {%- elif _l == 'be' %}практыкуючых выкладчыкаў
+            {%- else %}практикующих преподавателей
+            {%- endif %}
+          </div>
         </div>
         <div class="mission-stat">
           <div class="mission-stat-num">3</div>
-          <div class="mission-stat-text">программы подготовки</div>
+          <div class="mission-stat-text">
+            {%- if _l == 'en' %}programs
+            {%- elif _l == 'be' %}праграмы падрыхтоўкі
+            {%- else %}программы подготовки
+            {%- endif %}
+          </div>
         </div>
         <div class="mission-stat">
           <div class="mission-stat-num">4×</div>
-          <div class="mission-stat-text">сессии в год — без отрыва от жизни</div>
+          <div class="mission-stat-text">
+            {%- if _l == 'en' %}sessions a year — without leaving your life
+            {%- elif _l == 'be' %}сесіі на год — без адрыву ад жыцця
+            {%- else %}сессии в год — без отрыва от жизни
+            {%- endif %}
+          </div>
         </div>
       </div>
 
@@ -2121,8 +2245,13 @@
   <!-- PROGRAMS -->
   <section class="programs" id="programs">
     <div class="programs-header fade-in">
-      <div class="section-label" data-cms="programs.label">Обучение</div>
-      <h2 class="section-title" data-cms="programs.title">Программы<br><em>Подготовки</em></h2>
+      <div class="section-label" data-cms="programs.label">{% if _l == 'en' %}Education{% elif _l == 'be' %}Навучанне{% else %}Обучение{% endif %}</div>
+      <h2 class="section-title" data-cms="programs.title">
+        {%- if _l == 'en' %}Training<br><em>Programs</em>
+        {%- elif _l == 'be' %}Праграмы<br><em>падрыхтоўкі</em>
+        {%- else %}Программы<br><em>Подготовки</em>
+        {%- endif %}
+      </h2>
     </div>
     <div class="programs-grid">
       {% for prog in programs %}
@@ -2135,9 +2264,9 @@
         <h3 class="program-title">{{ prog.title }}</h3>
         {% if prog.description %}<p class="program-desc">{{ prog.description }}</p>{% endif %}
         <div class="program-meta">
-          {% if prog.form_label %}<div class="program-meta-item"><span>Форма</span><span>{{ prog.form_label }}</span></div>{% endif %}
-          {% if prog.term_label %}<div class="program-meta-item"><span>Срок</span><span>{{ prog.term_label }}</span></div>{% endif %}
-          {% if prog.degree_label %}<div class="program-meta-item"><span>Степень</span><span>{{ prog.degree_label }}</span></div>{% endif %}
+          {% if prog.form_label %}<div class="program-meta-item"><span>{% if _l == 'en' %}Format{% elif _l == 'be' %}Форма{% else %}Форма{% endif %}</span><span>{{ prog.form_label }}</span></div>{% endif %}
+          {% if prog.term_label %}<div class="program-meta-item"><span>{% if _l == 'en' %}Length{% elif _l == 'be' %}Тэрмін{% else %}Срок{% endif %}</span><span>{{ prog.term_label }}</span></div>{% endif %}
+          {% if prog.degree_label %}<div class="program-meta-item"><span>{% if _l == 'en' %}Degree{% elif _l == 'be' %}Ступень{% else %}Степень{% endif %}</span><span>{{ prog.degree_label }}</span></div>{% endif %}
         </div>
       </button>
       {% endfor %}
@@ -2148,19 +2277,46 @@
   <section class="rector" id="rector">
     <div class="rector-inner fade-in">
       <div class="rector-text-side">
-        <div class="section-label" data-cms="rector.label">Слово ректора</div>
-        <h2 class="section-title" data-cms="rector.title">Послание<br><em>Руководителя</em></h2>
+        <div class="section-label" data-cms="rector.label">{% if _l == 'en' %}From the Rector{% elif _l == 'be' %}Слова рэктара{% else %}Слово ректора{% endif %}</div>
+        <h2 class="section-title" data-cms="rector.title">
+          {%- if _l == 'en' %}A message<br><em>from the Rector</em>
+          {%- elif _l == 'be' %}Пасланне<br><em>Кіраўніка</em>
+          {%- else %}Послание<br><em>Руководителя</em>
+          {%- endif %}
+        </h2>
         <div class="rector-body" data-cms="rector.body">
+          {% if _l == 'en' %}
+          <p>God is working on the salvation of people in this world today. He seeks fellowship with you. He wants to invite you into His work.</p>
+          <p>He has a specific calling and purpose for your life. A serious challenge awaits you if you decide to fulfil your calling.</p>
+          <p>His vision is far higher than your abilities. It will take all of your faith and faithfulness to Him. You will have to prepare seriously to carry out His mission.</p>
+          <p>You will discover what it means to <strong>walk with Him!</strong></p>
+          {% elif _l == 'be' %}
+          <p>Бог працуе над выратаваннем людзей у гэтым свеце сёння. Ён шукае зносінаў з табой. Ён хоча запрасіць цябе ў Сваю працу.</p>
+          <p>У Яго ёсць канкрэтнае пакліканне і справа для твайго жыцця. Цябе чакае сур'ёзны выклік, калі прымеш рашэнне выконваць сваё пакліканне.</p>
+          <p>Яго бачанне нашмат вышэй за твае магчымасці. Спатрэбіцца ўся вера і вернасць Яму. Давядзецца сур'ёзна падрыхтавацца да выканання Яго задання.</p>
+          <p>Ты даведаешся, як гэта — <strong>Хадзіць з Ім!</strong></p>
+          {% else %}
           <p>Бог трудится над спасением людей в этом мире сегодня. Он ищет общения с тобой. Он хочет пригласить тебя в Свой труд.</p>
           <p>У Него есть конкретное призвание и дело для Твоей Жизни. Тебя ждёт серьёзный вызов, если примешь решение исполнять своё призвание.</p>
           <p>Его видение гораздо выше твоих возможностей. Потребуется вся вера и верность Ему. Придётся серьёзно подготовиться к выполнению Его задания.</p>
           <p>Ты узнаешь, как это — <strong>Ходить с Ним!</strong></p>
+          {% endif %}
         </div>
         <div class="rector-signature">
           <div class="ornament-cross"></div>
           <div>
-            <div class="rector-sig-name" data-cms="rector.sig_name">Пётр Ашейчик</div>
-            <div class="rector-sig-title" data-cms="rector.sig_title">Ректор · Доктор богословия</div>
+            <div class="rector-sig-name" data-cms="rector.sig_name">
+              {%- if _l == 'en' %}Petr Asheychik
+              {%- elif _l == 'be' %}Пётр Ашэйчык
+              {%- else %}Пётр Ашейчик
+              {%- endif %}
+            </div>
+            <div class="rector-sig-title" data-cms="rector.sig_title">
+              {%- if _l == 'en' %}Rector · Doctor of Theology
+              {%- elif _l == 'be' %}Рэктар · Доктар багаслоўя
+              {%- else %}Ректор · Доктор богословия
+              {%- endif %}
+            </div>
           </div>
         </div>
       </div>
@@ -2169,8 +2325,18 @@
         <div class="rector-portrait-frame">
           <div class="rector-initials">ПА</div>
           <div class="rector-caption">
-            <div class="rector-caption-name" data-cms="rector.portrait_name">Пётр Викентьевич Ашейчик</div>
-            <div class="rector-caption-sub" data-cms="rector.portrait_sub">Ректор · Доктор богословия · Основатель ХДН</div>
+            <div class="rector-caption-name" data-cms="rector.portrait_name">
+              {%- if _l == 'en' %}Petr Vikentievich Asheychik
+              {%- elif _l == 'be' %}Пётр Вікенцьевіч Ашэйчык
+              {%- else %}Пётр Викентьевич Ашейчик
+              {%- endif %}
+            </div>
+            <div class="rector-caption-sub" data-cms="rector.portrait_sub">
+              {%- if _l == 'en' %}Rector · Doctor of Theology · Founder of CFN
+              {%- elif _l == 'be' %}Рэктар · Доктар багаслоўя · Заснавальнік ХДН
+              {%- else %}Ректор · Доктор богословия · Основатель ХДН
+              {%- endif %}
+            </div>
           </div>
         </div>
         <div class="portrait-ornament2"></div>
@@ -2183,8 +2349,13 @@
     <div class="teachers-inner">
       <div class="teachers-header fade-in">
         <div>
-          <div class="section-label" data-cms="teachers.label">Состав</div>
-          <h2 class="section-title" data-cms="teachers.title">Наши<br><em>Преподаватели</em></h2>
+          <div class="section-label" data-cms="teachers.label">{% if _l == 'en' %}Faculty{% elif _l == 'be' %}Склад{% else %}Состав{% endif %}</div>
+          <h2 class="section-title" data-cms="teachers.title">
+            {%- if _l == 'en' %}Our<br><em>Faculty</em>
+            {%- elif _l == 'be' %}Нашы<br><em>Выкладчыкі</em>
+            {%- else %}Наши<br><em>Преподаватели</em>
+            {%- endif %}
+          </h2>
         </div>
       </div>
       <div class="teachers-grid">
@@ -2326,32 +2497,81 @@
   <!-- ADMISSION -->
   <section class="admission" id="admission">
     <div class="admission-inner fade-in">
-      <div class="section-label" data-cms="admission.label">Поступление</div>
-      <h2 class="section-title" data-cms="admission.title">Правила<br><em>Приёма</em></h2>
+      <div class="section-label" data-cms="admission.label">{% if _l == 'en' %}Admission{% elif _l == 'be' %}Паступленне{% else %}Поступление{% endif %}</div>
+      <h2 class="section-title" data-cms="admission.title">
+        {%- if _l == 'en' %}Admission<br><em>Rules</em>
+        {%- elif _l == 'be' %}Правілы<br><em>Прыёму</em>
+        {%- else %}Правила<br><em>Приёма</em>
+        {%- endif %}
+      </h2>
       <div class="admission-grid">
         <div>
           <div class="admission-block">
-            <h3 data-cms="admission.req_title">Требования к поступающим</h3>
+            <h3 data-cms="admission.req_title">
+              {%- if _l == 'en' %}Requirements for applicants
+              {%- elif _l == 'be' %}Патрабаванні да абітурыентаў
+              {%- else %}Требования к поступающим
+              {%- endif %}
+            </h3>
             <ul data-cms="admission.req_list">
+              {% if _l == 'en' %}
+              <li>Citizens of Belarus, foreign nationals and stateless persons</li>
+              <li>Age 17 and over, completed secondary education</li>
+              <li>Membership in an evangelical church</li>
+              <li>No active church discipline at the time of application</li>
+              <li>Passing the entrance exam / audition</li>
+              {% elif _l == 'be' %}
+              <li>Грамадзяне Беларусі, замежныя грамадзяне і асобы без грамадзянства</li>
+              <li>Узрост ад 17 гадоў, наяўнасць сярэдняй адукацыі</li>
+              <li>Сяброўства ў евангельскай царкве</li>
+              <li>Адсутнасць царкоўных спагнанняў на момант паступлення</li>
+              <li>Праходжанне ўступнага іспыту / праслухоўвання</li>
+              {% else %}
               <li>Граждане Беларуси, иностранные граждане и лица без гражданства</li>
               <li>Возраст от 17 лет, наличие среднего образования</li>
               <li>Членство в евангельской церкви</li>
               <li>Отсутствие церковных взысканий на момент поступления</li>
               <li>Прохождение вступительного испытания / прослушивания</li>
+              {% endif %}
             </ul>
           </div>
           <div class="admission-block" style="margin-top:36px">
-            <h3 data-cms="admission.org_title">Организация учёбы</h3>
-            <p data-cms="admission.org_body">Учебный процесс ведётся пять дней в неделю (пн.–пт.) в соответствии с учебными планами. Для сессионных программ — 4 очных недели в год. Богословское отделение работает полностью онлайн.</p>
+            <h3 data-cms="admission.org_title">
+              {%- if _l == 'en' %}Schedule
+              {%- elif _l == 'be' %}Арганізацыя вучобы
+              {%- else %}Организация учёбы
+              {%- endif %}
+            </h3>
+            <p data-cms="admission.org_body">
+              {%- if _l == 'en' %}The academic process runs five days a week (Mon–Fri) according to the curriculum. Session-based programs meet 4 weeks per year on campus. The theology department is fully online.
+              {%- elif _l == 'be' %}Навучальны працэс вядзецца пяць дзён на тыдзень (пн.–пт.) у адпаведнасці з вучэбнымі планамі. Для сесійных праграм — 4 ачныя тыдні на год. Багаслоўская кафедра працуе цалкам онлайн.
+              {%- else %}Учебный процесс ведётся пять дней в неделю (пн.–пт.) в соответствии с учебными планами. Для сессионных программ — 4 очных недели в год. Богословское отделение работает полностью онлайн.
+              {%- endif %}
+            </p>
           </div>
         </div>
         <div>
           <div class="admission-block">
-            <h3 data-cms="admission.dates_title">Сроки приёма документов</h3>
+            <h3 data-cms="admission.dates_title">
+              {%- if _l == 'en' %}Application deadlines
+              {%- elif _l == 'be' %}Тэрміны прыёму дакументаў
+              {%- else %}Сроки приёма документов
+              {%- endif %}
+            </h3>
             <div class="dates-grid">
+              {% if _l == 'en' %}
+              <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Music department (level 1)</strong>August 1 — September 15, 2026</div></div>
+              <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Biblical and theological department</strong>Year-round</div></div>
+              <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Theatre department</strong>January 1 — February 8, 2026</div></div>
+              {% elif _l == 'be' %}
+              <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Музычная кафедра (узровень 1)</strong>1 жніўня — 15 верасня 2026 г.</div></div>
+              <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Біблейска-багаслоўская кафедра</strong>На працягу ўсяго года</div></div>
+              <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Тэатральная кафедра</strong>1 студзеня — 8 лютага 2026 г.</div></div>
+              {% else %}
               <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Музыкальное отделение (уровень 1)</strong>1 августа — 15 сентября 2026 г.</div></div>
               <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Библейско-богословское отделение</strong>В течение всего года</div></div>
               <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Театральное отделение</strong>1 января — 8 февраля 2026 г.</div></div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -2363,15 +2583,20 @@
   <section class="contact" id="contact">
     <div class="contact-inner fade-in">
       <div class="contact-info">
-        <div class="section-label" data-cms="contact.label">Связь</div>
-        <h2 class="section-title" data-cms="contact.title">Контактная<br><em>Информация</em></h2>
+        <div class="section-label" data-cms="contact.label">{% if _l == 'en' %}Contact{% elif _l == 'be' %}Сувязь{% else %}Связь{% endif %}</div>
+        <h2 class="section-title" data-cms="contact.title">
+          {%- if _l == 'en' %}Contact<br><em>Information</em>
+          {%- elif _l == 'be' %}Кантактная<br><em>Інфармацыя</em>
+          {%- else %}Контактная<br><em>Информация</em>
+          {%- endif %}
+        </h2>
         <div class="contact-items">
           <div class="contact-item">
             <div class="contact-icon">
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 1C6.2 1 4 3.2 4 6c0 4 5 11 5 11s5-7 5-11c0-2.8-2.2-5-5-5z"/><circle cx="9" cy="6" r="2"/></svg>
             </div>
             <div class="contact-item-text">
-              <label>Адрес</label>
+              <label>{% if _l == 'en' %}Address{% elif _l == 'be' %}Адрас{% else %}Адрес{% endif %}</label>
               <p>{{ site.contact_address | nl2br }}</p>
             </div>
           </div>
@@ -2380,7 +2605,7 @@
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h12v10H3z"/><path d="M3 4l6 6 6-6"/></svg>
             </div>
             <div class="contact-item-text">
-              <label>Электронная почта</label>
+              <label>{% if _l == 'en' %}Email{% elif _l == 'be' %}Электронная пошта{% else %}Электронная почта{% endif %}</label>
               <p>{{ site.contact_email | nl2br }}</p>
             </div>
           </div>
@@ -2389,7 +2614,7 @@
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3l3 3-2 4 4 4 4-2 3 3-2 2C6 18 0 12 0 5l3-2z" transform="translate(1,1)"/></svg>
             </div>
             <div class="contact-item-text">
-              <label>Телефоны</label>
+              <label>{% if _l == 'en' %}Phones{% elif _l == 'be' %}Тэлефоны{% else %}Телефоны{% endif %}</label>
               <p>{{ site.contact_phones | nl2br }}</p>
             </div>
           </div>
@@ -2398,7 +2623,7 @@
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="9" r="7"/><path d="M9 5v4l3 2"/></svg>
             </div>
             <div class="contact-item-text">
-              <label>Режим работы</label>
+              <label>{% if _l == 'en' %}Hours{% elif _l == 'be' %}Рэжым працы{% else %}Режим работы{% endif %}</label>
               <p>{{ site.contact_hours | nl2br }}</p>
             </div>
           </div>
@@ -2406,7 +2631,7 @@
           <!-- SOCIAL NETWORKS -->
           <div style="margin-top:8px;">
             <div class="contact-item-text" style="margin-bottom:14px;">
-              <label style="font-size:0.62rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:4px;">Мы в соцсетях и мессенджерах</label>
+              <label style="font-size:0.62rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:4px;">{% if _l == 'en' %}Find us on social{% elif _l == 'be' %}Мы ў сацсетках і месэнджарах{% else %}Мы в соцсетях и мессенджерах{% endif %}</label>
             </div>
             <div class="social-strip">
               <a href="{{ site.social_instagram }}" target="_blank" class="social-btn" title="Instagram">
@@ -2434,25 +2659,36 @@
         </div>
       </div>
       <div class="contact-form">
-        <h3>Заказать<br>звонок</h3>
+        <h3>
+          {%- if _l == 'en' %}Request<br>a call
+          {%- elif _l == 'be' %}Заказаць<br>званок
+          {%- else %}Заказать<br>звонок
+          {%- endif %}
+        </h3>
         <div class="form-row">
-          <div class="form-group"><label>Ваше имя</label><input type="text" placeholder="Иван Иванов"></div>
-          <div class="form-group"><label>Телефон</label><input type="tel" placeholder="+375 XX XXX XX XX"></div>
+          <div class="form-group"><label>{% if _l == 'en' %}Your name{% elif _l == 'be' %}Ваша імя{% else %}Ваше имя{% endif %}</label><input type="text" placeholder="{% if _l == 'en' %}John Smith{% else %}Иван Иванов{% endif %}"></div>
+          <div class="form-group"><label>{% if _l == 'en' %}Phone{% elif _l == 'be' %}Тэлефон{% else %}Телефон{% endif %}</label><input type="tel" placeholder="+375 XX XXX XX XX"></div>
         </div>
         <div class="form-group">
-          <label>Интересует программа</label>
+          <label>{% if _l == 'en' %}Interested in program{% elif _l == 'be' %}Цікавіць праграма{% else %}Интересует программа{% endif %}</label>
           <select>
-            <option value="">Выберите направление</option>
+            <option value="">{% if _l == 'en' %}Choose a track{% elif _l == 'be' %}Выберыце накірунак{% else %}Выберите направление{% endif %}</option>
+            {% if _l == 'en' %}
+            <option>Music ministry</option>
+            <option>Biblical & theological</option>
+            <option>Theatre ministry</option>
+            {% else %}
             <option>Музыкальное служение</option>
             <option>Библейско-богословское</option>
             <option>Театральное служение</option>
+            {% endif %}
           </select>
         </div>
         <div class="form-group">
-          <label>Сообщение (необязательно)</label>
-          <textarea placeholder="Ваш вопрос или комментарий..."></textarea>
+          <label>{% if _l == 'en' %}Message (optional){% elif _l == 'be' %}Паведамленне (неабавязкова){% else %}Сообщение (необязательно){% endif %}</label>
+          <textarea placeholder="{% if _l == 'en' %}Your question or comment...{% elif _l == 'be' %}Ваша пытанне ці каментарый...{% else %}Ваш вопрос или комментарий...{% endif %}"></textarea>
         </div>
-        <button class="form-submit" onclick="handleSubmit(event)">Отправить запрос</button>
+        <button class="form-submit" onclick="handleSubmit(event)">{% if _l == 'en' %}Send request{% elif _l == 'be' %}Адправіць запыт{% else %}Отправить запрос{% endif %}</button>
       </div>
     </div>
   </section>
@@ -2487,9 +2723,14 @@
       </div>
       <div class="footer-middle">
         <div class="footer-cross-divider">✝</div>
-        <div class="footer-reg">Духовное учебное заведение<br>«Библейский колледж христиан веры евангельской»<br>Зарегистрирован 24.04.1996 · УНН 100776710</div>
+        <div class="footer-reg">
+          {%- if _l == 'en' %}Religious educational institution<br>"Bible College of Christians of Evangelical Faith"<br>Registered 24.04.1996 · UNP 100776710
+          {%- elif _l == 'be' %}Духоўная навучальная ўстанова<br>«Біблейскі каледж хрысціян веры евангельскай»<br>Зарэгістраваны 24.04.1996 · УНП 100776710
+          {%- else %}Духовное учебное заведение<br>«Библейский колледж христиан веры евангельской»<br>Зарегистрирован 24.04.1996 · УНН 100776710
+          {%- endif %}
+        </div>
       </div>
-      <div class="footer-right">220092, Минск, ул. Бельского, 15<br>cfnbel@gmail.com<br>+375 17 393 53 94<br><br><a href="/donate" style="color:#C9A84C;text-transform:uppercase;letter-spacing:.16em;font-size:.78rem;">♥ Поддержать колледж</a></div>
+      <div class="footer-right">{% if _l == 'en' %}220092, Minsk, Belskogo str. 15{% elif _l == 'be' %}220092, Мінск, вул. Бельскага, 15{% else %}220092, Минск, ул. Бельского, 15{% endif %}<br>cfnbel@gmail.com<br>+375 17 393 53 94<br><br><a href="/donate" style="color:#C9A84C;text-transform:uppercase;letter-spacing:.16em;font-size:.78rem;">♥ {% if _l == 'en' %}Support the college{% elif _l == 'be' %}Падтрымаць каледж{% else %}Поддержать колледж{% endif %}</a></div>
     </div>
   </footer>
 
@@ -2507,7 +2748,7 @@
         </div>
       </div>
       <div class="teacher-modal-bio" id="modalBio"></div>
-      <div class="teacher-modal-subjects-title">Преподаваемые предметы</div>
+      <div class="teacher-modal-subjects-title">{% if _l == 'en' %}Subjects taught{% elif _l == 'be' %}Прадметы, якія выкладаюцца{% else %}Преподаваемые предметы{% endif %}</div>
       <div class="teacher-modal-subjects" id="modalSubjects"></div>
     </div>
   </div>
@@ -2528,40 +2769,34 @@
       </div>
     </span>
     <div class="prog-switcher">
-      <button class="prog-switcher-btn active" onclick="openPage('music')">
-        Музыка
-      </button>
+      <button class="prog-switcher-btn active" onclick="openPage('music')">{% if _l == 'en' %}Music{% elif _l == 'be' %}Музыка{% else %}Музыка{% endif %}</button>
       <div class="prog-switcher-divider"></div>
-      <button class="prog-switcher-btn" onclick="openPage('theology')">
-        Богословие
-      </button>
+      <button class="prog-switcher-btn" onclick="openPage('theology')">{% if _l == 'en' %}Theology{% elif _l == 'be' %}Багаслоўе{% else %}Богословие{% endif %}</button>
       <div class="prog-switcher-divider"></div>
-      <button class="prog-switcher-btn" onclick="openPage('theatre')">
-        Театр
-      </button>
+      <button class="prog-switcher-btn" onclick="openPage('theatre')">{% if _l == 'en' %}Theatre{% elif _l == 'be' %}Тэатр{% else %}Театр{% endif %}</button>
     </div>
   </nav>
   <div class="prog-mobile-switcher">
-    <button class="prog-mobile-switcher-btn active" onclick="openPage('music')">Музыка</button>
-    <button class="prog-mobile-switcher-btn" onclick="openPage('theology')">Богословие</button>
-    <button class="prog-mobile-switcher-btn" onclick="openPage('theatre')">Театр</button>
+    <button class="prog-mobile-switcher-btn active" onclick="openPage('music')">{% if _l == 'en' %}Music{% elif _l == 'be' %}Музыка{% else %}Музыка{% endif %}</button>
+    <button class="prog-mobile-switcher-btn" onclick="openPage('theology')">{% if _l == 'en' %}Theology{% elif _l == 'be' %}Багаслоўе{% else %}Богословие{% endif %}</button>
+    <button class="prog-mobile-switcher-btn" onclick="openPage('theatre')">{% if _l == 'en' %}Theatre{% elif _l == 'be' %}Тэатр{% else %}Театр{% endif %}</button>
   </div>
   <div style="background:var(--ink);">
     <div class="prog-page-hero">
       <div class="prog-page-hero-inner">
         <button class="prog-back-btn" onclick="goHome()">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg>
-          Все программы
+          {% if _l == 'en' %}All programs{% elif _l == 'be' %}Усе праграмы{% else %}Все программы{% endif %}
         </button>
-        <div class="prog-hero-tag">Программа 01 · Музыкальное служение</div>
-        <h1 class="prog-hero-title">Бакалавр искусств<br>в <em>Церковной Музыке</em></h1>
-        <p class="prog-hero-sub">Изменённые жизни изменяют народы</p>
+        <div class="prog-hero-tag">{% if _l == 'en' %}Program 01 · Music Ministry{% elif _l == 'be' %}Праграма 01 · Музычнае служэнне{% else %}Программа 01 · Музыкальное служение{% endif %}</div>
+        <h1 class="prog-hero-title">{% if _l == 'en' %}Bachelor of Arts<br>in <em>Church Music</em>{% elif _l == 'be' %}Бакалаўр мастацтваў<br>у <em>Царкоўнай Музыцы</em>{% else %}Бакалавр искусств<br>в <em>Церковной Музыке</em>{% endif %}</h1>
+        <p class="prog-hero-sub">{% if _l == 'en' %}Changed lives change nations{% elif _l == 'be' %}Зменены жыцці змяняюць народы{% else %}Изменённые жизни изменяют народы{% endif %}</p>
         <div class="prog-hero-meta">
-          <div class="prog-hero-meta-item"><label>Форма</label><span>Очно-заочная</span></div>
-          <div class="prog-hero-meta-item"><label>Сессии</label><span>4 недели в год</span></div>
-          <div class="prog-hero-meta-item"><label>Уровень 1</label><span>3 года</span></div>
-          <div class="prog-hero-meta-item"><label>Уровень 2</label><span>2,5 года</span></div>
-          <div class="prog-hero-meta-item"><label>Приём</label><span>1 авг — 15 сент 2026</span></div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Format</label><span>Part-time</span>{% elif _l == 'be' %}<label>Форма</label><span>Завочна-сесійная</span>{% else %}<label>Форма</label><span>Очно-заочная</span>{% endif %}</div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Sessions</label><span>4 weeks a year</span>{% elif _l == 'be' %}<label>Сесіі</label><span>4 тыдні на год</span>{% else %}<label>Сессии</label><span>4 недели в год</span>{% endif %}</div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Level 1</label><span>3 years</span>{% elif _l == 'be' %}<label>Узровень 1</label><span>3 гады</span>{% else %}<label>Уровень 1</label><span>3 года</span>{% endif %}</div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Level 2</label><span>2.5 years</span>{% elif _l == 'be' %}<label>Узровень 2</label><span>2,5 года</span>{% else %}<label>Уровень 2</label><span>2,5 года</span>{% endif %}</div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Admission</label><span>Aug 1 — Sept 15, 2026</span>{% elif _l == 'be' %}<label>Прыём</label><span>1 жнів — 15 вер 2026</span>{% else %}<label>Приём</label><span>1 авг — 15 сент 2026</span>{% endif %}</div>
         </div>
       </div>
     </div>
@@ -2570,34 +2805,34 @@
   <div class="prog-body">
 
     <div class="prog-section" id="music-specialties">
-      <h2 class="prog-section-title">Специальности <em>отделения</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}<em>Department</em> specialties{% elif _l == 'be' %}Спецыяльнасці <em>аддзялення</em>{% else %}Специальности <em>отделения</em>{% endif %}</h2>
       <div class="prog-specialties">
         <div class="prog-specialty-card">
           <div class="prog-specialty-num">01</div>
-          <div class="prog-specialty-name">Инструментальное исполнительство</div>
-          <div class="prog-specialty-subs">Клавишные · Гитара (электрогитара) · Бас-гитара · Ударные инструменты</div>
-          <div class="prog-specialty-qual">Квалификация: Руководитель музыкального коллектива</div>
+          {% if _l == 'en' %}<div class="prog-specialty-name">Instrumental performance</div>{% elif _l == 'be' %}<div class="prog-specialty-name">Інструментальнае выкананне</div>{% else %}<div class="prog-specialty-name">Инструментальное исполнительство</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-specialty-subs">Keyboards · Guitar (electric) · Bass · Drums</div>{% elif _l == 'be' %}<div class="prog-specialty-subs">Клавішныя · Гітара (электрагітара) · Бас-гітара · Ударныя інструменты</div>{% else %}<div class="prog-specialty-subs">Клавишные · Гитара (электрогитара) · Бас-гитара · Ударные инструменты</div>{% endif %}
+          <div class="prog-specialty-qual">{% if _l == 'en' %}Qualification: Music ensemble director{% elif _l == 'be' %}Кваліфікацыя: Кіраўнік музычнага калектыву{% else %}Квалификация: Руководитель музыкального коллектива{% endif %}</div>
         </div>
         <div class="prog-specialty-card">
           <div class="prog-specialty-num">02</div>
-          <div class="prog-specialty-name">Пение</div>
-          <div class="prog-specialty-subs">Руководство пением в церкви</div>
-          <div class="prog-specialty-qual">Квалификация: Руководитель музыкального коллектива</div>
+          {% if _l == 'en' %}<div class="prog-specialty-name">Vocals</div>{% elif _l == 'be' %}<div class="prog-specialty-name">Спеў</div>{% else %}<div class="prog-specialty-name">Пение</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-specialty-subs">Leading singing in church</div>{% elif _l == 'be' %}<div class="prog-specialty-subs">Кіраўніцтва спевам у царкве</div>{% else %}<div class="prog-specialty-subs">Руководство пением в церкви</div>{% endif %}
+          <div class="prog-specialty-qual">{% if _l == 'en' %}Qualification: Music ensemble director{% elif _l == 'be' %}Кваліфікацыя: Кіраўнік музычнага калектыву{% else %}Квалификация: Руководитель музыкального коллектива{% endif %}</div>
         </div>
         <div class="prog-specialty-card">
           <div class="prog-specialty-num">03</div>
-          <div class="prog-specialty-name">Звукорежиссура</div>
-          <div class="prog-specialty-subs">Полный курс обучения — 3 года</div>
-          <div class="prog-specialty-qual">Квалификация: Звукооператор</div>
+          {% if _l == 'en' %}<div class="prog-specialty-name">Sound engineering</div>{% elif _l == 'be' %}<div class="prog-specialty-name">Гукарэжысура</div>{% else %}<div class="prog-specialty-name">Звукорежиссура</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-specialty-subs">Full program — 3 years</div>{% elif _l == 'be' %}<div class="prog-specialty-subs">Поўны курс навучання — 3 гады</div>{% else %}<div class="prog-specialty-subs">Полный курс обучения — 3 года</div>{% endif %}
+          <div class="prog-specialty-qual">{% if _l == 'en' %}Qualification: Sound operator{% elif _l == 'be' %}Кваліфікацыя: Гукааператар{% else %}Квалификация: Звукооператор{% endif %}</div>
         </div>
       </div>
     </div>
 
     <div class="prog-section">
-      <h2 class="prog-section-title">Программа <em>обучения — Уровень 1</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}<em>Curriculum — Level 1</em>{% elif _l == 'be' %}Праграма <em>навучання — Узровень 1</em>{% else %}Программа <em>обучения — Уровень 1</em>{% endif %}</h2>
       <div class="prog-curriculum">
         <div class="prog-curriculum-block">
-          <h4>Музыкальная подготовка</h4>
+          {% if _l == 'en' %}<h4>Music training</h4>{% elif _l == 'be' %}<h4>Музычная падрыхтоўка</h4>{% else %}<h4>Музыкальная подготовка</h4>{% endif %}
           <ul>
             <li>Теория музыки (элементарная теория, гармония)</li>
             <li>Сольфеджио</li>
@@ -2614,7 +2849,7 @@
           </ul>
         </div>
         <div class="prog-curriculum-block">
-          <h4>Богословская часть</h4>
+          {% if _l == 'en' %}<h4>Theology core</h4>{% elif _l == 'be' %}<h4>Багаслоўская частка</h4>{% else %}<h4>Богословская часть</h4>{% endif %}
           <ul>
             <li>Обзор Нового Завета</li>
             <li>Обзор Ветхого Завета</li>
@@ -2627,18 +2862,18 @@
             <li>Миссиология</li>
           </ul>
           <div style="margin-top:20px;padding:16px;background:rgba(201,168,76,0.08);border-left:2px solid var(--gold);">
-            <div style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Присуждаемая степень</div>
-            <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">Бакалавр искусств в церковной музыке</div>
+            <div style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">{% if _l == 'en' %}Degree awarded{% elif _l == 'be' %}Прысвойваная ступень{% else %}Присуждаемая степень{% endif %}</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">{% if _l == 'en' %}Bachelor of Arts in Church Music{% elif _l == 'be' %}Бакалаўр мастацтваў у царкоўнай музыцы{% else %}Бакалавр искусств в церковной музыке{% endif %}</div>
           </div>
         </div>
       </div>
     </div>
 
     <div class="prog-section">
-      <h2 class="prog-section-title">Программа <em>обучения — Уровень 2</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}<em>Curriculum — Level 2</em>{% elif _l == 'be' %}Праграма <em>навучання — Узровень 2</em>{% else %}Программа <em>обучения — Уровень 2</em>{% endif %}</h2>
       <div class="prog-curriculum">
         <div class="prog-curriculum-block">
-          <h4>Музыкальная подготовка</h4>
+          {% if _l == 'en' %}<h4>Music training</h4>{% elif _l == 'be' %}<h4>Музычная падрыхтоўка</h4>{% else %}<h4>Музыкальная подготовка</h4>{% endif %}
           <ul>
             <li>Теория музыки · Сольфеджио · Гармония</li>
             <li>Специальный инструмент</li>
@@ -2650,7 +2885,7 @@
           </ul>
         </div>
         <div class="prog-curriculum-block">
-          <h4>Богословская часть (расширенная)</h4>
+          {% if _l == 'en' %}<h4>Theology (advanced)</h4>{% elif _l == 'be' %}<h4>Багаслоўская частка (пашыраная)</h4>{% else %}<h4>Богословская часть (расширенная)</h4>{% endif %}
           <ul>
             <li>Изучение языков оригиналов</li>
             <li>Систематическое богословие</li>
@@ -2661,8 +2896,8 @@
             <li>Исследовательская работа</li>
           </ul>
           <div style="margin-top:20px;padding:16px;background:rgba(201,168,76,0.08);border-left:2px solid var(--gold);">
-            <div style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Присуждаемая степень</div>
-            <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">Магистр искусств в церковной музыке</div>
+            <div style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">{% if _l == 'en' %}Degree awarded{% elif _l == 'be' %}Прысвойваная ступень{% else %}Присуждаемая степень{% endif %}</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">{% if _l == 'en' %}Master of Arts in Church Music{% elif _l == 'be' %}Магістр мастацтваў у царкоўнай музыцы{% else %}Магистр искусств в церковной музыке{% endif %}</div>
           </div>
         </div>
       </div>
@@ -2670,28 +2905,28 @@
 
     <div class="prog-info-grid" id="music-cost">
       <div class="prog-info-block">
-        <h4>Стоимость обучения</h4>
+        {% if _l == 'en' %}<h4>Tuition</h4>{% elif _l == 'be' %}<h4>Кошт навучання</h4>{% else %}<h4>Стоимость обучения</h4>{% endif %}
         <div class="prog-price">280 BYN</div>
-        <div class="prog-price-note">за сессию · Уровень 2</div>
-        <p style="margin-top:16px;">Оплата перечислением на расчётный счёт колледжа. Проживание и питание во время сессий студенты оплачивают отдельно.</p>
+        {% if _l == 'en' %}<div class="prog-price-note">per session · Level 2</div>{% elif _l == 'be' %}<div class="prog-price-note">за сесію · Узровень 2</div>{% else %}<div class="prog-price-note">за сессию · Уровень 2</div>{% endif %}
+        <p style="margin-top:16px;">{% if _l == 'en' %}Payment is made by bank transfer to the college account. Accommodation and meals during sessions are paid separately by the student.{% elif _l == 'be' %}Аплата пералікам на разліковы рахунак каледжа. Пражыванне і харчаванне падчас сесій студэнты аплочваюць асобна.{% else %}Оплата перечислением на расчётный счёт колледжа. Проживание и питание во время сессий студенты оплачивают отдельно.{% endif %}</p>
       </div>
       <div class="prog-info-block">
-        <h4>Вступительное испытание</h4>
+        {% if _l == 'en' %}<h4>Entrance exam</h4>{% elif _l == 'be' %}<h4>Уступны іспыт</h4>{% else %}<h4>Вступительное испытание</h4>{% endif %}
         <ul>
           <li>Тест по музыкальной грамоте и сольфеджио</li>
           <li>Прослушивание (исполнение любого музыкального произведения)</li>
           <li>Собеседование</li>
           <li>Для поступающих на звукорежиссуру — без прослушивания</li>
         </ul>
-        <p style="margin-top:16px;">Абитуриенты без музыкального образования могут поступить на <strong style="color:var(--gold-light);">подготовительный курс</strong> (1–2 года) без сдачи теста.</p>
+        <p style="margin-top:16px;">{% if _l == 'en' %}Applicants without prior musical education can enrol in the <strong style="color:var(--gold-light);">preparatory course</strong> (1–2 years) without sitting the test.{% elif _l == 'be' %}Абітурыенты без музычнай адукацыі могуць паступіць на <strong style="color:var(--gold-light);">падрыхтоўчы курс</strong> (1–2 гады) без здачы тэсту.{% else %}Абитуриенты без музыкального образования могут поступить на <strong style="color:var(--gold-light);">подготовительный курс</strong> (1–2 года) без сдачи теста.{% endif %}</p>
       </div>
     </div>
 
     <div class="prog-section">
-      <h2 class="prog-section-title">Документы для <em>поступления</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}Application <em>documents</em>{% elif _l == 'be' %}Дакументы для <em>паступлення</em>{% else %}Документы для <em>поступления</em>{% endif %}</h2>
       <div class="prog-curriculum">
         <div class="prog-curriculum-block">
-          <h4>Перечень документов</h4>
+          {% if _l == 'en' %}<h4>Document checklist</h4>{% elif _l == 'be' %}<h4>Спіс дакументаў</h4>{% else %}<h4>Перечень документов</h4>{% endif %}
           <ul>
             <li>Оригинал заполненной анкеты-заявления</li>
             <li>2 фотографии 3×4</li>
@@ -2701,7 +2936,7 @@
           </ul>
         </div>
         <div class="prog-curriculum-block">
-          <h4>Что необходимо студентам</h4>
+          {% if _l == 'en' %}<h4>What students need</h4>{% elif _l == 'be' %}<h4>Што неабходна студэнтам</h4>{% else %}<h4>Что необходимо студентам</h4>{% endif %}
           <ul>
             <li>Нотная и общая тетради</li>
             <li>Ноутбук (со 2-го курса; для клавишных и звукорежиссуры — с 1-го)</li>
@@ -2715,17 +2950,17 @@
   </div>
 
   <div class="prog-cta">
-    <h3>Готов начать путь?</h3>
-    <p>Приём документов: 1 августа — 15 сентября 2026 г.</p>
-    <a href="mailto:cfnbel@gmail.com" class="btn-cta">Написать в приёмную комиссию</a>
+    {% if _l == 'en' %}<h3>Ready to begin?</h3>{% elif _l == 'be' %}<h3>Гатовы пачаць шлях?</h3>{% else %}<h3>Готов начать путь?</h3>{% endif %}
+    <p>{% if _l == 'en' %}Applications: August 1 — September 15, 2026{% elif _l == 'be' %}Прыём дакументаў: 1 жніўня — 15 верасня 2026 г.{% else %}Приём документов: 1 августа — 15 сентября 2026 г.{% endif %}</p>
+    <a href="mailto:cfnbel@gmail.com" class="btn-cta">{% if _l == 'en' %}Email the admissions office{% elif _l == 'be' %}Напісаць у прыёмную камісію{% else %}Написать в приёмную комиссию{% endif %}</a>
   </div>
 
   <footer>
     <div class="footer-inner">
-      <div class="footer-logo">Библейский<br>Колледж ХВЕ</div>
+      <div class="footer-logo">{% if _l == "en" %}Bible<br>College of CFEF{% elif _l == "be" %}Біблейскі<br>Каледж ХВЕ{% else %}Библейский<br>Колледж ХВЕ{% endif %}</div>
       <div class="footer-middle">
         <div class="footer-cross-divider">✝</div>
-        <div class="footer-reg">«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15</div>
+        <div class="footer-reg">{% if _l == 'en' %}"Bible College of Christians of Evangelical Faith"<br>220092, Minsk, Belskogo str. 15{% elif _l == 'be' %}«Біблейскі каледж хрысціян веры евангельскай»<br>220092, Мінск, вул. Бельскага, 15{% else %}«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15{% endif %}</div>
       </div>
       <div class="footer-right">cfnbel@gmail.com<br>+375 17 393 53 94</div>
     </div>
@@ -2746,39 +2981,33 @@
       </div>
     </span>
     <div class="prog-switcher">
-      <button class="prog-switcher-btn" onclick="openPage('music')">
-        Музыка
-      </button>
+      <button class="prog-switcher-btn" onclick="openPage('music')">{% if _l == 'en' %}Music{% elif _l == 'be' %}Музыка{% else %}Музыка{% endif %}</button>
       <div class="prog-switcher-divider"></div>
-      <button class="prog-switcher-btn active" onclick="openPage('theology')">
-        Богословие
-      </button>
+      <button class="prog-switcher-btn active" onclick="openPage('theology')">{% if _l == 'en' %}Theology{% elif _l == 'be' %}Багаслоўе{% else %}Богословие{% endif %}</button>
       <div class="prog-switcher-divider"></div>
-      <button class="prog-switcher-btn" onclick="openPage('theatre')">
-        Театр
-      </button>
+      <button class="prog-switcher-btn" onclick="openPage('theatre')">{% if _l == 'en' %}Theatre{% elif _l == 'be' %}Тэатр{% else %}Театр{% endif %}</button>
     </div>
   </nav>
   <div class="prog-mobile-switcher">
-    <button class="prog-mobile-switcher-btn" onclick="openPage('music')">Музыка</button>
-    <button class="prog-mobile-switcher-btn active" onclick="openPage('theology')">Богословие</button>
-    <button class="prog-mobile-switcher-btn" onclick="openPage('theatre')">Театр</button>
+    <button class="prog-mobile-switcher-btn" onclick="openPage('music')">{% if _l == 'en' %}Music{% elif _l == 'be' %}Музыка{% else %}Музыка{% endif %}</button>
+    <button class="prog-mobile-switcher-btn active" onclick="openPage('theology')">{% if _l == 'en' %}Theology{% elif _l == 'be' %}Багаслоўе{% else %}Богословие{% endif %}</button>
+    <button class="prog-mobile-switcher-btn" onclick="openPage('theatre')">{% if _l == 'en' %}Theatre{% elif _l == 'be' %}Тэатр{% else %}Театр{% endif %}</button>
   </div>
   <div style="background:var(--ink);">
     <div class="prog-page-hero">
       <div class="prog-page-hero-inner">
         <button class="prog-back-btn" onclick="goHome()">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg>
-          Все программы
+          {% if _l == 'en' %}All programs{% elif _l == 'be' %}Усе праграмы{% else %}Все программы{% endif %}
         </button>
-        <div class="prog-hero-tag">Программа 02 · Библейско-богословское</div>
-        <h1 class="prog-hero-title">Богословие<br>и <em>Христианское Служение</em></h1>
-        <p class="prog-hero-sub">Христос для народов — не просто имя, это наша Миссия</p>
+        <div class="prog-hero-tag">{% if _l == 'en' %}Program 02 · Biblical & Theological{% elif _l == 'be' %}Праграма 02 · Біблейска-багаслоўская{% else %}Программа 02 · Библейско-богословское{% endif %}</div>
+        <h1 class="prog-hero-title">{% if _l == 'en' %}Theology<br>and <em>Christian Ministry</em>{% elif _l == 'be' %}Багаслоўе<br>і <em>Хрысціянскае Служэнне</em>{% else %}Богословие<br>и <em>Христианское Служение</em>{% endif %}</h1>
+        <p class="prog-hero-sub">{% if _l == 'en' %}Christ for the Nations — not just a name, it's our mission{% elif _l == 'be' %}Хрыстос для народаў — не проста імя, гэта наша Місія{% else %}Христос для народов — не просто имя, это наша Миссия{% endif %}</p>
         <div class="prog-hero-meta">
-          <div class="prog-hero-meta-item"><label>Форма</label><span>Заочная (онлайн)</span></div>
-          <div class="prog-hero-meta-item"><label>Уровни</label><span>А, В, С</span></div>
-          <div class="prog-hero-meta-item"><label>Кредиты</label><span>40 / 120 / 180</span></div>
-          <div class="prog-hero-meta-item"><label>Приём</label><span>В течение года</span></div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Format</label><span>Distance (online)</span>{% elif _l == 'be' %}<label>Форма</label><span>Завочная (анлайн)</span>{% else %}<label>Форма</label><span>Заочная (онлайн)</span>{% endif %}</div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Levels</label>{% elif _l == 'be' %}<label>Узроўні</label>{% else %}<label>Уровни</label>{% endif %}<span>А, В, С</span></div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Credits</label><span>40 / 120 / 180</span>{% elif _l == 'be' %}<label>Крэдыты</label><span>40 / 120 / 180</span>{% else %}<label>Кредиты</label><span>40 / 120 / 180</span>{% endif %}</div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Admission</label><span>Year-round</span>{% elif _l == 'be' %}<label>Прыём</label><span>На працягу года</span>{% else %}<label>Приём</label><span>В течение года</span>{% endif %}</div>
         </div>
       </div>
     </div>
@@ -2787,12 +3016,12 @@
   <div class="prog-body">
 
     <div class="prog-section" id="theology-levels">
-      <h2 class="prog-section-title">Уровни <em>обучения</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}<em>Study</em> levels{% elif _l == 'be' %}Узроўні <em>навучання</em>{% else %}Уровни <em>обучения</em>{% endif %}</h2>
       <div class="prog-levels">
         <div class="prog-level-card">
-          <div class="prog-level-badge">Уровень А</div>
-          <div class="prog-level-title">Курс Библейских знаний</div>
-          <div class="prog-level-credits">Сертификат · 40 кредитов</div>
+          {% if _l == 'en' %}<div class="prog-level-badge">Level A</div>{% elif _l == 'be' %}<div class="prog-level-badge">Узровень А</div>{% else %}<div class="prog-level-badge">Уровень А</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-level-title">Bible Knowledge Course</div>{% elif _l == 'be' %}<div class="prog-level-title">Курс Біблейскіх ведаў</div>{% else %}<div class="prog-level-title">Курс Библейских знаний</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-level-credits">Certificate · 40 credits</div>{% elif _l == 'be' %}<div class="prog-level-credits">Сертыфікат · 40 крэдытаў</div>{% else %}<div class="prog-level-credits">Сертификат · 40 кредитов</div>{% endif %}
           <ul class="prog-level-list">
             <li>Обзор Нового Завета</li>
             <li>Обзор Ветхого Завета</li>
@@ -2807,9 +3036,9 @@
           </ul>
         </div>
         <div class="prog-level-card">
-          <div class="prog-level-badge">Уровень В</div>
-          <div class="prog-level-title">Бакалавр христианского служения</div>
-          <div class="prog-level-credits">120 кредитов</div>
+          {% if _l == 'en' %}<div class="prog-level-badge">Level B</div>{% elif _l == 'be' %}<div class="prog-level-badge">Узровень В</div>{% else %}<div class="prog-level-badge">Уровень В</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-level-title">Bachelor of Christian Ministry</div>{% elif _l == 'be' %}<div class="prog-level-title">Бакалаўр хрысціянскага служэння</div>{% else %}<div class="prog-level-title">Бакалавр христианского служения</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-level-credits">120 credits</div>{% elif _l == 'be' %}<div class="prog-level-credits">120 крэдытаў</div>{% else %}<div class="prog-level-credits">120 кредитов</div>{% endif %}
           <ul class="prog-level-list">
             <li>Все предметы уровня А</li>
             <li>Экзегетика</li>
@@ -2824,9 +3053,9 @@
           </ul>
         </div>
         <div class="prog-level-card">
-          <div class="prog-level-badge">Уровень С</div>
-          <div class="prog-level-title">Бакалавр богословия</div>
-          <div class="prog-level-credits">180 кредитов</div>
+          {% if _l == 'en' %}<div class="prog-level-badge">Level C</div>{% elif _l == 'be' %}<div class="prog-level-badge">Узровень С</div>{% else %}<div class="prog-level-badge">Уровень С</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-level-title">Bachelor of Theology</div>{% elif _l == 'be' %}<div class="prog-level-title">Бакалаўр багаслоўя</div>{% else %}<div class="prog-level-title">Бакалавр богословия</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-level-credits">180 credits</div>{% elif _l == 'be' %}<div class="prog-level-credits">180 крэдытаў</div>{% else %}<div class="prog-level-credits">180 кредитов</div>{% endif %}
           <ul class="prog-level-list">
             <li>Все предметы уровней А и В</li>
             <li>Корпус Иоанна</li>
@@ -2841,15 +3070,15 @@
         </div>
       </div>
       <div style="background:var(--cream);padding:32px 40px;border-left:3px solid var(--gold);">
-        <p style="font-size:0.85rem;color:var(--ink-soft);font-weight:300;line-height:1.8;">Все предметы уровня А засчитываются при зачислении на следующий уровень. Возможно поступление сразу на уровень В или С при документальном подтверждении начального богословского образования.</p>
+        <p style="font-size:0.85rem;color:var(--ink-soft);font-weight:300;line-height:1.8;">{% if _l == 'en' %}All Level A subjects transfer when enrolling in the next level. Direct admission to Level B or C is possible with documented prior theological education.{% elif _l == 'be' %}Усе прадметы ўзроўню А залічваюцца пры залічэнні на наступны ўзровень. Магчыма паступленне адразу на ўзровень В або С пры дакументальным пацверджанні пачатковай багаслоўскай адукацыі.{% else %}Все предметы уровня А засчитываются при зачислении на следующий уровень. Возможно поступление сразу на уровень В или С при документальном подтверждении начального богословского образования.{% endif %}</p>
       </div>
     </div>
 
     <div class="prog-section">
-      <h2 class="prog-section-title">Как проходит <em>обучение</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}How <em>study</em> works{% elif _l == 'be' %}Як праходзіць <em>навучанне</em>{% else %}Как проходит <em>обучение</em>{% endif %}</h2>
       <div class="prog-curriculum">
         <div class="prog-curriculum-block">
-          <h4>Формат и сроки</h4>
+          {% if _l == 'en' %}<h4>Format and timeline</h4>{% elif _l == 'be' %}<h4>Фармат і тэрміны</h4>{% else %}<h4>Формат и сроки</h4>{% endif %}
           <ul>
             <li>Полностью онлайн — просмотр видеолекций</li>
             <li>Чтение учебной литературы</li>
@@ -2860,12 +3089,12 @@
           </ul>
         </div>
         <div class="prog-curriculum-block">
-          <h4>Получение степени</h4>
+          {% if _l == 'en' %}<h4>Earning the degree</h4>{% elif _l == 'be' %}<h4>Атрыманне ступені</h4>{% else %}<h4>Получение степени</h4>{% endif %}
           <ul>
             <li>Бакалавр служения: практика в поместной церкви + дневник + презентация</li>
             <li>Бакалавр богословия: успешная защита дипломной работы</li>
             <li>Индивидуальный подход к каждому абитуриенту</li>
-            <li>Поступление возможно в течение всего года</li>
+            <li>{% if _l == 'en' %}Applications open year-round{% elif _l == 'be' %}Паступленне магчымае на працягу ўсяго года{% else %}Поступление возможно в течение всего года{% endif %}</li>
           </ul>
         </div>
       </div>
@@ -2873,13 +3102,13 @@
 
     <div class="prog-info-grid" id="theology-cost">
       <div class="prog-info-block">
-        <h4>Стоимость обучения</h4>
+        {% if _l == 'en' %}<h4>Tuition</h4>{% elif _l == 'be' %}<h4>Кошт навучання</h4>{% else %}<h4>Стоимость обучения</h4>{% endif %}
         <div class="prog-price">100 BYN</div>
-        <div class="prog-price-note">за предмет</div>
-        <p style="margin-top:16px;">Оплата перечислением на расчётный счёт (для резидентов РБ) или онлайн (для нерезидентов). Начало осеннего семестра — сентябрь.</p>
+        {% if _l == 'en' %}<div class="prog-price-note">per subject</div>{% elif _l == 'be' %}<div class="prog-price-note">за прадмет</div>{% else %}<div class="prog-price-note">за предмет</div>{% endif %}
+        <p style="margin-top:16px;">{% if _l == 'en' %}Payment by bank transfer (for RB residents) or online (for non-residents). The autumn semester begins in September.{% elif _l == 'be' %}Аплата пералікам на разліковы рахунак (для рэзідэнтаў РБ) або анлайн (для нерэзідэнтаў). Пачатак асенняга семестра — верасень.{% else %}Оплата перечислением на расчётный счёт (для резидентов РБ) или онлайн (для нерезидентов). Начало осеннего семестра — сентябрь.{% endif %}</p>
       </div>
       <div class="prog-info-block">
-        <h4>Документы для поступления</h4>
+        {% if _l == 'en' %}<h4>Application documents</h4>{% elif _l == 'be' %}<h4>Дакументы для паступлення</h4>{% else %}<h4>Документы для поступления</h4>{% endif %}
         <ul>
           <li>Скан заполненной анкеты-заявления (подписанной)</li>
           <li>Фото 3×4</li>
@@ -2894,17 +3123,17 @@
   </div>
 
   <div class="prog-cta">
-    <h3>Начни изучать Слово</h3>
-    <p>Приём документов в течение всего года. Начало — в любое время.</p>
-    <a href="mailto:cfnbel@gmail.com" class="btn-cta">Подать документы</a>
+    {% if _l == 'en' %}<h3>Begin studying the Word</h3>{% elif _l == 'be' %}<h3>Пачні вывучаць Слова</h3>{% else %}<h3>Начни изучать Слово</h3>{% endif %}
+    {% if _l == 'en' %}<p>Applications open year-round. Start any time.</p>{% elif _l == 'be' %}<p>Прыём дакументаў на працягу ўсяго года. Пачатак — у любы час.</p>{% else %}<p>Приём документов в течение всего года. Начало — в любое время.</p>{% endif %}
+    {% if _l == 'en' %}<a href="mailto:cfnbel@gmail.com" class="btn-cta">Apply now</a>{% elif _l == 'be' %}<a href="mailto:cfnbel@gmail.com" class="btn-cta">Падаць дакументы</a>{% else %}<a href="mailto:cfnbel@gmail.com" class="btn-cta">Подать документы</a>{% endif %}
   </div>
 
   <footer>
     <div class="footer-inner">
-      <div class="footer-logo">Библейский<br>Колледж ХВЕ</div>
+      <div class="footer-logo">{% if _l == "en" %}Bible<br>College of CFEF{% elif _l == "be" %}Біблейскі<br>Каледж ХВЕ{% else %}Библейский<br>Колледж ХВЕ{% endif %}</div>
       <div class="footer-middle">
         <div class="footer-cross-divider">✝</div>
-        <div class="footer-reg">«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15</div>
+        <div class="footer-reg">{% if _l == 'en' %}"Bible College of Christians of Evangelical Faith"<br>220092, Minsk, Belskogo str. 15{% elif _l == 'be' %}«Біблейскі каледж хрысціян веры евангельскай»<br>220092, Мінск, вул. Бельскага, 15{% else %}«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15{% endif %}</div>
       </div>
       <div class="footer-right">cfnbel@gmail.com<br>+375 17 393 53 94</div>
     </div>
@@ -2925,39 +3154,33 @@
       </div>
     </span>
     <div class="prog-switcher">
-      <button class="prog-switcher-btn" onclick="openPage('music')">
-        Музыка
-      </button>
+      <button class="prog-switcher-btn" onclick="openPage('music')">{% if _l == 'en' %}Music{% elif _l == 'be' %}Музыка{% else %}Музыка{% endif %}</button>
       <div class="prog-switcher-divider"></div>
-      <button class="prog-switcher-btn" onclick="openPage('theology')">
-        Богословие
-      </button>
+      <button class="prog-switcher-btn" onclick="openPage('theology')">{% if _l == 'en' %}Theology{% elif _l == 'be' %}Багаслоўе{% else %}Богословие{% endif %}</button>
       <div class="prog-switcher-divider"></div>
-      <button class="prog-switcher-btn active" onclick="openPage('theatre')">
-        Театр
-      </button>
+      <button class="prog-switcher-btn active" onclick="openPage('theatre')">{% if _l == 'en' %}Theatre{% elif _l == 'be' %}Тэатр{% else %}Театр{% endif %}</button>
     </div>
   </nav>
   <div class="prog-mobile-switcher">
-    <button class="prog-mobile-switcher-btn" onclick="openPage('music')">Музыка</button>
-    <button class="prog-mobile-switcher-btn" onclick="openPage('theology')">Богословие</button>
-    <button class="prog-mobile-switcher-btn active" onclick="openPage('theatre')">Театр</button>
+    <button class="prog-mobile-switcher-btn" onclick="openPage('music')">{% if _l == 'en' %}Music{% elif _l == 'be' %}Музыка{% else %}Музыка{% endif %}</button>
+    <button class="prog-mobile-switcher-btn" onclick="openPage('theology')">{% if _l == 'en' %}Theology{% elif _l == 'be' %}Багаслоўе{% else %}Богословие{% endif %}</button>
+    <button class="prog-mobile-switcher-btn active" onclick="openPage('theatre')">{% if _l == 'en' %}Theatre{% elif _l == 'be' %}Тэатр{% else %}Театр{% endif %}</button>
   </div>
   <div style="background:var(--ink);">
     <div class="prog-page-hero">
       <div class="prog-page-hero-inner">
         <button class="prog-back-btn" onclick="goHome()">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg>
-          Все программы
+          {% if _l == 'en' %}All programs{% elif _l == 'be' %}Усе праграмы{% else %}Все программы{% endif %}
         </button>
-        <div class="prog-hero-tag">Программа 03 · Евангелие через творчество</div>
-        <h1 class="prog-hero-title">Бакалавр искусств<br>в <em>Театральном Служении</em></h1>
-        <p class="prog-hero-sub">Творчество — это форма проповеди Евангелия</p>
+        <div class="prog-hero-tag">{% if _l == 'en' %}Program 03 · Gospel Through Creativity{% elif _l == 'be' %}Праграма 03 · Евангелле праз творчасць{% else %}Программа 03 · Евангелие через творчество{% endif %}</div>
+        <h1 class="prog-hero-title">{% if _l == 'en' %}Bachelor of Arts<br>in <em>Theatre Ministry</em>{% elif _l == 'be' %}Бакалаўр мастацтваў<br>у <em>Тэатральным Служэнні</em>{% else %}Бакалавр искусств<br>в <em>Театральном Служении</em>{% endif %}</h1>
+        <p class="prog-hero-sub">{% if _l == 'en' %}Creativity is a form of proclaiming the Gospel{% elif _l == 'be' %}Творчасць — гэта форма пропаведзі Евангелля{% else %}Творчество — это форма проповеди Евангелия{% endif %}</p>
         <div class="prog-hero-meta">
-          <div class="prog-hero-meta-item"><label>Форма</label><span>Очно-заочная</span></div>
-          <div class="prog-hero-meta-item"><label>Сессии</label><span>4 недели в год</span></div>
-          <div class="prog-hero-meta-item"><label>Срок</label><span>3 года</span></div>
-          <div class="prog-hero-meta-item"><label>Приём</label><span>до 8 февраля 2026</span></div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Format</label><span>Part-time</span>{% elif _l == 'be' %}<label>Форма</label><span>Завочна-сесійная</span>{% else %}<label>Форма</label><span>Очно-заочная</span>{% endif %}</div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Sessions</label><span>4 weeks a year</span>{% elif _l == 'be' %}<label>Сесіі</label><span>4 тыдні на год</span>{% else %}<label>Сессии</label><span>4 недели в год</span>{% endif %}</div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Length</label>{% elif _l == 'be' %}<label>Тэрмін</label>{% else %}<label>Срок</label>{% endif %}<span>3 года</span></div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Admission</label><span>by February 8, 2026</span>{% elif _l == 'be' %}<label>Прыём</label><span>да 8 лютага 2026</span>{% else %}<label>Приём</label><span>до 8 февраля 2026</span>{% endif %}</div>
         </div>
       </div>
     </div>
@@ -2966,7 +3189,7 @@
   <div class="prog-body">
 
     <div class="prog-section" id="theatre-goal">
-      <h2 class="prog-section-title">Цель <em>обучения</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}Goal of <em>study</em>{% elif _l == 'be' %}Мэта <em>навучання</em>{% else %}Цель <em>обучения</em>{% endif %}</h2>
       <div style="background:var(--cream);padding:48px;border-left:3px solid var(--gold);margin-bottom:48px;">
         <p style="font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:300;color:var(--ink);line-height:1.75;font-style:italic;">Принять и познать себя, понять, как именно вы — с вашей индивидуальностью и талантами — можете служить Божьему Царству, используя творчество как форму проповеди. Приобрести навыки для создания или развития творческого служения в вашей церкви.</p>
         <div style="margin-top:24px;font-size:0.7rem;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);">Квалификация: Руководитель творческих проектов</div>
@@ -2974,7 +3197,7 @@
     </div>
 
     <div class="prog-section">
-      <h2 class="prog-section-title">Программа <em>обучения</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}<em>Curriculum</em>{% elif _l == 'be' %}Праграма <em>навучання</em>{% else %}Программа <em>обучения</em>{% endif %}</h2>
       <div class="prog-curriculum">
         <div class="prog-curriculum-block">
           <h4>Специальная подготовка</h4>
@@ -2992,7 +3215,7 @@
           </ul>
         </div>
         <div class="prog-curriculum-block">
-          <h4>Богословская часть</h4>
+          {% if _l == 'en' %}<h4>Theology core</h4>{% elif _l == 'be' %}<h4>Багаслоўская частка</h4>{% else %}<h4>Богословская часть</h4>{% endif %}
           <ul>
             <li>Обзор Нового Завета</li>
             <li>Обзор Ветхого Завета</li>
@@ -3004,44 +3227,44 @@
             <li>Миссиология</li>
           </ul>
           <div style="margin-top:20px;padding:16px;background:rgba(201,168,76,0.08);border-left:2px solid var(--gold);">
-            <div style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Присуждаемая степень</div>
-            <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">Бакалавр искусств в области театрального служения</div>
+            <div style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">{% if _l == 'en' %}Degree awarded{% elif _l == 'be' %}Прысвойваная ступень{% else %}Присуждаемая степень{% endif %}</div>
+            {% if _l == 'en' %}<div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">Bachelor of Arts in Theatre Ministry</div>{% elif _l == 'be' %}<div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">Бакалаўр мастацтваў у галіне тэатральнага служэння</div>{% else %}<div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">Бакалавр искусств в области театрального служения</div>{% endif %}
           </div>
         </div>
       </div>
     </div>
 
     <div class="prog-section">
-      <h2 class="prog-section-title">Задачи <em>специальной части</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}Goals of the <em>specialty courses</em>{% elif _l == 'be' %}Задачы <em>спецыяльнай часткі</em>{% else %}Задачи <em>специальной части</em>{% endif %}</h2>
       <div class="prog-specialties">
         <div class="prog-specialty-card">
           <div class="prog-specialty-num">✦</div>
-          <div class="prog-specialty-name">Сценическое мастерство</div>
-          <div class="prog-specialty-subs">Освоить навыки актёрской игры, пластики, сценической речи и вокала для служения в церковных постановках.</div>
+          {% if _l == 'en' %}<div class="prog-specialty-name">Stagecraft</div>{% elif _l == 'be' %}<div class="prog-specialty-name">Сцэнічнае майстэрства</div>{% else %}<div class="prog-specialty-name">Сценическое мастерство</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-specialty-subs">Develop acting, movement, stage speech and vocal skills for ministry in church productions.</div>{% elif _l == 'be' %}<div class="prog-specialty-subs">Засвоіць навыкі акцёрскай ігры, пластыкі, сцэнічнай мовы і вакалу для служэння ў царкоўных пастаноўках.</div>{% else %}<div class="prog-specialty-subs">Освоить навыки актёрской игры, пластики, сценической речи и вокала для служения в церковных постановках.</div>{% endif %}
         </div>
         <div class="prog-specialty-card">
           <div class="prog-specialty-num">✦</div>
-          <div class="prog-specialty-name">Создание постановок</div>
-          <div class="prog-specialty-subs">Изучить методику создания церковных постановок и евангелизационных проектов городского уровня.</div>
+          {% if _l == 'en' %}<div class="prog-specialty-name">Producing</div>{% elif _l == 'be' %}<div class="prog-specialty-name">Стварэнне пастановак</div>{% else %}<div class="prog-specialty-name">Создание постановок</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-specialty-subs">Learn how to produce church performances and city-scale evangelistic events.</div>{% elif _l == 'be' %}<div class="prog-specialty-subs">Вывучыць методыку стварэння царкоўных пастановак і евангелізацыйных праектаў гарадскога ўзроўню.</div>{% else %}<div class="prog-specialty-subs">Изучить методику создания церковных постановок и евангелизационных проектов городского уровня.</div>{% endif %}
         </div>
         <div class="prog-specialty-card">
           <div class="prog-specialty-num">✦</div>
-          <div class="prog-specialty-name">Творческое служение</div>
-          <div class="prog-specialty-subs">Создать или развить творческое служение в вашей церкви — театральные постановки, евангелизационные концерты, творческие вечера.</div>
+          {% if _l == 'en' %}<div class="prog-specialty-name">Creative ministry</div>{% elif _l == 'be' %}<div class="prog-specialty-name">Творчае служэнне</div>{% else %}<div class="prog-specialty-name">Творческое служение</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-specialty-subs">Start or grow a creative ministry in your church — theatrical productions, evangelistic concerts, creative evenings.</div>{% elif _l == 'be' %}<div class="prog-specialty-subs">Стварыць або развіць творчае служэнне ў вашай царкве — тэатральныя пастаноўкі, евангелізацыйныя канцэрты, творчыя вечары.</div>{% else %}<div class="prog-specialty-subs">Создать или развить творческое служение в вашей церкви — театральные постановки, евангелизационные концерты, творческие вечера.</div>{% endif %}
         </div>
       </div>
     </div>
 
     <div class="prog-info-grid" id="theatre-cost">
       <div class="prog-info-block">
-        <h4>Стоимость обучения</h4>
+        {% if _l == 'en' %}<h4>Tuition</h4>{% elif _l == 'be' %}<h4>Кошт навучання</h4>{% else %}<h4>Стоимость обучения</h4>{% endif %}
         <div class="prog-price">280 BYN</div>
-        <div class="prog-price-note">за сессию</div>
-        <p style="margin-top:16px;">Питание и проживание студенты оплачивают самостоятельно.</p>
-        <p style="margin-top:12px;font-size:0.75rem;color:rgba(245,240,232,0.4);">Стоимость определяется в начале каждого семестра.</p>
+        {% if _l == 'en' %}<div class="prog-price-note">per session</div>{% elif _l == 'be' %}<div class="prog-price-note">за сесію</div>{% else %}<div class="prog-price-note">за сессию</div>{% endif %}
+        <p style="margin-top:16px;">{% if _l == 'en' %}Meals and accommodation are paid by students themselves.{% elif _l == 'be' %}Харчаванне і пражыванне студэнты аплочваюць самастойна.{% else %}Питание и проживание студенты оплачивают самостоятельно.{% endif %}</p>
+        <p style="margin-top:12px;font-size:0.75rem;color:rgba(245,240,232,0.4);">{% if _l == 'en' %}Tuition is set at the start of each semester.{% elif _l == 'be' %}Кошт вызначаецца ў пачатку кожнага семестра.{% else %}Стоимость определяется в начале каждого семестра.{% endif %}</p>
       </div>
       <div class="prog-info-block">
-        <h4>Вступительное испытание</h4>
+        {% if _l == 'en' %}<h4>Entrance exam</h4>{% elif _l == 'be' %}<h4>Уступны іспыт</h4>{% else %}<h4>Вступительное испытание</h4>{% endif %}
         <ul>
           <li>Чтение программы наизусть: отрывок из прозы (≥0,5 стр.) + стихотворение</li>
           <li>Творческий номер: танец, песня, жонглирование, акробатика или этюд</li>
@@ -3052,10 +3275,10 @@
     </div>
 
     <div class="prog-section">
-      <h2 class="prog-section-title">Документы для <em>поступления</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}Application <em>documents</em>{% elif _l == 'be' %}Дакументы для <em>паступлення</em>{% else %}Документы для <em>поступления</em>{% endif %}</h2>
       <div class="prog-curriculum">
         <div class="prog-curriculum-block">
-          <h4>Перечень документов</h4>
+          {% if _l == 'en' %}<h4>Document checklist</h4>{% elif _l == 'be' %}<h4>Спіс дакументаў</h4>{% else %}<h4>Перечень документов</h4>{% endif %}
           <ul>
             <li>Оригинал заполненной анкеты-заявления</li>
             <li>2 фотографии 3×4</li>
@@ -3066,7 +3289,7 @@
           </ul>
         </div>
         <div class="prog-curriculum-block">
-          <h4>Преподаватели отделения</h4>
+          {% if _l == 'en' %}<h4>Department faculty</h4>{% elif _l == 'be' %}<h4>Выкладчыкі аддзялення</h4>{% else %}<h4>Преподаватели отделения</h4>{% endif %}
           <ul>
             <li>Мария Гуцева</li>
             <li>Марина Пташникова</li>
@@ -3082,17 +3305,17 @@
   </div>
 
   <div class="prog-cta">
-    <h3>Твори во славу Божию</h3>
-    <p>Приём документов до 8 февраля 2026 г.</p>
-    <a href="mailto:cfnbel@gmail.com" class="btn-cta">Написать в приёмную комиссию</a>
+    {% if _l == 'en' %}<h3>Create for the glory of God</h3>{% elif _l == 'be' %}<h3>Твары на славу Божую</h3>{% else %}<h3>Твори во славу Божию</h3>{% endif %}
+    {% if _l == 'en' %}<p>Applications due February 8, 2026</p>{% elif _l == 'be' %}<p>Прыём дакументаў да 8 лютага 2026 г.</p>{% else %}<p>Приём документов до 8 февраля 2026 г.</p>{% endif %}
+    <a href="mailto:cfnbel@gmail.com" class="btn-cta">{% if _l == 'en' %}Email the admissions office{% elif _l == 'be' %}Напісаць у прыёмную камісію{% else %}Написать в приёмную комиссию{% endif %}</a>
   </div>
 
   <footer>
     <div class="footer-inner">
-      <div class="footer-logo">Библейский<br>Колледж ХВЕ</div>
+      <div class="footer-logo">{% if _l == "en" %}Bible<br>College of CFEF{% elif _l == "be" %}Біблейскі<br>Каледж ХВЕ{% else %}Библейский<br>Колледж ХВЕ{% endif %}</div>
       <div class="footer-middle">
         <div class="footer-cross-divider">✝</div>
-        <div class="footer-reg">«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15</div>
+        <div class="footer-reg">{% if _l == 'en' %}"Bible College of Christians of Evangelical Faith"<br>220092, Minsk, Belskogo str. 15{% elif _l == 'be' %}«Біблейскі каледж хрысціян веры евангельскай»<br>220092, Мінск, вул. Бельскага, 15{% else %}«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15{% endif %}</div>
       </div>
       <div class="footer-right">cfnbel@gmail.com<br>+375 17 393 53 94</div>
     </div>
@@ -3118,11 +3341,11 @@
       <div class="prog-page-hero-inner">
         <button class="prog-back-btn" onclick="goHome()">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg>
-          Все программы
+          {% if _l == 'en' %}All programs{% elif _l == 'be' %}Усе праграмы{% else %}Все программы{% endif %}
         </button>
-        <div class="prog-hero-tag">Состав · 25 преподавателей</div>
-        <h1 class="prog-hero-title">Преподаватели<br><em>Колледжа</em></h1>
-        <p class="prog-hero-sub">Практические служители церкви</p>
+        <div class="prog-hero-tag">{% if _l == 'en' %}Faculty · 25 instructors{% elif _l == 'be' %}Склад · 25 выкладчыкаў{% else %}Состав · 25 преподавателей{% endif %}</div>
+        <h1 class="prog-hero-title">{% if _l == 'en' %}Faculty of the<br><em>College</em>{% elif _l == 'be' %}Выкладчыкі<br><em>Каледжа</em>{% else %}Преподаватели<br><em>Колледжа</em>{% endif %}</h1>
+        <p class="prog-hero-sub">{% if _l == 'en' %}Practising ministers of the church{% elif _l == 'be' %}Практычныя служыцелі царквы{% else %}Практические служители церкви{% endif %}</p>
       </div>
     </div>
   </div>
@@ -3130,32 +3353,32 @@
   <!-- Teachers intro block -->
   <div class="teachers-page-intro">
     <div class="teachers-page-intro-left">
-      <div class="section-label" style="color:var(--gold);">Наши преподаватели</div>
-      <h2 style="font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:300;color:var(--cream);line-height:1.15;margin-top:16px;">Служители,<br><em>которые учат</em></h2>
-      <p class="teachers-page-intro-quote">Каждый преподаватель — прежде всего практикующий служитель церкви, несущий живое знание из реального опыта веры.</p>
+      {% if _l == 'en' %}<div class="section-label" style="color:var(--gold);">Our faculty</div>{% elif _l == 'be' %}<div class="section-label" style="color:var(--gold);">Нашы выкладчыкі</div>{% else %}<div class="section-label" style="color:var(--gold);">Наши преподаватели</div>{% endif %}
+      {% if _l == 'en' %}<h2 style="font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:300;color:var(--cream);line-height:1.15;margin-top:16px;">Ministers<br><em>who teach</em></h2>{% elif _l == 'be' %}<h2 style="font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:300;color:var(--cream);line-height:1.15;margin-top:16px;">Служыцелі,<br><em>якія вучаць</em></h2>{% else %}<h2 style="font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:300;color:var(--cream);line-height:1.15;margin-top:16px;">Служители,<br><em>которые учат</em></h2>{% endif %}
+      {% if _l == 'en' %}<p class="teachers-page-intro-quote">Every instructor is first and foremost a practising minister, bringing living knowledge from real experience of faith.</p>{% elif _l == 'be' %}<p class="teachers-page-intro-quote">Кожны выкладчык — перш за ўсё практыкуючы служыцель царквы, які нясе жывыя веды з рэальнага вопыту веры.</p>{% else %}<p class="teachers-page-intro-quote">Каждый преподаватель — прежде всего практикующий служитель церкви, несущий живое знание из реального опыта веры.</p>{% endif %}
     </div>
     <div class="teachers-page-intro-right">
       <div class="teachers-page-stat">
         <div class="teachers-page-stat-num">25+</div>
-        <div class="teachers-page-stat-label">Преподавателей<br>и наставников</div>
+        {% if _l == 'en' %}<div class="teachers-page-stat-label">Faculty<br>and mentors</div>{% elif _l == 'be' %}<div class="teachers-page-stat-label">Выкладчыкаў<br>і настаўнікаў</div>{% else %}<div class="teachers-page-stat-label">Преподавателей<br>и наставников</div>{% endif %}
       </div>
       <div class="teachers-page-stat">
         <div class="teachers-page-stat-num">3</div>
-        <div class="teachers-page-stat-label">Отделения<br>колледжа</div>
+        {% if _l == 'en' %}<div class="teachers-page-stat-label">College<br>departments</div>{% elif _l == 'be' %}<div class="teachers-page-stat-label">Аддзяленні<br>каледжа</div>{% else %}<div class="teachers-page-stat-label">Отделения<br>колледжа</div>{% endif %}
       </div>
       <div class="teachers-page-stat">
         <div class="teachers-page-stat-num">30+</div>
-        <div class="teachers-page-stat-label">Лет совокупного<br>опыта служения</div>
+        {% if _l == 'en' %}<div class="teachers-page-stat-label">Years of combined<br>ministry experience</div>{% elif _l == 'be' %}<div class="teachers-page-stat-label">Гадоў сукупнага<br>досведу служэння</div>{% else %}<div class="teachers-page-stat-label">Лет совокупного<br>опыта служения</div>{% endif %}
       </div>
     </div>
   </div>
 
   <!-- Department filter -->
   <div class="teachers-dept-filter" id="teachersDeptFilter">
-    <button class="teachers-dept-btn active" onclick="filterTeachers('all', this)">Все</button>
-    <button class="teachers-dept-btn" onclick="filterTeachers('music', this)">Музыкальное служение</button>
-    <button class="teachers-dept-btn" onclick="filterTeachers('theology', this)">Библейско-богословское</button>
-    <button class="teachers-dept-btn" onclick="filterTeachers('theatre', this)">Театральное служение</button>
+    {% if _l == 'en' %}<button class="teachers-dept-btn active" onclick="filterTeachers('all', this)">All</button>{% elif _l == 'be' %}<button class="teachers-dept-btn active" onclick="filterTeachers('all', this)">Усе</button>{% else %}<button class="teachers-dept-btn active" onclick="filterTeachers('all', this)">Все</button>{% endif %}
+    {% if _l == 'en' %}<button class="teachers-dept-btn" onclick="filterTeachers('music', this)">Music ministry</button>{% elif _l == 'be' %}<button class="teachers-dept-btn" onclick="filterTeachers('music', this)">Музычнае служэнне</button>{% else %}<button class="teachers-dept-btn" onclick="filterTeachers('music', this)">Музыкальное служение</button>{% endif %}
+    {% if _l == 'en' %}<button class="teachers-dept-btn" onclick="filterTeachers('theology', this)">Biblical & theological</button>{% elif _l == 'be' %}<button class="teachers-dept-btn" onclick="filterTeachers('theology', this)">Біблейска-багаслоўскае</button>{% else %}<button class="teachers-dept-btn" onclick="filterTeachers('theology', this)">Библейско-богословское</button>{% endif %}
+    {% if _l == 'en' %}<button class="teachers-dept-btn" onclick="filterTeachers('theatre', this)">Theatre ministry</button>{% elif _l == 'be' %}<button class="teachers-dept-btn" onclick="filterTeachers('theatre', this)">Тэатральнае служэнне</button>{% else %}<button class="teachers-dept-btn" onclick="filterTeachers('theatre', this)">Театральное служение</button>{% endif %}
   </div>
 
   <!-- Masonry grid -->
@@ -3163,10 +3386,10 @@
 
   <footer>
     <div class="footer-inner">
-      <div class="footer-logo">Библейский<br>Колледж ХВЕ</div>
+      <div class="footer-logo">{% if _l == "en" %}Bible<br>College of CFEF{% elif _l == "be" %}Біблейскі<br>Каледж ХВЕ{% else %}Библейский<br>Колледж ХВЕ{% endif %}</div>
       <div class="footer-middle">
         <div class="footer-cross-divider">✝</div>
-        <div class="footer-reg">«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15</div>
+        <div class="footer-reg">{% if _l == 'en' %}"Bible College of Christians of Evangelical Faith"<br>220092, Minsk, Belskogo str. 15{% elif _l == 'be' %}«Біблейскі каледж хрысціян веры евангельскай»<br>220092, Мінск, вул. Бельскага, 15{% else %}«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15{% endif %}</div>
       </div>
       <div class="footer-right">cfnbel@gmail.com<br>+375 17 393 53 94</div>
     </div>
@@ -3229,36 +3452,52 @@ function scrollToPrograms() {
 }
 
 // ===================== BOTTOM NAV =====================
+const __NAV_T = {
+  ru: { mission:'Миссия', programs:'Программы', teachers:'Препод.', admission:'Приём', contact:'Контакты',
+        home:'Главное', specialties:'Специальности', cost:'Стоимость', apply:'Записаться',
+        levels:'Уровни', about:'О программе', faculty:'Состав' },
+  be: { mission:'Місія',  programs:'Праграмы', teachers:'Выкладч.', admission:'Прыём', contact:'Кантакты',
+        home:'Галоўная', specialties:'Спецыяльнасці', cost:'Кошт', apply:'Запісацца',
+        levels:'Узроўні', about:'Пра праграму', faculty:'Склад' },
+  en: { mission:'Mission', programs:'Programs', teachers:'Faculty', admission:'Admission', contact:'Contact',
+        home:'Home', specialties:'Specialties', cost:'Tuition', apply:'Apply',
+        levels:'Levels', about:'About', faculty:'Faculty' },
+}[(window.__LANG__ || 'ru')] || null;
+const _navT = __NAV_T || {
+  mission:'Миссия', programs:'Программы', teachers:'Препод.', admission:'Приём', contact:'Контакты',
+  home:'Главное', specialties:'Специальности', cost:'Стоимость', apply:'Записаться',
+  levels:'Уровни', about:'О программе', faculty:'Состав'
+};
 const mainNavItems = [
-  { section: 'mission', label: 'Миссия', icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>' },
-  { section: 'programs', label: 'Программы', icon: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="12" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="12" width="7" height="7" rx="1.5"/><rect x="12" y="12" width="7" height="7" rx="1.5"/>' },
-  { section: 'teachers', label: 'Препод.', icon: '<circle cx="11" cy="7" r="3.5"/><path d="M4 19c0-3.3 3.1-6 7-6s7 2.7 7 6"/>' },
-  { section: 'admission', label: 'Приём', icon: '<rect x="3" y="4" width="16" height="15" rx="2"/><path d="M3 9h16M8 2v4M14 2v4"/>' },
-  { section: 'contact', label: 'Контакты', icon: '<path d="M4 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6l-4 4V6a2 2 0 0 1 2-2z"/>' },
+  { section: 'mission', label: _navT.mission, icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>' },
+  { section: 'programs', label: _navT.programs, icon: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="12" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="12" width="7" height="7" rx="1.5"/><rect x="12" y="12" width="7" height="7" rx="1.5"/>' },
+  { section: 'teachers', label: _navT.teachers, icon: '<circle cx="11" cy="7" r="3.5"/><path d="M4 19c0-3.3 3.1-6 7-6s7 2.7 7 6"/>' },
+  { section: 'admission', label: _navT.admission, icon: '<rect x="3" y="4" width="16" height="15" rx="2"/><path d="M3 9h16M8 2v4M14 2v4"/>' },
+  { section: 'contact', label: _navT.contact, icon: '<path d="M4 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6l-4 4V6a2 2 0 0 1 2-2z"/>' },
 ];
 
 const progNavItems = {
   music: [
-    { action: 'home',    label: 'Главное',    icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
-    { anchor: 'music-specialties', label: 'Специальности', icon: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="12" y="3" width="7" height="7" rx="1"/><rect x="3" y="12" width="7" height="7" rx="1"/><rect x="12" y="12" width="7" height="7" rx="1"/>', section: 'music-specialties' },
-    { anchor: 'music-cost',        label: 'Стоимость',     icon: '<rect x="2" y="6" width="18" height="12" rx="2"/><path d="M2 10h18"/>', section: 'music-cost' },
-    { action: 'apply',   label: 'Записаться', icon: '<path d="M12 5v14M5 12h14"/>', section: null },
+    { action: 'home',    label: _navT.home,    icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
+    { anchor: 'music-specialties', label: _navT.specialties, icon: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="12" y="3" width="7" height="7" rx="1"/><rect x="3" y="12" width="7" height="7" rx="1"/><rect x="12" y="12" width="7" height="7" rx="1"/>', section: 'music-specialties' },
+    { anchor: 'music-cost',        label: _navT.cost,     icon: '<rect x="2" y="6" width="18" height="12" rx="2"/><path d="M2 10h18"/>', section: 'music-cost' },
+    { action: 'apply',   label: _navT.apply, icon: '<path d="M12 5v14M5 12h14"/>', section: null },
   ],
   theology: [
-    { action: 'home',    label: 'Главное',    icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
-    { anchor: 'theology-levels', label: 'Уровни',      icon: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="12" y="3" width="7" height="7" rx="1"/><rect x="3" y="12" width="7" height="7" rx="1"/><rect x="12" y="12" width="7" height="7" rx="1"/>', section: 'theology-levels' },
-    { anchor: 'theology-cost',   label: 'Стоимость',   icon: '<rect x="2" y="6" width="18" height="12" rx="2"/><path d="M2 10h18"/>', section: 'theology-cost' },
-    { action: 'apply',   label: 'Записаться', icon: '<path d="M12 5v14M5 12h14"/>', section: null },
+    { action: 'home',    label: _navT.home,    icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
+    { anchor: 'theology-levels', label: _navT.levels,      icon: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="12" y="3" width="7" height="7" rx="1"/><rect x="3" y="12" width="7" height="7" rx="1"/><rect x="12" y="12" width="7" height="7" rx="1"/>', section: 'theology-levels' },
+    { anchor: 'theology-cost',   label: _navT.cost,   icon: '<rect x="2" y="6" width="18" height="12" rx="2"/><path d="M2 10h18"/>', section: 'theology-cost' },
+    { action: 'apply',   label: _navT.apply, icon: '<path d="M12 5v14M5 12h14"/>', section: null },
   ],
   theatre: [
-    { action: 'home',    label: 'Главное',    icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
-    { anchor: 'theatre-goal', label: 'О программе', icon: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="12" y="3" width="7" height="7" rx="1"/><rect x="3" y="12" width="7" height="7" rx="1"/><rect x="12" y="12" width="7" height="7" rx="1"/>', section: 'theatre-goal' },
-    { anchor: 'theatre-cost', label: 'Стоимость',   icon: '<rect x="2" y="6" width="18" height="12" rx="2"/><path d="M2 10h18"/>', section: 'theatre-cost' },
-    { action: 'apply',   label: 'Записаться', icon: '<path d="M12 5v14M5 12h14"/>', section: null },
+    { action: 'home',    label: _navT.home,    icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
+    { anchor: 'theatre-goal', label: _navT.about, icon: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="12" y="3" width="7" height="7" rx="1"/><rect x="3" y="12" width="7" height="7" rx="1"/><rect x="12" y="12" width="7" height="7" rx="1"/>', section: 'theatre-goal' },
+    { anchor: 'theatre-cost', label: _navT.cost,   icon: '<rect x="2" y="6" width="18" height="12" rx="2"/><path d="M2 10h18"/>', section: 'theatre-cost' },
+    { action: 'apply',   label: _navT.apply, icon: '<path d="M12 5v14M5 12h14"/>', section: null },
   ],
   teachers: [
-    { action: 'home', label: 'Главное', icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
-    { anchor: 'teachersFullGrid', label: 'Состав', icon: '<circle cx="11" cy="7" r="3.5"/><path d="M4 19c0-3.3 3.1-6 7-6s7 2.7 7 6"/>', section: null },
+    { action: 'home', label: _navT.home, icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
+    { anchor: 'teachersFullGrid', label: _navT.faculty, icon: '<circle cx="11" cy="7" r="3.5"/><path d="M4 19c0-3.3 3.1-6 7-6s7 2.7 7 6"/>', section: null },
   ],
 };
 
@@ -3426,25 +3665,30 @@ document.querySelectorAll('#page-main a[href^="#"]').forEach(anchor => {
 
 // Contact-form submit (the inline "Заказать звонок" form). Posts to /api/applications.
 async function handleSubmit(e) {
+  const lang = (window.__LANG__ || 'ru');
+  const T = {
+    ru: { needName: 'Укажите имя', send: 'Отправить запрос', sending: 'Отправляем…', sent: 'Отправлено ✓', err: 'Ошибка. Повторить?' },
+    be: { needName: 'Пакажыце імя',  send: 'Адправіць запыт',  sending: 'Адпраўляем…', sent: 'Адпраўлена ✓', err: 'Памылка. Паўтарыць?' },
+    en: { needName: 'Please enter your name', send: 'Send request', sending: 'Sending…', sent: 'Sent ✓', err: 'Error. Retry?' },
+  }[lang] || { needName: 'Укажите имя', send: 'Отправить запрос', sending: 'Отправляем…', sent: 'Отправлено ✓', err: 'Ошибка. Повторить?' };
   const btn = e.target;
   const wrap = btn.closest('.contact-form');
   if (!wrap) return;
   const inputs = wrap.querySelectorAll('input, select, textarea');
   const data = { name: '', phone: '', program: '', note: '' };
   inputs.forEach(el => {
-    const lbl = (el.previousElementSibling && el.previousElementSibling.textContent || '').toLowerCase();
-    if (el.tagName === 'SELECT') data.program = el.value || '';
-    else if (lbl.includes('имя')) data.name = el.value || '';
-    else if (lbl.includes('телефон')) data.phone = el.value || '';
-    else if (el.tagName === 'TEXTAREA') data.note = el.value || '';
+    if (el.tagName === 'SELECT') { data.program = el.value || ''; return; }
+    if (el.tagName === 'TEXTAREA') { data.note = el.value || ''; return; }
+    if (el.type === 'tel') { data.phone = el.value || ''; return; }
+    if (el.type === 'text') { data.name = el.value || ''; return; }
   });
   if (!data.name) {
-    btn.textContent = 'Укажите имя';
-    setTimeout(() => { btn.textContent = 'Отправить запрос'; }, 2500);
+    btn.textContent = T.needName;
+    setTimeout(() => { btn.textContent = T.send; }, 2500);
     return;
   }
   const orig = btn.textContent;
-  btn.disabled = true; btn.textContent = 'Отправляем…';
+  btn.disabled = true; btn.textContent = T.sending;
   try {
     const res = await fetch('/api/applications', {
       method: 'POST',
@@ -3452,12 +3696,12 @@ async function handleSubmit(e) {
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error('http ' + res.status);
-    btn.textContent = 'Отправлено ✓';
+    btn.textContent = T.sent;
     btn.style.background = '#4a7c59';
     btn.style.color = '#fff';
     inputs.forEach(el => { if (el.tagName !== 'BUTTON') el.value = ''; });
   } catch (err) {
-    btn.textContent = 'Ошибка. Повторить?';
+    btn.textContent = T.err;
     setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2500);
     return;
   }
@@ -3781,7 +4025,7 @@ filterTeachers = function(dept, btn) {
     <div class="cookie-text">
       {{ site.cookie_banner_text | nl2br }}
       {% if site.cookie_banner_terms_url %}
-      <a href="{{ site.cookie_banner_terms_url }}" target="_blank" rel="noopener" class="cookie-link">Подробнее →</a>
+      <a href="{{ site.cookie_banner_terms_url }}" target="_blank" rel="noopener" class="cookie-link">{% if _l == 'en' %}Details →{% elif _l == 'be' %}Падрабязней →{% else %}Подробнее →{% endif %}</a>
       {% endif %}
     </div>
     <button type="button" id="cookieBannerAccept" class="cookie-accept">{{ site.cookie_banner_button_text or 'Принимаю' }}</button>
@@ -3863,8 +4107,12 @@ filterTeachers = function(dept, btn) {
 <script>
 window.__CMS__ = {{ cms_overrides | tojson | safe }};
 window.__CMS_EDIT__ = {{ 'true' if cms_edit else 'false' }};
+window.__LANG__ = "{{ lang|default('ru') }}";
 (function () {
-  // 1) Apply saved overrides to all data-cms elements (always).
+  // 1) Apply saved overrides to all data-cms elements — only in the source
+  //    language (ru), since the visual CMS edits the canonical Russian copy.
+  //    For other languages we keep whatever the template renders.
+  if (window.__LANG__ !== 'ru' && !window.__CMS_EDIT__) return;
   var data = window.__CMS__ || {};
   document.querySelectorAll('[data-cms]').forEach(function (el) {
     var key = el.getAttribute('data-cms');

@@ -193,7 +193,8 @@ async def file_share_page(
 ):
     d = await _get_doc_by_slug(slug, session)
     site = await get_settings_dict(session)
-    return templates.TemplateResponse(
+    lang = pick_language(request)
+    response = templates.TemplateResponse(
         request,
         "file_share.html",
         {
@@ -201,8 +202,10 @@ async def file_share_page(
             "site": site,
             "exhausted": _is_exhausted(d),
             "error": None,
+            "lang": lang,
         },
     )
+    return _attach_lang(response, request, lang)
 
 
 @router.post("/d/{slug}/download")
@@ -214,11 +217,13 @@ async def file_share_download(
 ):
     d = await _get_doc_by_slug(slug, session)
     site = await get_settings_dict(session)
+    lang = pick_language(request)
+    err_pw = {"ru": "Неверный пароль", "be": "Няправільны пароль", "en": "Wrong password"}.get(lang, "Неверный пароль")
     if _is_exhausted(d):
         return templates.TemplateResponse(
             request,
             "file_share.html",
-            {"doc": d, "site": site, "exhausted": True, "error": None},
+            {"doc": d, "site": site, "exhausted": True, "error": None, "lang": lang},
             status_code=410,
         )
     if d.password_hash:
@@ -226,7 +231,7 @@ async def file_share_download(
             return templates.TemplateResponse(
                 request,
                 "file_share.html",
-                {"doc": d, "site": site, "exhausted": False, "error": "Неверный пароль"},
+                {"doc": d, "site": site, "exhausted": False, "error": err_pw, "lang": lang},
                 status_code=401,
             )
     d.download_count = (d.download_count or 0) + 1
