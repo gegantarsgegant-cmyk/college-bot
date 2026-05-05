@@ -592,6 +592,30 @@ async def events_delete(request: Request, eid: int, session: AsyncSession = Depe
 
 # ----------------- Teachers -----------------
 
+def _collect_teacher_i18n(form) -> dict:
+    """Pull BE/EN overrides for teacher fields out of the form.
+    Subjects arrive as a comma-separated string and are stored as a list.
+    """
+    out: dict[str, dict] = {}
+    for lng in ("be", "en"):
+        bucket: dict = {}
+        for f in ("name", "role", "bio"):
+            key = f"{f}__{lng}"
+            if key in form:
+                v = str(form[key]).strip()
+                if v:
+                    bucket[f] = v
+        subjects_key = f"subjects__{lng}"
+        if subjects_key in form:
+            raw = str(form[subjects_key])
+            items = [s.strip() for s in raw.split(",") if s.strip()]
+            if items:
+                bucket["subjects"] = items
+        if bucket:
+            out[lng] = bucket
+    return out
+
+
 @router.get("/teachers", response_class=HTMLResponse)
 async def teachers_list(request: Request, session: AsyncSession = Depends(get_session)):
     return await _crud_list(request, session, models.Teacher, "admin/teachers_list.html")
@@ -621,6 +645,7 @@ async def teachers_create(
     if not initials and name:
         parts = [p for p in name.split() if p]
         initials = "".join(p[0].upper() for p in parts[:2])
+    form = await request.form()
     obj = models.Teacher(
         name=name,
         initials=initials,
@@ -631,6 +656,7 @@ async def teachers_create(
         sort_order=sort_order,
         photo_url=photo_url,
         published=(published == "on"),
+        i18n=_collect_teacher_i18n(form),
     )
     session.add(obj)
     await session.commit()
@@ -659,6 +685,7 @@ async def teachers_update(
         raise HTTPException(404, "Not found")
     if photo and photo.filename:
         obj.photo_url = save_image(photo)
+    form = await request.form()
     obj.name = name
     obj.initials = initials or "".join(p[0].upper() for p in name.split()[:2])
     obj.role = role
@@ -667,6 +694,7 @@ async def teachers_update(
     obj.departments = [d.strip() for d in departments.split(",") if d.strip()] or ["all"]
     obj.sort_order = sort_order
     obj.published = published == "on"
+    obj.i18n = _collect_teacher_i18n(form)
     await session.commit()
     return RedirectResponse("/admin/teachers", status_code=303)
 

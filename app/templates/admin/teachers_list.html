@@ -74,7 +74,27 @@
             <div class="form-group"><label>Сортировка</label><input type="number" name="sort_order" value="{{ t.sort_order }}"></div>
             <div class="form-group" style="display:flex;align-items:flex-end;"><label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:14px;color:var(--text);font-weight:500;"><input type="checkbox" name="published" {% if t.published %}checked{% endif %}> Опубликовать</label></div>
           </div>
-          <button class="btn btn-sm">Сохранить</button>
+
+          <details style="margin-top:6px;">
+            <summary style="cursor:pointer;list-style:none;color:var(--gold);font-size:12px;font-weight:600;padding:6px 0;letter-spacing:0.06em;">⚛ BE / EN — переводы для этого преподавателя</summary>
+            <div style="padding:10px 12px;background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.18);border-radius:8px;margin-top:6px;">
+              <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Пустое поле → подставится русский вариант. Предметы — через запятую.</div>
+              {% for lng, label in [('be','BE'), ('en','EN')] %}
+              {% set i18n_lng = (t.i18n or {}).get(lng, {}) %}
+              <details style="margin-bottom:4px;" {% if loop.first %}open{% endif %}>
+                <summary style="cursor:pointer;list-style:none;font-size:11.5px;color:var(--gold);font-weight:700;padding:4px 0;letter-spacing:0.16em;">—— {{ label }}</summary>
+                <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+                  <div class="form-group"><label style="font-size:11px;">ФИО</label><input type="text" name="name__{{ lng }}" value="{{ i18n_lng.get('name', '') }}"></div>
+                  <div class="form-group"><label style="font-size:11px;">Должность / звание</label><input type="text" name="role__{{ lng }}" value="{{ i18n_lng.get('role', '') }}"></div>
+                  <div class="form-group"><label style="font-size:11px;">Биография</label><textarea name="bio__{{ lng }}" rows="3">{{ i18n_lng.get('bio', '') }}</textarea></div>
+                  <div class="form-group"><label style="font-size:11px;">Предметы (через запятую)</label><input type="text" name="subjects__{{ lng }}" value="{{ (i18n_lng.get('subjects') or [])|join(', ') }}"></div>
+                </div>
+              </details>
+              {% endfor %}
+            </div>
+          </details>
+
+          <button class="btn btn-sm" style="margin-top:8px;">Сохранить</button>
         </form>
       </details>
       <form method="post" action="/admin/teachers/{{ t.id }}/delete" onsubmit="return confirm('Удалить «{{ t.name }}»?')">
