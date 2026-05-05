@@ -616,6 +616,16 @@
       dragId = null;
     });
   });
+  // If the URL has ?app=NN (e.g. via magic-link from the bot), open that
+  // application's drawer automatically.
+  (function () {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var appId = params.get('app');
+      if (appId) setTimeout(function () { open(appId); }, 100);
+    } catch (e) {}
+  })();
+
   document.querySelectorAll('.kan-col').forEach(function (col) {
     col.addEventListener('dragover', function (e) { e.preventDefault(); col.classList.add('drag-over'); });
     col.addEventListener('dragleave', function () { col.classList.remove('drag-over'); });

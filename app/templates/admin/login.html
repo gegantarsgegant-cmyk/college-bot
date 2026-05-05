@@ -8,7 +8,9 @@
       <h1 class="page-title" style="margin: 0;">Админ-панель</h1>
       <div class="page-subtitle">Библейский Колледж ХВЕ</div>
     </div>
-    {% if error %}<div class="error">Неверный логин или пароль</div>{% endif %}
+    {% if error == 'expired' %}<div class="error">Ссылка для входа устарела. Запросите новую через бота.</div>
+    {% elif error == 'forbidden' %}<div class="error">Этот Telegram-аккаунт не в списке администраторов.</div>
+    {% elif error %}<div class="error">Неверный логин или пароль</div>{% endif %}
     <form method="post" action="/admin/login">
       <div class="form-group">
         <label>Логин</label>

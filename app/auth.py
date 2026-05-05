@@ -13,6 +13,8 @@ SESSION_COOKIE = "college_admin"
 SESSION_MAX_AGE = 60 * 60 * 24 * 7  # 7 days
 
 _serializer = URLSafeTimedSerializer(settings.SECRET_KEY, salt="admin-session")
+_magic_serializer = URLSafeTimedSerializer(settings.SECRET_KEY, salt="admin-magic")
+MAGIC_TOKEN_MAX_AGE = 60 * 15  # 15 minutes
 
 
 def make_session_token(user_id: int, username: str) -> str:
@@ -22,6 +24,18 @@ def make_session_token(user_id: int, username: str) -> str:
 def read_session_token(token: str) -> dict | None:
     try:
         return _serializer.loads(token, max_age=SESSION_MAX_AGE)
+    except BadSignature:
+        return None
+
+
+def make_magic_token(tg_user_id: int) -> str:
+    """One-shot login token for a Telegram admin (15 minutes)."""
+    return _magic_serializer.dumps({"tg": tg_user_id, "t": int(time.time())})
+
+
+def read_magic_token(token: str) -> dict | None:
+    try:
+        return _magic_serializer.loads(token, max_age=MAGIC_TOKEN_MAX_AGE)
     except BadSignature:
         return None
 

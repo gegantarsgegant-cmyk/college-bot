@@ -21,31 +21,41 @@ PROGRAM_LABELS = {
 }
 
 
-def _format_application(app: models.Application, stats: dict[str, int] | None = None) -> str:
-    """Beautiful HTML notification with emoji + structured layout."""
+def _format_application(
+    app: models.Application,
+    stats: dict[str, int] | None = None,
+    *,
+    inline_link_html: str = "",
+) -> str:
+    """HTML notification: header, blockquote with applicant info, optional comment quote, footer.
+
+    `inline_link_html` is appended as a clickable link in the message body —
+    used when a URL inline-keyboard button isn't usable (e.g. basic-auth tunnel).
+    """
     program = PROGRAM_LABELS.get(app.program or "", escape(app.program or "—"))
     when = app.created_at.strftime("%d.%m.%Y · %H:%M")
 
-    parts = [
-        "🔔 <b>Новая заявка с сайта!</b>",
-        "",
-        "━━━━━━━━━━━━━━━━━━",
-        f"👤 <b>{escape(app.name)} {escape(app.lastname)}</b>",
-        f"🆔 Заявка <b>№{app.id}</b>",
-        f"🕐 {when}",
-        "━━━━━━━━━━━━━━━━━━",
-    ]
+    header = (
+        f"🔔 <b>Новая заявка</b> · №{app.id} · <i>{when}</i>"
+    )
+
+    info_lines = [f"👤 <b>{escape(app.name)} {escape(app.lastname)}</b>"]
     if app.phone:
-        parts.append(f"📞 <b>Телефон:</b> <a href=\"tel:{escape(app.phone)}\">{escape(app.phone)}</a>")
+        info_lines.append(
+            f"📞 <a href=\"tel:{escape(app.phone)}\">{escape(app.phone)}</a>"
+        )
     if app.program:
-        parts.append(f"🎓 <b>Программа:</b> {program}")
+        info_lines.append(f"🎓 {program}")
     if app.church:
-        parts.append(f"⛪ <b>Церковь:</b> {escape(app.church)}")
+        info_lines.append(f"⛪ {escape(app.church)}")
+    info_block = "<blockquote>" + "\n".join(info_lines) + "</blockquote>"
+
+    parts = [header, "", info_block]
+
     if app.note:
+        comment = escape(app.note).strip()
         parts.append("")
-        parts.append(f"💬 <i>{escape(app.note)}</i>")
-    parts.append("")
-    parts.append("👇 <i>Выберите действие:</i>")
+        parts.append(f"<blockquote>💬 {comment}</blockquote>")
 
     if stats:
         parts.append("")
@@ -53,6 +63,10 @@ def _format_application(app: models.Application, stats: dict[str, int] | None = 
             f"📊 Всего новых: <b>{stats.get('new', 0)}</b> · "
             f"связались: <b>{stats.get('contacted', 0)}</b>"
         )
+
+    if inline_link_html:
+        parts.append("")
+        parts.append(f"👉 {inline_link_html}")
 
     return "\n".join(parts)
 
@@ -62,13 +76,10 @@ async def notify_new_application(app: models.Application) -> None:
     if bot is None:
         return
 
-    from .handlers import application_kb
+    from .handlers import admin_link_html, application_kb
 
     async with AsyncSessionLocal() as session:
         stats = await application_stats(session)
-
-    text = _format_application(app, stats)
-    kb = application_kb(app.id)
 
     targets: list[int] = []
     if settings.TELEGRAM_NOTIFY_CHAT_ID:
@@ -83,11 +94,17 @@ async def notify_new_application(app: models.Application) -> None:
         return
 
     for chat_id in targets:
+        link_html = admin_link_html(
+            chat_id,
+            text="🛠 Открыть заявку в админке",
+            next_path=f"/admin/applications?app={app.id}",
+        )
+        text = _format_application(app, stats, inline_link_html=link_html)
         try:
             await bot.send_message(
                 chat_id,
                 text,
-                reply_markup=kb,
+                reply_markup=application_kb(app.id, tg_user_id=chat_id),
                 parse_mode="HTML",
                 disable_web_page_preview=True,
             )
@@ -108,6 +125,19 @@ def _notification_targets() -> list[int]:
     return list(dict.fromkeys(targets))
 
 
+def _format_stale_app(a: models.Application, age_days: int) -> str:
+    """One application as a blockquote — used in stale digest."""
+    program = PROGRAM_LABELS.get(a.program or "", escape(a.program or "—"))
+    lines = [
+        f"👤 <b>{escape(a.name)} {escape(a.lastname)}</b> · №{a.id}",
+        f"🎓 {program}",
+    ]
+    if a.phone:
+        lines.append(f"📞 <a href=\"tel:{escape(a.phone)}\">{escape(a.phone)}</a>")
+    lines.append(f"🕐 Висит <b>{age_days} дн.</b>")
+    return "<blockquote>" + "\n".join(lines) + "</blockquote>"
+
+
 async def notify_stale_applications() -> int:
     """Find applications stuck in new/contacted for >=3 days, ping admins.
 
@@ -116,6 +146,7 @@ async def notify_stale_applications() -> int:
     from datetime import datetime as _dt
 
     from ..services import stale_applications
+    from .handlers import admin_link_html, admin_link_kb
 
     bot = get_bot()
     if bot is None:
@@ -130,29 +161,38 @@ async def notify_stale_applications() -> int:
         if not stale:
             return 0
 
-        # Build a single digest message
-        lines = ["⚠️ <b>Заявки без движения</b>", ""]
-        ids: list[int] = []
-        for a in stale[:30]:  # cap to keep telegram message sane
+        header = (
+            f"⚠️ <b>Заявки без движения</b> · <i>{len(stale)} шт.</i>"
+        )
+        blocks: list[str] = [header]
+        for a in stale[:30]:
             age = (_dt.utcnow() - a.created_at).days
-            program = PROGRAM_LABELS.get(a.program or "", escape(a.program or "—"))
-            phone = f" · 📞 {escape(a.phone)}" if a.phone else ""
-            lines.append(
-                f"• №{a.id} <b>{escape(a.name)} {escape(a.lastname)}</b> · "
-                f"{program} · висит <b>{age} дн.</b>{phone}"
-            )
-            ids.append(a.id)
+            blocks.append("")  # blank line between entries
+            blocks.append(_format_stale_app(a, age))
 
         if len(stale) > 30:
-            lines.append(f"\n…и ещё {len(stale) - 30} заявок")
+            blocks.append("")
+            blocks.append(f"…и ещё <b>{len(stale) - 30}</b> заявок.")
 
-        lines.append("")
-        lines.append("👉 Откройте админку, чтобы связаться с абитуриентами.")
-
-        text = "\n".join(lines)
         for chat_id in targets:
+            link_html = admin_link_html(
+                chat_id,
+                text="🛠 Открыть в админке",
+                next_path="/admin/applications",
+            )
+            chat_blocks = list(blocks)
+            if link_html:
+                chat_blocks.append("")
+                chat_blocks.append(f"👉 {link_html}")
+            text = "\n".join(chat_blocks)
             try:
-                await bot.send_message(chat_id, text, parse_mode="HTML", disable_web_page_preview=True)
+                await bot.send_message(
+                    chat_id,
+                    text,
+                    parse_mode="HTML",
+                    disable_web_page_preview=True,
+                    reply_markup=admin_link_kb(tg_user_id=chat_id),
+                )
                 sent += 1
             except Exception as exc:  # noqa: BLE001
                 log.warning("Failed to send stale digest to %s: %s", chat_id, exc)

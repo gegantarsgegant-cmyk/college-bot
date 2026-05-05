@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     )
 
     PUBLIC_URL: str = "http://localhost:8000"
+    # Optional override URL for links sent inside Telegram (used when the
+    # tunnel that hosts PUBLIC_URL requires HTTP basic auth that has to be
+    # embedded in the URL like https://user:pass@host). If empty, PUBLIC_URL
+    # is used as-is.
+    BOT_PUBLIC_URL: str = ""
     SECRET_KEY: str = "dev-only-not-for-production"
 
     ADMIN_USERNAME: str = "admin"

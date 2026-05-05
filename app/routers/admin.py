@@ -17,6 +17,7 @@ from ..auth import (
     SESSION_MAX_AGE,
     current_admin,
     make_session_token,
+    read_magic_token,
 )
 from ..config import TEMPLATES_DIR
 from ..db import get_session
@@ -131,6 +132,60 @@ async def login_submit(
 async def logout(request: Request):
     resp = RedirectResponse("/admin/login", status_code=303)
     resp.delete_cookie(SESSION_COOKIE)
+    return resp
+
+
+# ----------------- Magic-link auto-login (used by Telegram bot) -----------------
+
+@router.get("/magic")
+async def magic_login(
+    request: Request,
+    t: str = "",
+    next: str = "/admin/",
+    session: AsyncSession = Depends(get_session),
+):
+    """One-shot login via signed token.
+
+    The Telegram bot generates such a token for verified admins and embeds it
+    in the URL of inline buttons, so a single click logs the admin into the
+    web admin panel without typing a password.
+    """
+    from ..config import settings as app_settings
+
+    payload = read_magic_token(t) if t else None
+    if not payload:
+        return RedirectResponse("/admin/login?error=expired", status_code=303)
+    tg_id = payload.get("tg")
+    if not isinstance(tg_id, int) or tg_id not in app_settings.admin_ids:
+        return RedirectResponse("/admin/login?error=forbidden", status_code=303)
+
+    username = f"tg_{tg_id}"
+    existing = (
+        await session.execute(
+            select(models.AdminUser).where(models.AdminUser.username == username)
+        )
+    ).scalar_one_or_none()
+    if existing is None:
+        new_admin = models.AdminUser(
+            username=username,
+            password_hash=hash_password("!disabled-tg-only!"),
+        )
+        session.add(new_admin)
+        await session.commit()
+        await session.refresh(new_admin)
+        existing = new_admin
+
+    token = make_session_token(existing.id, existing.username)
+    safe_next = next if next.startswith("/admin") else "/admin/"
+    resp = RedirectResponse(safe_next, status_code=303)
+    resp.set_cookie(
+        SESSION_COOKIE,
+        token,
+        max_age=SESSION_MAX_AGE,
+        httponly=True,
+        samesite="lax",
+        secure=False,
+    )
     return resp
 
 
