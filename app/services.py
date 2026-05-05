@@ -74,7 +74,7 @@ DEFAULT_SETTINGS_I18N: dict[str, dict[str, str]] = {
         "site_title": "Біблейскі Каледж ХВЕ",
         "hero_eyebrow": "Духоўная навучальная ўстанова · Мінск, Беларусь",
         "hero_subtitle": "Бог шукае лідараў будучых пераменаў",
-        "nav_logo_top": "ХВЕ",
+        "nav_logo_top": "ХДН",  # Хрыстос Для Народаў — та ж абрэвіятура, што і па-руску
         "nav_logo_main": "Біблейскі Каледж",
         "footer_logo": "Біблейскі<br>Каледж ХВЕ",
         "contact_address": "220092, г. Мінск, вул. Бельскага, 15, оф. 103\nпоруч са ст. м. «Спартыўная»",
@@ -104,7 +104,7 @@ DEFAULT_SETTINGS_I18N: dict[str, dict[str, str]] = {
         "site_title": "Bible College of CFEF",
         "hero_eyebrow": "Theological educational institution · Minsk, Belarus",
         "hero_subtitle": "God is looking for leaders of tomorrow's change",
-        "nav_logo_top": "CFEF",
+        "nav_logo_top": "CFN",  # Christ for the Nations
         "nav_logo_main": "Bible College",
         "footer_logo": "Bible<br>College of CFEF",
         "contact_address": "220092, Minsk, Belskogo str. 15, office 103\nnext to «Sportivnaya» metro station",
