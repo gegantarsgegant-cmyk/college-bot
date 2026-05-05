@@ -2359,43 +2359,25 @@
         </div>
       </div>
       <div class="teachers-grid">
-        <div class="teacher-card fade-in" onclick="openTeacherModal(0)" style="cursor:pointer;">
-          <div class="teacher-avatar">ПА</div>
-          <div class="teacher-name">Пётр Викентьевич Ашейчик</div>
-          <div class="teacher-role">Ректор · Доктор богословия</div>
+        {% for t in teachers[:3] %}
+        <div class="teacher-card fade-in" onclick="openTeacherModal({{ loop.index0 }})" style="cursor:pointer;">
+          <div class="teacher-avatar">{{ t.initials }}</div>
+          <div class="teacher-name">{{ t.name }}</div>
+          <div class="teacher-role">{{ t.role }}</div>
           <div class="teacher-subjects">
-            <span class="teacher-subject">Хвала и поклонение</span>
-            <span class="teacher-subject">Введение в Библию</span>
-            <span class="teacher-subject">Обзор НЗ</span>
-            <span class="teacher-subject">Христ. этика</span>
+            {% for sj in (t.subjects or [])[:4] %}
+            <span class="teacher-subject">{{ sj }}</span>
+            {% endfor %}
           </div>
         </div>
-        <div class="teacher-card fade-in" onclick="openTeacherModal(1)" style="cursor:pointer;">
-          <div class="teacher-avatar">ИА</div>
-          <div class="teacher-name">Инесса Григорьевна Ашейчик</div>
-          <div class="teacher-role">Проректор · Магистр богословия</div>
-          <div class="teacher-subjects">
-            <span class="teacher-subject">Обзор ВЗ</span>
-            <span class="teacher-subject">Теория музыки</span>
-            <span class="teacher-subject">Хвала и поклонение</span>
-          </div>
-        </div>
-        <div class="teacher-card fade-in" onclick="openTeacherModal(2)" style="cursor:pointer;">
-          <div class="teacher-avatar">АЛ</div>
-          <div class="teacher-name">Александр Сергеевич Лукьянович</div>
-          <div class="teacher-role">Зав. богосл. отделением · Магистр</div>
-          <div class="teacher-subjects">
-            <span class="teacher-subject">Методы изучения Библии</span>
-            <span class="teacher-subject">Герменевтика</span>
-          </div>
-        </div>
+        {% endfor %}
         <div class="teacher-card fade-in" onclick="openPage('teachers')" style="background:var(--gold-dim);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:40px 28px;cursor:pointer;">
           <div style="width:48px;height:48px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gold);">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="7" r="3"/><path d="M2 17c0-3 2.7-5 6-5s6 2 6 5"/><circle cx="15" cy="7" r="2.5"/><path d="M15 12c2 .5 3 2 3 4"/></svg>
           </div>
-          <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">Практические служители</div>
-          <div style="font-size:0.78rem;color:var(--ink-soft);font-weight:300;line-height:1.6;">Большинство наших преподавателей — действующие служители церкви</div>
-          <div class="btn-primary" style="font-size:0.65rem;padding:10px 24px;margin-top:8px;pointer-events:none;">Все преподаватели</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">{% if _l == 'en' %}Practising ministers{% elif _l == 'be' %}Практычныя служыцелі{% else %}Практические служители{% endif %}</div>
+          <div style="font-size:0.78rem;color:var(--ink-soft);font-weight:300;line-height:1.6;">{% if _l == 'en' %}Most of our faculty are active ministers of the church{% elif _l == 'be' %}Большасць нашых выкладчыкаў — дзеючыя служыцелі царквы{% else %}Большинство наших преподавателей — действующие служители церкви{% endif %}</div>
+          <div class="btn-primary" style="font-size:0.65rem;padding:10px 24px;margin-top:8px;pointer-events:none;">{% if _l == 'en' %}All faculty{% elif _l == 'be' %}Усе выкладчыкі{% else %}Все преподаватели{% endif %}</div>
         </div>
       </div>
     </div>

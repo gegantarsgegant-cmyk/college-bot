@@ -303,6 +303,36 @@ async def ensure_default_teachers(session: AsyncSession) -> None:
     await session.commit()
 
 
+async def backfill_teachers_i18n(session: AsyncSession) -> None:
+    """For every teacher, fill missing BE/EN entries in the i18n column using
+    ``app.i18n_seed`` translation tables. Existing per-language values are
+    left intact so admin edits are never overwritten.
+    """
+    from .i18n_seed import translate_name, translate_role, translate_subjects
+
+    rows = (await session.execute(select(models.Teacher))).scalars().all()
+    changed = 0
+    for t in rows:
+        i18n = dict(t.i18n or {})
+        for lang in ("be", "en"):
+            bucket = dict(i18n.get(lang) or {})
+            if not bucket.get("name"):
+                bucket["name"] = translate_name(t.name or "", lang)
+            if not bucket.get("role"):
+                bucket["role"] = translate_role(t.role or "", lang)
+            if not bucket.get("subjects"):
+                bucket["subjects"] = translate_subjects(t.subjects or [], lang)
+            # drop empty fields so fallback logic still kicks in
+            bucket = {k: v for k, v in bucket.items() if v}
+            if bucket:
+                i18n[lang] = bucket
+        if i18n != (t.i18n or {}):
+            t.i18n = i18n
+            changed += 1
+    if changed:
+        await session.commit()
+
+
 # ---------------- Applications ----------------
 
 def _new_history_event(kind: str, text: str = "", who: str = "system") -> dict[str, Any]:

@@ -15,6 +15,7 @@ from .routers import admin as admin_router
 from .routers import api as api_router
 from .routers import site as site_router
 from .services import (
+    backfill_teachers_i18n,
     ensure_admin_user,
     ensure_default_programs,
     ensure_default_settings,
@@ -55,6 +56,7 @@ async def lifespan(app: FastAPI):
         await ensure_default_settings(session)
         await ensure_default_teachers(session)
         await ensure_default_programs(session)
+        await backfill_teachers_i18n(session)
     if settings.bot_enabled:
         await start_bot()
     else:
