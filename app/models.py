@@ -84,6 +84,8 @@ class Teacher(Base):
     photo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
     published: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Per-language overrides: {"be": {"name": "...", "role": "...", ...}, "en": {...}}
+    i18n: Mapped[dict] = mapped_column(JSON, default=dict)
 
 
 class GalleryItem(Base):
@@ -160,6 +162,9 @@ class Program(Base):
     documents: Mapped[list] = mapped_column(JSON, default=list)
     sort_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
     published: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Per-language overrides: {"be": {"title": "...", "description": "...", ...}, "en": {...}}
+    # Empty/missing key for a given lang → fall back to the canonical (RU) value above.
+    i18n: Mapped[dict] = mapped_column(JSON, default=dict)
 
 
 class ProgramSpecialty(Base):
@@ -173,6 +178,7 @@ class ProgramSpecialty(Base):
     subs: Mapped[str] = mapped_column(Text, default="")
     qualification: Mapped[str] = mapped_column(String(500), default="")
     sort_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    i18n: Mapped[dict] = mapped_column(JSON, default=dict)
 
 
 class BotUser(Base):

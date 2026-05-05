@@ -78,3 +78,14 @@ def _apply_lightweight_migrations(sync_conn) -> None:
             "UPDATE applications SET status='contacted' WHERE status='in_progress'"
         )
     )
+
+    # Per-language overrides for programs / specialties / teachers
+    for table in ("programs", "program_specialties", "teachers"):
+        try:
+            cols = _columns(table)
+        except Exception:  # noqa: BLE001
+            continue
+        if "i18n" not in cols:
+            sync_conn.execute(
+                text(f"ALTER TABLE {table} ADD COLUMN i18n TEXT DEFAULT '{{}}'")
+            )

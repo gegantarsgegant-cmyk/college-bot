@@ -688,6 +688,31 @@ def _parse_lines(s: str) -> list[str]:
     return [ln.strip() for ln in (s or "").replace("\r", "").split("\n") if ln.strip()]
 
 
+def _collect_i18n(form, fields: tuple[str, ...]) -> dict:
+    """Pull localized variants of ``fields`` out of a form, returning
+    ``{"be": {field: value, ...}, "en": {...}}`` with empty values dropped.
+    Items named ``<field>__be`` / ``<field>__en`` map to that lang.
+    Document-list fields ending in ``_lines`` are split on newlines.
+    """
+    i18n: dict[str, dict] = {}
+    for lng in ("be", "en"):
+        bucket: dict = {}
+        for f in fields:
+            key = f"{f}__{lng}"
+            if key not in form:
+                continue
+            v = str(form[key]).strip()
+            if not v:
+                continue
+            if f == "documents" or f == "subjects":
+                bucket[f] = _parse_lines(v)
+            else:
+                bucket[f] = v
+        if bucket:
+            i18n[lng] = bucket
+    return i18n
+
+
 @router.get("/programs", response_class=HTMLResponse)
 async def programs_list(request: Request, session: AsyncSession = Depends(get_session)):
     if not current_admin(request):
@@ -717,6 +742,19 @@ async def programs_list(request: Request, session: AsyncSession = Depends(get_se
     )
 
 
+_PROGRAM_I18N_FIELDS = (
+    "tag",
+    "title",
+    "description",
+    "form_label",
+    "term_label",
+    "degree_label",
+    "tuition_amount",
+    "tuition_note",
+    "documents",
+)
+
+
 @router.post("/programs/new")
 async def programs_create(
     request: Request,
@@ -737,6 +775,7 @@ async def programs_create(
 ):
     if not current_admin(request):
         return _redirect_login()
+    form = await request.form()
     obj = models.Program(
         slug=slug.strip().lower()[:32],
         number=number.strip()[:8],
@@ -751,6 +790,7 @@ async def programs_create(
         documents=_parse_lines(documents),
         sort_order=sort_order,
         published=(published == "on"),
+        i18n=_collect_i18n(form, _PROGRAM_I18N_FIELDS),
     )
     session.add(obj)
     await session.commit()
@@ -781,6 +821,7 @@ async def programs_update(
     obj = await session.get(models.Program, pid)
     if obj is None:
         raise HTTPException(404, "Not found")
+    form = await request.form()
     obj.slug = slug.strip().lower()[:32]
     obj.number = number.strip()[:8]
     obj.tag = tag.strip()[:120]
@@ -794,6 +835,7 @@ async def programs_update(
     obj.documents = _parse_lines(documents)
     obj.sort_order = sort_order
     obj.published = (published == "on")
+    obj.i18n = _collect_i18n(form, _PROGRAM_I18N_FIELDS)
     await session.commit()
     return RedirectResponse("/admin/programs", status_code=303)
 
@@ -837,6 +879,7 @@ async def programs_specialty_create(
     prog = await session.get(models.Program, pid)
     if prog is None:
         raise HTTPException(404, "Program not found")
+    form = await request.form()
     session.add(
         models.ProgramSpecialty(
             program_id=pid,
@@ -845,6 +888,7 @@ async def programs_specialty_create(
             subs=subs.strip(),
             qualification=qualification.strip()[:500],
             sort_order=sort_order,
+            i18n=_collect_i18n(form, ("name", "subs", "qualification")),
         )
     )
     await session.commit()
@@ -868,11 +912,13 @@ async def programs_specialty_update(
     obj = await session.get(models.ProgramSpecialty, sid)
     if obj is None or obj.program_id != pid:
         raise HTTPException(404, "Specialty not found")
+    form = await request.form()
     obj.num = num.strip()[:8]
     obj.name = name.strip()[:255]
     obj.subs = subs.strip()
     obj.qualification = qualification.strip()[:500]
     obj.sort_order = sort_order
+    obj.i18n = _collect_i18n(form, ("name", "subs", "qualification"))
     await session.commit()
     return RedirectResponse("/admin/programs", status_code=303)
 

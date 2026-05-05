@@ -46,7 +46,27 @@ templates.env.filters["nl2br"] = nl2br
 register_jinja(templates.env)
 
 
-async def _published_programs(session: AsyncSession) -> list[dict]:
+def _localize(row, fields: tuple[str, ...], lang: str) -> dict:
+    """Return a dict with the given fields, replacing each one with the
+    per-language override from ``row.i18n[lang]`` when it exists and is
+    non-empty. Falls back to the canonical (RU) value on the row.
+    """
+    i18n = (getattr(row, "i18n", None) or {}).get(lang, {}) if lang else {}
+    out: dict = {}
+    for f in fields:
+        if not isinstance(i18n, dict):
+            i18n = {}
+        v = i18n.get(f)
+        if isinstance(v, str) and v.strip():
+            out[f] = v
+        elif isinstance(v, list) and v:
+            out[f] = v
+        else:
+            out[f] = getattr(row, f)
+    return out
+
+
+async def _published_programs(session: AsyncSession, lang: str = "ru") -> list[dict]:
     progs = (
         await session.execute(
             select(models.Program)
@@ -70,49 +90,69 @@ async def _published_programs(session: AsyncSession) -> list[dict]:
     ).scalars().all()
     specs_by: dict[int, list[dict]] = {}
     for s in spec_rows:
+        loc = _localize(s, ("name", "subs", "qualification"), lang)
         specs_by.setdefault(s.program_id, []).append(
             {
                 "num": s.num,
-                "name": s.name,
-                "subs": s.subs,
-                "qualification": s.qualification,
+                "name": loc["name"],
+                "subs": loc["subs"],
+                "qualification": loc["qualification"],
             }
         )
-    return [
-        {
-            "slug": p.slug,
-            "number": p.number,
-            "tag": p.tag,
-            "title": p.title,
-            "description": p.description,
-            "form_label": p.form_label,
-            "term_label": p.term_label,
-            "degree_label": p.degree_label,
-            "tuition_amount": p.tuition_amount,
-            "tuition_note": p.tuition_note,
-            "documents": p.documents or [],
-            "specialties": specs_by.get(p.id, []),
-        }
-        for p in progs
-    ]
+    out = []
+    for p in progs:
+        loc = _localize(
+            p,
+            (
+                "tag",
+                "title",
+                "description",
+                "form_label",
+                "term_label",
+                "degree_label",
+                "tuition_amount",
+                "tuition_note",
+                "documents",
+            ),
+            lang,
+        )
+        out.append(
+            {
+                "slug": p.slug,
+                "number": p.number,
+                "tag": loc["tag"],
+                "title": loc["title"],
+                "description": loc["description"],
+                "form_label": loc["form_label"],
+                "term_label": loc["term_label"],
+                "degree_label": loc["degree_label"],
+                "tuition_amount": loc["tuition_amount"],
+                "tuition_note": loc["tuition_note"],
+                "documents": loc["documents"] or [],
+                "specialties": specs_by.get(p.id, []),
+            }
+        )
+    return out
 
 
 async def homepage_context(session: AsyncSession, lang: str = "ru") -> dict:
     """Shared context for the public homepage and the admin visual editor."""
     site = await get_settings_dict(session, lang=lang)
     teachers = await published_teachers(session)
-    teachers_data = [
-        {
-            "initials": t.initials,
-            "name": t.name,
-            "role": t.role,
-            "bio": t.bio,
-            "subjects": t.subjects or [],
-            "departments": t.departments or ["all"],
-            "photo_url": t.photo_url,
-        }
-        for t in teachers
-    ]
+    teachers_data = []
+    for t in teachers:
+        loc = _localize(t, ("name", "role", "bio", "subjects"), lang)
+        teachers_data.append(
+            {
+                "initials": t.initials,
+                "name": loc["name"],
+                "role": loc["role"],
+                "bio": loc["bio"],
+                "subjects": loc["subjects"] or [],
+                "departments": t.departments or ["all"],
+                "photo_url": t.photo_url,
+            }
+        )
     cms_overrides = {
         k[4:]: v for k, v in site.items() if k.startswith("cms_") and v
     }
@@ -125,7 +165,7 @@ async def homepage_context(session: AsyncSession, lang: str = "ru") -> dict:
         "teachers": teachers_data,
         "gallery": await published_gallery(session),
         "documents": await published_documents(session),
-        "programs": await _published_programs(session),
+        "programs": await _published_programs(session, lang=lang),
         "PUBLIC_URL": settings.PUBLIC_URL,
         "BOT_USERNAME": "",  # filled in via /api/site-info if you want a Mini App link
     }
