@@ -333,6 +333,35 @@ async def backfill_teachers_i18n(session: AsyncSession) -> None:
         await session.commit()
 
 
+async def backfill_programs_i18n(session: AsyncSession) -> None:
+    """For each program with a known slug (music / theology / theatre), fill
+    any missing BE/EN field with the seed value. Admin overrides are
+    preserved — only empty fields are populated.
+    """
+    from .i18n_seed import program_seed
+
+    rows = (await session.execute(select(models.Program))).scalars().all()
+    changed = 0
+    for p in rows:
+        i18n = dict(p.i18n or {})
+        for lang in ("be", "en"):
+            seed = program_seed(p.slug or "", lang)
+            if not seed:
+                continue
+            bucket = dict(i18n.get(lang) or {})
+            for k, v in seed.items():
+                if not bucket.get(k):
+                    bucket[k] = v
+            bucket = {k: v for k, v in bucket.items() if v}
+            if bucket:
+                i18n[lang] = bucket
+        if i18n != (p.i18n or {}):
+            p.i18n = i18n
+            changed += 1
+    if changed:
+        await session.commit()
+
+
 # ---------------- Applications ----------------
 
 def _new_history_event(kind: str, text: str = "", who: str = "system") -> dict[str, Any]:

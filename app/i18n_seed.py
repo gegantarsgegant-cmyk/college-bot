@@ -273,3 +273,83 @@ def translate_name(name: str, lang: str) -> str:
     if lang == "be":
         return transliterate_name_be(name)
     return name
+
+
+# ---------------------------------------------------------------------------
+# Programs (homepage cards) — seed by program slug.
+# Each lang has a {field: value} dict; only fields present here are filled.
+# ---------------------------------------------------------------------------
+
+PROGRAM_SEEDS: dict[str, dict[str, dict[str, str]]] = {
+    "music": {
+        "en": {
+            "tag": "Music ministry",
+            "title": "Bachelor of Church Music",
+            "description": "Training musicians for ministry",
+            "form_label": "Part-time",
+            "term_label": "2 levels",
+            "degree_label": "Bachelor of Arts",
+        },
+        "be": {
+            "tag": "Музычнае служэнне",
+            "title": "Бакалаўр царкоўнай музыкі",
+            "description": "Падрыхтоўка музыкаў для служэння",
+            "form_label": "Завочна-вочная",
+            "term_label": "2 узроўні",
+            "degree_label": "Бакалаўр мастацтваў",
+        },
+    },
+    "theology": {
+        "en": {
+            "tag": "Biblical & theological",
+            "title": "Theology and Christian Ministry",
+            "description": (
+                "Studying Scripture across three levels — from a basic "
+                "certificate up to a Bachelor of Theology. Fully online."
+            ),
+            "form_label": "Distance (online)",
+            "term_label": "From 1 year (Level A) up to 4 years (Level C)",
+            "degree_label": "Bachelor of Ministry / Theology",
+        },
+        "be": {
+            "tag": "Біблейска-багаслоўскае",
+            "title": "Тэалогія і хрысціянскае служэнне",
+            "description": (
+                "Вывучэнне Святога Пісання на трох узроўнях — ад базавага "
+                "сертыфіката да ступені бакалаўра тэалогіі. Цалкам онлайн."
+            ),
+            "form_label": "Завочная (онлайн)",
+            "term_label": "Ад 1 года (Узровень А) да 4 гадоў (Узровень C)",
+            "degree_label": "Бакалаўр служэння / тэалогіі",
+        },
+    },
+    "theatre": {
+        "en": {
+            "tag": "Gospel through art",
+            "title": "Bachelor of Arts in Theatre Ministry",
+            "description": (
+                "Practical skills of church theatre ministry. A combination "
+                "of theological and specialised training for ministry through art."
+            ),
+            "form_label": "Part-time · 4 sessions/year",
+            "term_label": "3 years",
+            "degree_label": "Bachelor of Arts",
+        },
+        "be": {
+            "tag": "Евангелле праз творчасць",
+            "title": "Бакалаўр мастацтваў у тэатральным служэнні",
+            "description": (
+                "Практычныя навыкі царкоўнага тэатральнага служэння. "
+                "Спалучэнне багаслоўскай і спецыяльнай падрыхтоўкі для "
+                "служэння творчасцю."
+            ),
+            "form_label": "Завочна-вочная · 4 сесіі/год",
+            "term_label": "3 гады",
+            "degree_label": "Бакалаўр мастацтваў",
+        },
+    },
+}
+
+
+def program_seed(slug: str, lang: str) -> dict[str, str]:
+    return PROGRAM_SEEDS.get(slug, {}).get(lang, {})
