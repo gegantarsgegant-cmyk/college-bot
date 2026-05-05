@@ -11,188 +11,609 @@
 :root {
   --gold: #C9A84C;
   --gold-light: #E8C97A;
-  --gold-dim: rgba(201,168,76,0.15);
+  --gold-dim: rgba(201,168,76,0.12);
+  --gold-glow: rgba(201,168,76,0.25);
   --cream: #F5F0E8;
   --ink: #1A1612;
   --ink-soft: #3D3530;
   --parchment: #FAF6EE;
-  --border: rgba(201,168,76,0.3);
+  --border: rgba(201,168,76,0.25);
+  --dark: #0F0C09;
+  --dark-card: rgba(255,255,255,0.03);
 }
+
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html { scroll-behavior: smooth; }
+
 body {
   font-family: 'Jost', sans-serif;
-  background: var(--parchment);
-  color: var(--ink);
+  background: var(--dark);
+  color: var(--cream);
   min-height: 100vh;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 40px 20px;
-  font-size: 17px;
-}
-body::before {
-  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
-  opacity: 0.4;
+  font-size: 16px;
+  overflow: hidden;
 }
 
-.share-shell { position: relative; z-index: 1; width: 100%; max-width: 560px; }
+/* ---- ANIMATED BACKGROUND ---- */
+.bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.bg-radial {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 20%, rgba(201,168,76,0.07) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 60% at 80% 80%, rgba(201,168,76,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 10% 60%, rgba(201,168,76,0.03) 0%, transparent 60%),
+    linear-gradient(180deg, #1A1612 0%, #0A0806 100%);
+}
+.bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(201,168,76,0.03) 79px, rgba(201,168,76,0.03) 80px),
+    repeating-linear-gradient(90deg, transparent, transparent 79px, rgba(201,168,76,0.03) 79px, rgba(201,168,76,0.03) 80px);
+}
+.bg-noise {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.5;
+}
 
+/* Floating orbs */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  animation: float 12s ease-in-out infinite;
+}
+.orb-1 {
+  width: 400px; height: 400px;
+  background: rgba(201,168,76,0.05);
+  top: -100px; left: -100px;
+  animation-delay: 0s;
+}
+.orb-2 {
+  width: 300px; height: 300px;
+  background: rgba(201,168,76,0.04);
+  bottom: -80px; right: -80px;
+  animation-delay: -6s;
+}
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(30px, -20px) scale(1.05); }
+  66%       { transform: translate(-20px, 15px) scale(0.97); }
+}
+
+/* ---- SHELL ---- */
+.shell {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 520px;
+  animation: pageIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- BRAND ---- */
 .brand {
-  text-align: center; margin-bottom: 28px; color: var(--ink-soft);
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1rem; letter-spacing: 0.18em; text-transform: uppercase;
-}
-.brand a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 2px; }
-.brand a:hover { color: var(--gold); border-color: var(--gold); }
-
-.card {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 40px 36px 32px;
-  box-shadow: 0 30px 80px -40px rgba(26, 22, 18, 0.45);
   text-align: center;
+  margin-bottom: 32px;
+}
+.brand a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: rgba(245,240,232,0.35);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  transition: color 0.3s;
+}
+.brand a:hover { color: var(--gold); }
+.brand-dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--gold);
+  opacity: 0.5;
+  display: inline-block;
 }
 
-.icon {
-  width: 96px; height: 96px; margin: 0 auto 20px;
-  border-radius: 22px;
-  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
-  color: #fff;
+/* ---- CARD ---- */
+.card {
+  background: linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+  border: 1px solid rgba(201,168,76,0.18);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.3),
+    0 40px 100px -30px rgba(0,0,0,0.8),
+    0 0 60px -20px rgba(201,168,76,0.08) inset;
+  backdrop-filter: blur(20px);
+}
+
+/* ---- CARD TOP BAND ---- */
+.card-top {
+  position: relative;
+  padding: 40px 40px 36px;
+  border-bottom: 1px solid rgba(201,168,76,0.1);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  overflow: hidden;
+}
+.card-top::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(201,168,76,0.06) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* File type badge */
+.filetype {
+  flex-shrink: 0;
+  width: 72px; height: 72px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(201,168,76,0.15) 0%, rgba(201,168,76,0.06) 100%);
+  border: 1px solid rgba(201,168,76,0.3);
   display: flex; align-items: center; justify-content: center;
   font-family: 'Cormorant Garamond', serif;
-  font-size: 1.4rem; font-weight: 600;
-  letter-spacing: 0.06em; text-transform: uppercase;
-  box-shadow: 0 14px 40px -16px rgba(201,168,76,0.7);
+  font-size: 1.05rem; font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  position: relative;
+  box-shadow: 0 8px 24px -8px rgba(201,168,76,0.2);
+}
+.filetype-corner {
+  position: absolute;
+  top: 0; right: 0;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 0 16px 16px 0;
+  border-color: transparent rgba(201,168,76,0.35) transparent transparent;
+  border-radius: 0 14px 0 0;
 }
 
-h1 {
+.card-top-info { flex: 1; min-width: 0; }
+.doc-title {
   font-family: 'Cormorant Garamond', serif;
-  font-weight: 400; font-size: 1.9rem; line-height: 1.2;
-  color: var(--ink); margin-bottom: 8px;
+  font-size: 1.65rem;
+  font-weight: 400;
+  line-height: 1.2;
+  color: #fff;
+  margin-bottom: 6px;
   word-break: break-word;
 }
-.fname {
-  font-size: 0.85rem; color: var(--ink-soft); opacity: 0.7;
-  margin-bottom: 18px; word-break: break-all;
+.doc-fname {
+  font-size: 0.73rem;
+  color: rgba(245,240,232,0.3);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-.desc {
-  margin: 18px 0;
-  padding: 16px 20px;
-  background: var(--cream);
-  border-left: 3px solid var(--gold);
-  text-align: left;
-  font-size: 0.97rem; line-height: 1.6;
-  color: var(--ink-soft);
-  border-radius: 0 8px 8px 0;
+  word-break: break-all;
+  margin-bottom: 0;
 }
 
-.meta {
-  display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px;
-  margin: 14px 0 22px;
-  font-size: 0.83rem; color: var(--ink-soft); opacity: 0.85;
+/* ---- CARD BODY ---- */
+.card-body {
+  padding: 28px 40px 36px;
 }
-.meta b { color: var(--ink); font-weight: 600; }
-.meta .lock { color: var(--gold); font-weight: 600; }
 
-form { margin-top: 8px; }
-.pwd {
-  width: 100%; padding: 14px 16px; margin-bottom: 14px;
-  border: 1px solid var(--border); border-radius: 10px;
-  background: #fff; color: var(--ink);
-  font: inherit; outline: none;
-  transition: border-color .15s ease, box-shadow .15s ease;
-  text-align: center; letter-spacing: 0.08em;
+/* Description */
+.doc-desc {
+  position: relative;
+  margin-bottom: 24px;
+  padding: 16px 20px 16px 24px;
+  background: rgba(201,168,76,0.05);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: rgba(245,240,232,0.7);
+  border: 1px solid rgba(201,168,76,0.12);
 }
-.pwd:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-dim); }
+.doc-desc::before {
+  content: '';
+  position: absolute;
+  top: 16px; bottom: 16px; left: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--gold), var(--gold-light));
+  border-radius: 0 2px 2px 0;
+}
 
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-  width: 100%;
-  padding: 16px 24px;
-  background: linear-gradient(135deg, var(--ink) 0%, #2a2420 100%);
-  color: #fff;
-  border: none; border-radius: 10px;
+/* Meta row */
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  font-size: 0.78rem;
+  color: rgba(245,240,232,0.55);
+  font-family: 'Jost', sans-serif;
+  font-weight: 500;
+}
+.meta-chip b { color: rgba(245,240,232,0.85); font-weight: 600; }
+.meta-chip.lock {
+  background: rgba(201,168,76,0.08);
+  border-color: rgba(201,168,76,0.2);
+  color: var(--gold);
+}
+.meta-chip svg { width: 11px; height: 11px; opacity: 0.7; }
+
+/* Divider */
+.divider {
+  width: 100%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201,168,76,0.15), transparent);
+  margin-bottom: 28px;
+}
+
+/* Error */
+.error-box {
+  padding: 13px 16px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  background: rgba(180, 60, 60, 0.1);
+  border: 1px solid rgba(180, 60, 60, 0.25);
+  color: #e08080;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.error-box::before { content: '⚠'; font-size: 1rem; }
+
+/* Exhausted */
+.exhausted-box {
+  padding: 28px 24px;
+  border-radius: 14px;
+  background: rgba(180, 60, 60, 0.07);
+  border: 1px solid rgba(180, 60, 60, 0.2);
+  text-align: center;
+}
+.exhausted-icon {
+  width: 52px; height: 52px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(180,60,60,0.3);
+  background: rgba(180,60,60,0.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+}
+.exhausted-box p {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 1.1rem; font-weight: 500; letter-spacing: 0.1em;
+  font-size: 1.15rem;
+  color: #e08080;
+  line-height: 1.5;
+}
+.exhausted-box small {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: rgba(224,128,128,0.6);
+}
+
+/* Password input */
+.pwd-wrap {
+  position: relative;
+  margin-bottom: 14px;
+}
+.pwd-label {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+  opacity: 0.8;
+}
+.pwd {
+  width: 100%;
+  padding: 14px 48px 14px 18px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: 12px;
+  color: #fff;
+  font: inherit;
+  font-size: 0.95rem;
+  letter-spacing: 0.1em;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.pwd::placeholder { color: rgba(245,240,232,0.2); letter-spacing: 0.05em; }
+.pwd:focus {
+  border-color: rgba(201,168,76,0.5);
+  background: rgba(255,255,255,0.06);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+}
+.pwd-toggle {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 22px; height: 22px;
+  background: none; border: none;
+  cursor: pointer;
+  color: rgba(245,240,232,0.25);
+  transition: color 0.2s;
+  padding: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.pwd-toggle:hover { color: var(--gold); }
+
+/* Download button */
+.btn-download {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 17px 24px;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+  background-size: 200% 100%;
+  background-position: 0% 0%;
+  color: var(--ink);
+  border: none;
+  border-radius: 12px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: transform .15s ease, box-shadow .15s ease;
-  box-shadow: 0 14px 30px -16px rgba(26, 22, 18, 0.55);
+  transition: background-position 0.4s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow:
+    0 12px 32px -10px rgba(201,168,76,0.4),
+    0 0 0 1px rgba(201,168,76,0.3) inset;
+  position: relative;
+  overflow: hidden;
 }
-.btn:hover { transform: translateY(-1px); box-shadow: 0 18px 36px -16px rgba(26, 22, 18, 0.65); }
-.btn:active { transform: translateY(0); }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-download::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+.btn-download:hover {
+  background-position: 100% 0%;
+  transform: translateY(-2px);
+  box-shadow:
+    0 18px 40px -10px rgba(201,168,76,0.5),
+    0 0 0 1px rgba(201,168,76,0.4) inset;
+}
+.btn-download:active { transform: translateY(0); }
+.btn-download:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 
-.error {
-  padding: 12px 14px; margin-bottom: 14px; border-radius: 8px;
-  background: rgba(201, 84, 84, 0.12); color: #b34a4a;
-  font-size: 0.9rem; border: 1px solid rgba(201, 84, 84, 0.3);
+.btn-icon {
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(26,22,18,0.15);
+  border-radius: 6px;
+  flex-shrink: 0;
 }
 
-.exhausted {
-  padding: 22px;
-  background: rgba(201, 84, 84, 0.08);
-  border: 1px solid rgba(201, 84, 84, 0.25);
-  border-radius: 10px;
-  color: #b34a4a;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.1rem;
+/* Progress bar (cosmetic) */
+.progress-wrap {
+  height: 2px;
+  background: rgba(201,168,76,0.1);
+  border-radius: 1px;
+  margin-top: 14px;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.progress-wrap.active { opacity: 1; }
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light));
+  border-radius: 1px;
+  transition: width 0.4s ease;
 }
 
+/* ---- FOOTER ---- */
 .foot {
-  margin-top: 22px; text-align: center; font-size: 0.78rem;
-  color: var(--ink-soft); opacity: 0.55;
+  margin-top: 24px;
+  text-align: center;
+  font-size: 0.72rem;
+  color: rgba(245,240,232,0.2);
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.foot-sep {
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: rgba(201,168,76,0.3);
+  display: inline-block;
 }
 
 @media (max-width: 480px) {
-  .card { padding: 28px 20px 24px; }
-  h1 { font-size: 1.5rem; }
-  .icon { width: 80px; height: 80px; font-size: 1.1rem; }
+  body { padding: 28px 16px; }
+  .card-top { padding: 28px 24px 24px; gap: 16px; }
+  .card-body { padding: 20px 24px 28px; }
+  .filetype { width: 58px; height: 58px; font-size: 0.9rem; }
+  .doc-title { font-size: 1.35rem; }
 }
 </style>
 </head>
 <body>
-<div class="share-shell">
-  <div class="brand"><a href="/">{{ site.site_title or 'Библейский Колледж ХВЕ' }}</a></div>
+
+<div class="bg-layer">
+  <div class="bg-radial"></div>
+  <div class="bg-grid"></div>
+  <div class="bg-noise"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+</div>
+
+<div class="shell">
+
+  <div class="brand">
+    <a href="/">
+      <span class="brand-dot"></span>
+      {{ site.site_title or 'Библейский Колледж ХВЕ' }}
+      <span class="brand-dot"></span>
+    </a>
+  </div>
 
   <div class="card">
     {% set ext = (doc.original_filename or doc.file_url or '').rsplit('.', 1)[-1] | lower %}
-    <div class="icon">{{ ext if ext and ext|length <= 5 else 'FILE' }}</div>
 
-    <h1>{{ doc.title or doc.original_filename }}</h1>
-    {% if doc.original_filename and doc.original_filename != doc.title %}
-    <div class="fname">{{ doc.original_filename }}</div>
-    {% endif %}
-
-    {% if doc.description %}
-    <div class="desc">{{ doc.description }}</div>
-    {% endif %}
-
-    <div class="meta">
-      <span><b>{{ ((doc.size_bytes or 0) / 1048576) | round(2) }} МБ</b></span>
-      <span>↓ <b>{{ doc.download_count or 0 }}{% if doc.max_downloads %} из {{ doc.max_downloads }}{% endif %}</b></span>
-      {% if doc.password_hash %}<span class="lock">🔒 защищён паролем</span>{% endif %}
+    <!-- TOP BAND -->
+    <div class="card-top">
+      <div class="filetype">
+        <div class="filetype-corner"></div>
+        {{ ext if ext and ext|length <= 5 else '?' }}
+      </div>
+      <div class="card-top-info">
+        <div class="doc-title">{{ doc.title or doc.original_filename }}</div>
+        {% if doc.original_filename and doc.original_filename != doc.title %}
+        <div class="doc-fname">{{ doc.original_filename }}</div>
+        {% endif %}
+      </div>
     </div>
 
-    {% if exhausted %}
-    <div class="exhausted">
-      Лимит скачиваний исчерпан.<br>
-      Обратитесь к администрации, если файл вам всё ещё нужен.
-    </div>
-    {% else %}
-    <form method="post" action="/d/{{ doc.slug }}/download">
-      {% if error %}<div class="error">{{ error }}</div>{% endif %}
-      {% if doc.password_hash %}
-      <input class="pwd" type="password" name="password" placeholder="Введите пароль" autocomplete="off" autofocus required>
+    <!-- BODY -->
+    <div class="card-body">
+
+      {% if doc.description %}
+      <div class="doc-desc">{{ doc.description }}</div>
       {% endif %}
-      <button class="btn" type="submit">⬇ Скачать</button>
-    </form>
-    {% endif %}
+
+      <!-- Meta chips -->
+      <div class="meta-row">
+        <div class="meta-chip">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 10V2a1 1 0 011-1h6l3 3v6a1 1 0 01-1 1H2a1 1 0 01-1-1z"/><path d="M7 1v3h3"/></svg>
+          <b>{{ ((doc.size_bytes or 0) / 1048576) | round(2) }} МБ</b>
+        </div>
+        <div class="meta-chip">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 1v7M3 6l3 3 3-3M1 10h10"/></svg>
+          скачиваний:&nbsp;<b>{{ doc.download_count or 0 }}{% if doc.max_downloads %} / {{ doc.max_downloads }}{% endif %}</b>
+        </div>
+        {% if doc.password_hash %}
+        <div class="meta-chip lock">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="8" height="6" rx="1"/><path d="M4 5V3.5a2 2 0 014 0V5"/></svg>
+          защищён
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="divider"></div>
+
+      {% if exhausted %}
+      <div class="exhausted-box">
+        <div class="exhausted-icon">🔒</div>
+        <p>Лимит скачиваний исчерпан</p>
+        <small>Обратитесь к администрации, если файл вам всё ещё нужен.</small>
+      </div>
+
+      {% else %}
+      <form method="post" action="/d/{{ doc.slug }}/download" id="dlForm">
+        {% if error %}
+        <div class="error-box">{{ error }}</div>
+        {% endif %}
+
+        {% if doc.password_hash %}
+        <div class="pwd-wrap">
+          <label class="pwd-label" for="pwdInput">Пароль для доступа</label>
+          <input class="pwd" type="password" id="pwdInput" name="password" placeholder="••••••••" autocomplete="off" autofocus required>
+          <button type="button" class="pwd-toggle" id="pwdToggle" title="Показать пароль">
+            <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+        {% endif %}
+
+        <button class="btn-download" type="submit" id="dlBtn">
+          <span class="btn-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/>
+            </svg>
+          </span>
+          Скачать файл
+        </button>
+
+        <div class="progress-wrap" id="progressWrap">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+      </form>
+      {% endif %}
+
+    </div>
   </div>
 
-  <div class="foot">© {{ site.site_title or 'Библейский Колледж ХВЕ' }} · защищённое скачивание</div>
+  <div class="foot">
+    <span>{{ site.site_title or 'Библейский Колледж ХВЕ' }}</span>
+    <span class="foot-sep"></span>
+    <span>защищённое скачивание</span>
+  </div>
+
 </div>
+
+<script>
+// Password visibility toggle
+(function() {
+  var toggle = document.getElementById('pwdToggle');
+  var input  = document.getElementById('pwdInput');
+  var icon   = document.getElementById('eyeIcon');
+  if (!toggle || !input) return;
+  toggle.addEventListener('click', function() {
+    var show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    icon.innerHTML = show
+      ? '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+      : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  });
+})();
+
+// Download progress (cosmetic feedback)
+(function() {
+  var form = document.getElementById('dlForm');
+  var btn  = document.getElementById('dlBtn');
+  var wrap = document.getElementById('progressWrap');
+  var bar  = document.getElementById('progressBar');
+  if (!form) return;
+  form.addEventListener('submit', function() {
+    if (btn) btn.disabled = true;
+    if (wrap) wrap.classList.add('active');
+    if (bar) {
+      var w = 0;
+      var iv = setInterval(function() {
+        w = Math.min(w + Math.random() * 15, 85);
+        bar.style.width = w + '%';
+        if (w >= 85) clearInterval(iv);
+      }, 200);
+    }
+  });
+})();
+</script>
 </body>
 </html>
