@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import models
 from ..config import TEMPLATES_DIR, UPLOADS_DIR, settings
 from ..db import get_session
+from ..i18n import LANGS, pick_language, register_jinja
 from ..security import verify_password
 from ..services import (
     get_settings_dict,
@@ -42,6 +43,7 @@ def nl2br(value: str | None) -> Markup:
 
 
 templates.env.filters["nl2br"] = nl2br
+register_jinja(templates.env)
 
 
 async def _published_programs(session: AsyncSession) -> list[dict]:
@@ -129,9 +131,20 @@ async def homepage_context(session: AsyncSession) -> dict:
     }
 
 
+def _attach_lang(response, request: Request, lang: str):
+    """If ``?lang=`` was used, save it as a cookie so further requests stick."""
+    if request.query_params.get("lang") and lang in LANGS:
+        response.set_cookie("lang", lang, max_age=60 * 60 * 24 * 365, samesite="lax")
+    return response
+
+
 @router.get("/", response_class=HTMLResponse)
 async def index(request: Request, session: AsyncSession = Depends(get_session)):
-    return templates.TemplateResponse(request, "index.html", await homepage_context(session))
+    lang = pick_language(request)
+    ctx = await homepage_context(session)
+    ctx["lang"] = lang
+    response = templates.TemplateResponse(request, "index.html", ctx)
+    return _attach_lang(response, request, lang)
 
 
 @router.get("/healthz", response_class=HTMLResponse)
@@ -150,7 +163,11 @@ async def donate_page(request: Request, session: AsyncSession = Depends(get_sess
     /admin/settings without touching the template.
     """
     site = await get_settings_dict(session)
-    return templates.TemplateResponse(request, "donate.html", {"site": site})
+    lang = pick_language(request)
+    response = templates.TemplateResponse(
+        request, "donate.html", {"site": site, "lang": lang}
+    )
+    return _attach_lang(response, request, lang)
 
 
 # ---------------- Public file-share download page ----------------

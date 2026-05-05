@@ -1,10 +1,11 @@
+{% set _l = lang|default('ru') %}
 <!doctype html>
-<html lang="ru">
+<html lang="{{ _l }}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Поддержать колледж · ХДН Библейский Колледж</title>
-<meta name="description" content="Онлайн-пожертвование Библейскому колледжу ХДН: ЕРИП, банковский перевод, банковская карта.">
+<title>{{ site.donate_eyebrow }} · ХДН Библейский Колледж</title>
+<meta name="description" content="{{ site.donate_lead }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Jost:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap">
@@ -95,6 +96,26 @@
     letter-spacing: 0.16em;
   }
   .back-link:hover { color: var(--gold); text-decoration:none; }
+  .lang-switch {
+    display: inline-flex;
+    border: 1px solid rgba(201, 168, 76, 0.35);
+    border-radius: 4px;
+    overflow: hidden;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+  }
+  .lang-switch a {
+    padding: 6px 10px;
+    color: rgba(250,246,238, 0.7);
+    text-decoration: none;
+    border-right: 1px solid rgba(201, 168, 76, 0.2);
+    line-height: 1;
+    transition: all .15s ease;
+  }
+  .lang-switch a:last-child { border-right:none; }
+  .lang-switch a:hover { color: var(--gold); background: rgba(201,168,76,0.1); }
+  .lang-switch a.active { background: var(--gold); color: var(--ink); font-weight: 600; }
 
   /* ---------- hero ---------- */
   .hero {
@@ -493,7 +514,14 @@
         <span>Библейский Колледж</span>
       </span>
     </a>
-    <a href="/" class="back-link">← На сайт</a>
+    <span style="display:flex;align-items:center;gap:18px;">
+      <span class="lang-switch" aria-label="Language switcher">
+        {% for code in LANGS %}
+          <a href="?lang={{ code }}" class="{{ 'active' if code == _l else '' }}">{{ LANG_LABELS[code] }}</a>
+        {% endfor %}
+      </span>
+      <a href="/" class="back-link">{{ t('donate.back_to_site', _l) }}</a>
+    </span>
   </div>
 </header>
 
@@ -516,8 +544,8 @@
 
 <!-- ===== Amounts + Methods ===== -->
 <section class="section">
-  <div class="section-label">Шаг 1</div>
-  <h2 class="section-title">Выберите сумму</h2>
+  <div class="section-label">{{ t('donate.step1', _l) }}</div>
+  <h2 class="section-title">{{ t('donate.choose_amount', _l) }}</h2>
 
   <div class="amount-grid" id="amountGrid">
     <button class="amount-btn" data-amount="20">20<span class="lbl">BYN</span></button>
@@ -534,71 +562,108 @@
 
   <div style="height: 50px;"></div>
 
-  <div class="section-label">Шаг 2</div>
-  <h2 class="section-title">Выберите способ оплаты</h2>
+  <div class="section-label">{{ t('donate.step2', _l) }}</div>
+  <h2 class="section-title">{{ t('donate.choose_method', _l) }}</h2>
 
   <div class="methods">
     <div class="method-tabs">
       <button type="button" class="method-tab active" data-tab="erip">
-        <span class="ic">🏦</span>ЕРИП
+        <span class="ic">🏦</span>{{ t('donate.method.erip', _l) }}
       </button>
       <button type="button" class="method-tab" data-tab="card">
-        <span class="ic">💳</span>Картой онлайн
+        <span class="ic">💳</span>{{ t('donate.method.card', _l) }}
       </button>
       <button type="button" class="method-tab" data-tab="bank">
-        <span class="ic">🧾</span>Банк. перевод
+        <span class="ic">🧾</span>{{ t('donate.method.bank', _l) }}
       </button>
       <button type="button" class="method-tab" data-tab="cash">
-        <span class="ic">🤝</span>Наличными
+        <span class="ic">🤝</span>{{ t('donate.method.cash', _l) }}
       </button>
     </div>
 
-    <!-- ===== ERIP ===== -->
+    {# ERIP method panel — contents are bilingual via the t() filter (donate.erip.*). #}
     <div class="method-panel active" data-panel="erip">
-      <h3>Оплата через ЕРИП</h3>
-      <p>Самый удобный способ для жителей Беларуси — занимает 30 секунд в любом банковском приложении или банкомате.</p>
+      <h3>
+        {%- if _l == 'be' %}Аплата раз ЕРІП
+        {%- elif _l == 'en' %}Pay via ERIP
+        {%- else %}Оплата через ЕРИП
+        {%- endif %}
+      </h3>
+      <p>
+        {%- if _l == 'be' %}Самы зручны спосаб для жыхароў Беларусі — займае 30 секундаў у любым банкаўскім дадатку або банкамаце.
+        {%- elif _l == 'en' %}The easiest way for residents of Belarus — 30 seconds in any banking app or ATM.
+        {%- else %}Самый удобный способ для жителей Беларуси — занимает 30 секунд в любом банковском приложении или банкомате.
+        {%- endif %}
+      </p>
 
       <ol class="erip-steps">
+        {% if _l == 'be' %}
+        <li>У банкаўскім дадатку выберыце <b>«Плацяжы і пераказы → Сістэма ЕРІП»</b>.</li>
+        <li>Знайдзіце наш плацёж па&nbsp;наступным шляху:
+          <div class="erip-path">{{ site.donate_erip_path }}</div>
+        </li>
+        <li>Увядзіце суму (<span id="eripAmount">100</span>&nbsp;BYN) і&nbsp;пацвердзіце аплату.</li>
+        <li>У&nbsp;полі «Прызначэнне плацяжу» можна ўказаць «Ахвяраванне».</li>
+        {% elif _l == 'en' %}
+        <li>In your banking app pick <b>«Payments &amp; transfers → ERIP system»</b>.</li>
+        <li>Find our payment by following this path:
+          <div class="erip-path">{{ site.donate_erip_path }}</div>
+        </li>
+        <li>Enter the amount (<span id="eripAmount">100</span>&nbsp;BYN) and confirm the payment.</li>
+        <li>In the «Payment purpose» field you can write «Donation».</li>
+        {% else %}
         <li>В банковском приложении выберите <b>«Платежи и переводы → Система ЕРИП»</b>.</li>
         <li>Найдите наш платёж по&nbsp;следующему пути:
           <div class="erip-path">{{ site.donate_erip_path }}</div>
         </li>
         <li>Введите сумму (<span id="eripAmount">100</span>&nbsp;BYN) и&nbsp;подтвердите оплату.</li>
         <li>В&nbsp;поле «Назначение платежа» можно указать «Пожертвование».</li>
+        {% endif %}
       </ol>
 
       {% if site.donate_erip_code and site.donate_erip_code != 'уточните в банке' %}
       <div class="field">
         <div>
-          <div class="lbl">Код ЕРИП</div>
+          <div class="lbl">
+            {%- if _l == 'be' %}Код ЕРІП
+            {%- elif _l == 'en' %}ERIP code
+            {%- else %}Код ЕРИП
+            {%- endif %}
+          </div>
           <div class="val" id="eripCode">{{ site.donate_erip_code }}</div>
         </div>
-        <button type="button" class="copy" data-copy="eripCode">Копировать</button>
+        <button type="button" class="copy" data-copy="eripCode">{{ t('donate.copy', _l) }}</button>
       </div>
       {% endif %}
-
-      <p class="small">Совет: добавьте платёж в «Избранное» в&nbsp;приложении банка, чтобы регулярно поддерживать колледж в&nbsp;один клик.</p>
     </div>
 
-    <!-- ===== CARD ===== -->
+    {# CARD #}
     <div class="method-panel" data-panel="card">
-      <h3>Оплата банковской картой</h3>
-      <p>Принимаем Visa, MasterCard, Белкарт. Оплата проходит на&nbsp;защищённой странице банка-эквайра.</p>
+      <h3>
+        {%- if _l == 'be' %}Аплата банкаўскай картай
+        {%- elif _l == 'en' %}Pay by bank card
+        {%- else %}Оплата банковской картой
+        {%- endif %}
+      </h3>
+      <p>
+        {%- if _l == 'be' %}Прымаем Visa, MasterCard, Белкарт. Аплата праходзіць на&nbsp;абароненай старонцы банка-эквайра.
+        {%- elif _l == 'en' %}We accept Visa, MasterCard, Belkart. Payment is processed on the bank acquirer's secure page.
+        {%- else %}Принимаем Visa, MasterCard, Белкарт. Оплата проходит на&nbsp;защищённой странице банка-эквайра.
+        {%- endif %}
+      </p>
 
       {% if site.donate_card_url %}
       <div class="cta-row">
         <a class="btn btn-primary" id="cardLink" href="{{ site.donate_card_url }}" target="_blank" rel="noopener">
-          💳&nbsp;Оплатить <span id="cardAmount">100</span>&nbsp;BYN
+          💳&nbsp;{{ t('donate.pay_button', _l) }} <span id="cardAmount">100</span>&nbsp;BYN
         </a>
-        <a class="btn btn-ghost" href="/">Отменить</a>
+        <a class="btn btn-ghost" href="/">{{ t('donate.cancel', _l) }}</a>
       </div>
       {% else %}
       <div class="field" style="display:block;">
-        <div class="lbl" style="margin-bottom:6px;">Способ временно недоступен</div>
+        <div class="lbl" style="margin-bottom:6px;">{{ t('donate.method_unavailable_title', _l) }}</div>
         <div class="val" style="font-family:'Jost',sans-serif;">
-          Оплата банковской картой пока подключается. Пожалуйста, воспользуйтесь
-          вкладкой <b style="color:var(--gold);">«ЕРИП»</b> или <b style="color:var(--gold);">«Банковский перевод»</b> —
-          они работают всегда. Извините за&nbsp;неудобство.
+          {{ t('donate.method_unavailable_body', _l) }}
         </div>
       </div>
       {% endif %}
@@ -606,50 +671,60 @@
       <p class="small">Оплата проходит через&nbsp;стороннего платёжного провайдера, защищённое соединение TLS&nbsp;1.3. Колледж не&nbsp;хранит данные карт.</p>
     </div>
 
-    <!-- ===== BANK TRANSFER ===== -->
+    {# BANK TRANSFER #}
     <div class="method-panel" data-panel="bank">
-      <h3>Банковский перевод</h3>
-      <p>Можно перевести из&nbsp;любого банка в&nbsp;Беларуси и&nbsp;из-за&nbsp;рубежа. Используйте реквизиты&nbsp;ниже.</p>
+      <h3>
+        {%- if _l == 'be' %}Банкаўскі пераказ
+        {%- elif _l == 'en' %}Bank transfer
+        {%- else %}Банковский перевод
+        {%- endif %}
+      </h3>
+      <p>
+        {%- if _l == 'be' %}Можна пераказаць з&nbsp;любога банка ў&nbsp;Беларусі і з-за&nbsp;мяжы. Скарыстайцеся рэквізітамі ніжэй.
+        {%- elif _l == 'en' %}You can transfer from any bank in Belarus and from abroad. Use the details below.
+        {%- else %}Можно перевести из&nbsp;любого банка в&nbsp;Беларуси и&nbsp;из-за&nbsp;рубежа. Используйте реквизиты&nbsp;ниже.
+        {%- endif %}
+      </p>
 
       <div class="field">
         <div>
-          <div class="lbl">Получатель</div>
+          <div class="lbl">{{ t('donate.recipient', _l) }}</div>
           <div class="val" id="bankName">{{ site.donate_bank_recipient }}</div>
         </div>
-        <button type="button" class="copy" data-copy="bankName">Копировать</button>
+        <button type="button" class="copy" data-copy="bankName">{{ t('donate.copy', _l) }}</button>
       </div>
       <div class="field">
         <div>
-          <div class="lbl">Банк</div>
+          <div class="lbl">{{ t('donate.bank', _l) }}</div>
           <div class="val" id="bankBank">{{ site.donate_bank_name }}</div>
         </div>
-        <button type="button" class="copy" data-copy="bankBank">Копировать</button>
+        <button type="button" class="copy" data-copy="bankBank">{{ t('donate.copy', _l) }}</button>
       </div>
       <div class="field">
         <div>
-          <div class="lbl">IBAN</div>
+          <div class="lbl">{{ t('donate.iban', _l) }}</div>
           <div class="val" id="bankIban">{{ site.donate_bank_iban }}</div>
         </div>
-        <button type="button" class="copy" data-copy="bankIban">Копировать</button>
+        <button type="button" class="copy" data-copy="bankIban">{{ t('donate.copy', _l) }}</button>
       </div>
       <div class="field">
         <div>
-          <div class="lbl">SWIFT / BIC</div>
+          <div class="lbl">{{ t('donate.swift', _l) }}</div>
           <div class="val" id="bankBic">{{ site.donate_bank_bic }}</div>
         </div>
-        <button type="button" class="copy" data-copy="bankBic">Копировать</button>
+        <button type="button" class="copy" data-copy="bankBic">{{ t('donate.copy', _l) }}</button>
       </div>
       <div class="field">
         <div>
-          <div class="lbl">УНП</div>
+          <div class="lbl">{{ t('donate.unp', _l) }}</div>
           <div class="val" id="bankUnp">{{ site.donate_bank_unp }}</div>
         </div>
-        <button type="button" class="copy" data-copy="bankUnp">Копировать</button>
+        <button type="button" class="copy" data-copy="bankUnp">{{ t('donate.copy', _l) }}</button>
       </div>
       <div class="field">
         <div>
-          <div class="lbl">Назначение платежа</div>
-          <div class="val">Добровольное пожертвование на&nbsp;уставную деятельность колледжа</div>
+          <div class="lbl">{{ t('donate.purpose', _l) }}</div>
+          <div class="val">{{ t('donate.purpose_text', _l) }}</div>
         </div>
       </div>
 
@@ -663,19 +738,19 @@
 
       <div class="field">
         <div>
-          <div class="lbl">Адрес</div>
+          <div class="lbl">{{ t('donate.address', _l) }}</div>
           <div class="val" style="font-family:'Jost',sans-serif;">{{ site.contact_address|replace('\n', ', ') }}</div>
         </div>
       </div>
       <div class="field">
         <div>
-          <div class="lbl">Часы работы</div>
+          <div class="lbl">{{ t('donate.hours', _l) }}</div>
           <div class="val" style="font-family:'Jost',sans-serif;">{{ site.contact_hours|replace('\n', '. ') }}</div>
         </div>
       </div>
       <div class="field">
         <div>
-          <div class="lbl">Телефон</div>
+          <div class="lbl">{{ t('donate.phone', _l) }}</div>
           <div class="val" style="font-family:'Jost',sans-serif;">{{ site.contact_phones.split('\n')[0] if site.contact_phones else '' }}</div>
         </div>
       </div>
@@ -694,18 +769,18 @@
   <div class="why-inner">
     <div class="why-card">
       <div class="ic">🎓</div>
-      <h3>Стипендии студентам</h3>
-      <p>Помогаем учиться студентам из&nbsp;малообеспеченных семей и&nbsp;иногородним.</p>
+      <h3>{{ t('donate.why_title.1', _l) }}</h3>
+      <p>{{ t('donate.why_text.1', _l) }}</p>
     </div>
     <div class="why-card">
       <div class="ic">📚</div>
-      <h3>Учебная литература</h3>
-      <p>Богословские книги, ноты, учебники — всё, что нужно для подготовки служителей.</p>
+      <h3>{{ t('donate.why_title.2', _l) }}</h3>
+      <p>{{ t('donate.why_text.2', _l) }}</p>
     </div>
     <div class="why-card">
       <div class="ic">⛪</div>
-      <h3>Здание и&nbsp;служения</h3>
-      <p>Содержание учебного корпуса, музыкальных инструментов и&nbsp;оборудования для занятий.</p>
+      <h3>{{ t('donate.why_title.3', _l) }}</h3>
+      <p>{{ t('donate.why_text.3', _l) }}</p>
     </div>
   </div>
 </section>
@@ -713,11 +788,11 @@
 <!-- ===== Footer ===== -->
 <footer>
   <div>
-    © {{ site.donate_eyebrow }} · ХДН Библейский Колледж · <a href="/">Главная</a>
+    © {{ site.donate_eyebrow }} · ХДН Библейский Колледж · <a href="/">{{ t('footer.home', _l) }}</a>
   </div>
 </footer>
 
-<div class="toast" id="toast">Скопировано</div>
+<div class="toast" id="toast">{{ t('donate.copied', _l) }}</div>
 
 <script>
 (function () {

@@ -40,6 +40,10 @@ from .site import nl2br as _nl2br  # noqa: E402
 templates.env.filters["nl2br"] = _nl2br
 templates.env.globals["now"] = lambda: datetime.utcnow()
 
+from ..i18n import register_jinja as _register_i18n  # noqa: E402
+
+_register_i18n(templates.env)
+
 
 def _redirect_login() -> RedirectResponse:
     return RedirectResponse("/admin/login", status_code=303)
@@ -1116,9 +1120,11 @@ _CMS_KEY_RE = re.compile(r"^[a-z][a-z0-9_.]{0,63}$")
 async def edit_homepage(request: Request, session: AsyncSession = Depends(get_session)):
     if not current_admin(request):
         return _redirect_login()
+    from ..i18n import pick_language
     from .site import homepage_context
     ctx = await homepage_context(session)
     ctx["cms_edit"] = True
+    ctx["lang"] = pick_language(request)
     return templates.TemplateResponse(request, "index.html", ctx)
 
 

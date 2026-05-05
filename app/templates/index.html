@@ -1231,6 +1231,39 @@
   }
   .nav-links a:hover::after { transform: scaleX(1); transform-origin: left; }
 
+  /* Language switcher in the navbar */
+  .lang-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    margin-left: 28px;
+    border: 1px solid rgba(201, 168, 76, 0.35);
+    border-radius: 4px;
+    overflow: hidden;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+  }
+  .lang-switch a {
+    padding: 6px 10px;
+    color: rgba(254, 254, 254, 0.7);
+    text-decoration: none;
+    transition: all .15s ease;
+    border-right: 1px solid rgba(201, 168, 76, 0.2);
+    line-height: 1;
+  }
+  .lang-switch a:last-child { border-right: none; }
+  .lang-switch a:hover { color: var(--gold); background: rgba(201, 168, 76, 0.1); }
+  .lang-switch a.active {
+    background: var(--gold);
+    color: var(--ink);
+    font-weight: 600;
+  }
+  @media (max-width: 720px) {
+    .lang-switch { margin-left: 12px; font-size: 0.68rem; }
+    .lang-switch a { padding: 5px 7px; }
+  }
+
   /* Gold shimmer on hero title */
   @keyframes shimmer {
     0%   { background-position: -200% center; }
@@ -1948,13 +1981,18 @@
       </span>
     </span>
     <ul class="nav-links">
-      <li><a href="#mission">Миссия</a></li>
-      <li><a href="#programs">Программы</a></li>
-      <li><a href="#rector">Ректор</a></li>
-      <li><a href="#teachers">Преподаватели</a></li>
-      <li><a href="#admission">Приём</a></li>
-      <li><a href="#contact">Контакты</a></li>
+      <li><a href="#mission">{{ t('nav.about', lang|default('ru')) }}</a></li>
+      <li><a href="#programs">{{ t('nav.programs', lang|default('ru')) }}</a></li>
+      <li><a href="#teachers">{{ t('nav.teachers', lang|default('ru')) }}</a></li>
+      <li><a href="#admission">{{ t('nav.admission', lang|default('ru')) }}</a></li>
+      <li><a href="#contact">{{ t('nav.contact', lang|default('ru')) }}</a></li>
     </ul>
+    <span class="lang-switch" aria-label="Language switcher">
+      {% set _curlang = lang|default('ru') %}
+      {% for code in LANGS %}
+        <a href="?lang={{ code }}" class="{{ 'active' if code == _curlang else '' }}">{{ LANG_LABELS[code] }}</a>
+      {% endfor %}
+    </span>
   </nav>
 
   <!-- HERO -->
