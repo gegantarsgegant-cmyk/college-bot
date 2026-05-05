@@ -129,14 +129,13 @@ def _open_admin_button(
     """Build a button that opens the admin panel.
 
     URLs sent in inline-button MUST NOT contain userinfo (`user:pass@`) — the
-    Telegram Bot API rejects them with `BUTTON_URL_INVALID`. So when the
-    public host is behind a basic-auth tunnel (`_has_embedded_creds()`), the
-    button is omitted; in its place the caller renders an inline `<a>` link
-    in the message body which Telegram opens in the system browser (and the
-    system browser respects `user:pass@`).
+    Telegram Bot API rejects them with `BUTTON_URL_INVALID`. We always build
+    the button URL with `with_creds=False`, so basic-auth credentials in
+    BOT_PUBLIC_URL are stripped before sending to Telegram. When the user
+    taps the button Telegram opens it in the system browser; if the host is
+    behind a basic-auth tunnel the browser will show the auth dialog, after
+    which the magic-token logs the admin into the panel.
     """
-    if _has_embedded_creds():
-        return None
     if tg_user_id is not None and is_admin(tg_user_id) and _public_link_button_supported():
         url = _admin_magic_url(tg_user_id, next_path=next_path, with_creds=False)
         return InlineKeyboardButton(text=text, url=url)

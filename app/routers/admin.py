@@ -1225,7 +1225,22 @@ async def settings_get(request: Request, session: AsyncSession = Depends(get_ses
     )
 
 
-_BOOLEAN_SETTINGS = {"cookie_banner_enabled"}
+_BOOLEAN_SETTINGS = {
+    "cookie_banner_enabled",
+    # Per-payment-method visibility toggles on /donate
+    "donate_method_erip_enabled",
+    "donate_method_card_enabled",
+    "donate_method_bank_enabled",
+    "donate_method_cash_enabled",
+    "donate_method_crypto_enabled",
+    # Crypto sub-network / sub-coin toggles (whether to show in switcher)
+    "donate_crypto_usdt_trc20_enabled",
+    "donate_crypto_usdt_bsc_enabled",
+    "donate_crypto_usdt_sol_enabled",
+    "donate_crypto_usdt_ton_enabled",
+    "donate_crypto_btc_enabled",
+    "donate_crypto_eth_enabled",
+}
 
 
 @router.post("/settings")

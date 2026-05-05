@@ -63,6 +63,27 @@ DEFAULT_SETTINGS: dict[str, str] = {
     "donate_bank_unp": "100000000",
     "donate_card_url": "",
     "donate_thank_you": "Да благословит вас Господь!",
+    # Per-method enable toggles ('1' = visible on /donate, '0' = hidden).
+    "donate_method_erip_enabled": "1",
+    "donate_method_card_enabled": "1",
+    "donate_method_bank_enabled": "1",
+    "donate_method_cash_enabled": "1",
+    "donate_method_crypto_enabled": "0",
+    # Crypto wallets — multiple USDT networks + BTC.
+    # Per-network enable flag determines whether the network shows in the
+    # USDT switcher; if all USDT networks are off the USDT block is hidden.
+    "donate_crypto_usdt_trc20": "",
+    "donate_crypto_usdt_trc20_enabled": "1",
+    "donate_crypto_usdt_bsc": "",
+    "donate_crypto_usdt_bsc_enabled": "1",
+    "donate_crypto_usdt_sol": "",
+    "donate_crypto_usdt_sol_enabled": "0",
+    "donate_crypto_usdt_ton": "",
+    "donate_crypto_usdt_ton_enabled": "0",
+    "donate_crypto_btc": "",
+    "donate_crypto_btc_enabled": "1",
+    "donate_crypto_eth": "",
+    "donate_crypto_eth_enabled": "0",
 }
 
 

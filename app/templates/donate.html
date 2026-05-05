@@ -4,98 +4,121 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>{{ site.donate_eyebrow }} · ХДН Библейский Колледж</title>
+<title>{{ site.donate_eyebrow }} · {{ site.site_title }}</title>
 <meta name="description" content="{{ site.donate_lead }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Jost:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Jost:wght@300;400;500;600&family=Manrope:wght@300;400;500;600&display=swap">
 
 {# =====================================================================
   СТРАНИЦА ОНЛАЙН-ПОЖЕРТВОВАНИЯ — Библейский Колледж ХДН
   =====================================================================
-  Эта страница СПЕЦИАЛЬНО сделана автономной (standalone), чтобы её
-  можно было передать дизайнеру: всё CSS/JS встроено в файл, никаких
-  шаблонных include-ов из других мест, никаких внешних зависимостей
-  кроме шрифтов Google Fonts.
-
-  Все динамические значения (реквизиты, ЕРИП-путь, ссылка на оплату
-  картой, текст благодарности и т.д.) приходят сюда через Jinja-
-  переменные site.* из таблицы Setting и редактируются админом
-  в /admin/settings (ключи donate_* из app/services.py DEFAULT_SETTINGS).
-
-  Если вы дизайнер и читаете этот файл вне проекта — все Jinja-теги
-  можно безопасно заменить на статичные строки, страница продолжит
-  работать как обычный HTML.
+  Все динамические значения (реквизиты, тексты, ЕРИП-путь, ссылка на
+  оплату картой, крипто-адреса, тумблеры включения способов) приходят
+  через Jinja-переменные `site.*` из таблицы Setting и редактируются
+  админом в /admin/settings (ключи donate_* из app/services.py).
+  Подписи, у которых одно значение во всех языках, переведены через
+  `t('donate.X', _l)`.
   ===================================================================== #}
 
 <style>
   :root {
     --gold:        #C9A84C;
-    --gold-soft:   rgba(201, 168, 76, 0.16);
-    --gold-line:   rgba(201, 168, 76, 0.34);
+    --gold-light:  #E8C97A;
+    --gold-soft:   rgba(201, 168, 76, 0.14);
+    --gold-line:   rgba(201, 168, 76, 0.28);
     --parchment:   #FAF6EE;
-    --parchment-2: #F4EEDF;
+    --parchment-2: #F2EBD8;
+    --cream:       #F5F0E8;
     --ink:         #1A1612;
-    --ink-2:       #2A231C;
-    --ink-soft:    rgba(26, 22, 18, 0.72);
-    --muted:       rgba(26, 22, 18, 0.55);
+    --ink-2:       #211C16;
+    --ink-soft:    rgba(26, 22, 18, 0.68);
+    --muted:       rgba(26, 22, 18, 0.48);
   }
-  * { box-sizing:border-box; }
-  html, body { margin:0; padding:0; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  * { -webkit-tap-highlight-color: transparent; }
+  button:focus, a:focus { outline: none; }
+  button:focus-visible, a:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
   body {
     background: var(--parchment);
     color: var(--ink);
     font-family: 'Jost', system-ui, sans-serif;
     font-size: 16px;
-    line-height: 1.55;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
-    min-height: 100vh;
+    overflow-x: hidden;
   }
-  a { color: var(--gold); text-decoration:none; }
-  a:hover { text-decoration:underline; }
 
-  /* ---------- top bar / nav ---------- */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0.38;
+  }
+
+  a { color: var(--gold); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* =============================== NAV =============================== */
   .nav {
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    background: rgba(26, 22, 18, 0.96);
+    backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--gold-line);
-    background: var(--ink);
-    color: var(--parchment);
   }
   .nav-inner {
-    max-width: 1180px; margin:0 auto;
-    padding: 18px 28px;
-    display:flex; align-items:center; justify-content:space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 18px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
   }
   .brand {
-    display:flex; align-items:center; gap:14px;
-    color: var(--parchment); text-decoration:none;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--parchment);
+    text-decoration: none;
   }
   .brand-logo {
-    width: 40px; height: 40px;
-    display: grid; place-items:center;
-    background: rgba(201,168,76,0.12);
+    width: 44px; height: 44px;
+    display: grid; place-items: center;
+    background: rgba(201, 168, 76, 0.1);
     border: 1px solid var(--gold-line);
-    border-radius: 6px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    transition: background 0.3s;
   }
-  .brand-logo img { width: 26px; height: 26px; display:block; }
+  .brand:hover .brand-logo { background: rgba(201, 168, 76, 0.18); }
+  .brand-logo img { width: 28px; height: 28px; display: block; }
   .brand-text em {
-    display:block;
+    display: block;
     font-family: 'Manrope', sans-serif;
     font-style: normal; font-weight: 600;
-    letter-spacing: 0.18em; color: var(--gold);
-    font-size: 0.78rem;
+    letter-spacing: 0.22em; color: var(--gold);
+    font-size: 0.7rem;
+    text-transform: uppercase;
   }
   .brand-text span {
-    display:block; margin-top:2px;
+    display: block; margin-top: 1px;
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1.2rem;
+    font-size: 1.15rem;
+    font-weight: 400;
+    color: rgba(245, 240, 232, 0.9);
   }
-  .back-link {
-    color: rgba(250,246,238,0.7);
-    text-transform: uppercase;
-    font-size: 0.74rem;
-    letter-spacing: 0.16em;
+  .nav-right {
+    display: inline-flex; align-items: center; gap: 18px;
   }
-  .back-link:hover { color: var(--gold); text-decoration:none; }
   .lang-switch {
     display: inline-flex;
     border: 1px solid rgba(201, 168, 76, 0.35);
@@ -116,388 +139,716 @@
   .lang-switch a:last-child { border-right:none; }
   .lang-switch a:hover { color: var(--gold); background: rgba(201,168,76,0.1); }
   .lang-switch a.active { background: var(--gold); color: var(--ink); font-weight: 600; }
+  .back-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(250, 246, 238, 0.55);
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    font-family: 'Manrope', sans-serif;
+    transition: color 0.3s;
+  }
+  .back-link:hover { color: var(--gold); text-decoration: none; }
+  .back-link::before {
+    content: '';
+    display: block;
+    width: 20px; height: 1px;
+    background: currentColor;
+    transition: width 0.3s;
+  }
+  .back-link:hover::before { width: 28px; }
 
-  /* ---------- hero ---------- */
+  /* =============================== HERO =============================== */
   .hero {
-    background: linear-gradient(180deg, var(--ink) 0%, var(--ink) 60%, var(--parchment) 60%, var(--parchment) 100%);
-    padding-top: 60px;
-    padding-bottom: 40px;
+    position: relative;
+    background: var(--ink-2);
+    overflow: hidden;
+    padding: 100px 48px 80px;
+    border-bottom: 1px solid var(--gold-line);
+  }
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 80% at 50% 0%, rgba(201, 168, 76, 0.09) 0%, transparent 65%),
+      radial-gradient(ellipse 40% 40% at 80% 80%, rgba(201, 168, 76, 0.04) 0%, transparent 60%),
+      linear-gradient(180deg, #1A1612 0%, #0e0b08 100%);
+  }
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(201, 168, 76, 0.04) 79px, rgba(201, 168, 76, 0.04) 80px),
+      repeating-linear-gradient(90deg, transparent, transparent 79px, rgba(201, 168, 76, 0.04) 79px, rgba(201, 168, 76, 0.04) 80px);
+  }
+  .hero-ornament {
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    height: 60px;
+    background: linear-gradient(180deg, transparent 0%, var(--gold) 100%);
+    opacity: 0.5;
   }
   .hero-inner {
-    max-width: 920px; margin: 0 auto;
-    padding: 0 28px;
-    text-align:center;
+    position: relative;
+    max-width: 860px;
+    margin: 0 auto;
+    text-align: center;
+    z-index: 2;
   }
   .eyebrow {
+    display: inline-block;
     color: var(--gold);
     text-transform: uppercase;
-    letter-spacing: 0.24em;
+    letter-spacing: 0.32em;
     font-family: 'Manrope', sans-serif;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 500;
+    border-top: 1px solid var(--gold-line);
+    border-bottom: 1px solid var(--gold-line);
+    padding: 7px 18px;
+    margin-bottom: 32px;
+    animation: fadeUp 0.9s 0.1s both;
   }
   .hero h1 {
     font-family: 'Cormorant Garamond', serif;
-    font-weight: 500;
-    font-size: clamp(2.2rem, 5vw, 3.6rem);
-    line-height: 1.05;
-    color: var(--parchment);
-    margin: 14px 0 18px;
+    font-weight: 300;
+    font-size: clamp(2.8rem, 6vw, 5rem);
+    line-height: 1.0;
+    color: var(--cream);
+    letter-spacing: -0.01em;
+    animation: fadeUp 0.9s 0.25s both;
   }
-  .hero h1 em { font-style: italic; color: var(--gold); }
+  .hero h1 em { font-style: italic; color: var(--gold-light); }
   .hero-lead {
-    color: rgba(250, 246, 238, 0.8);
-    font-size: 1.05rem;
-    max-width: 640px; margin: 0 auto;
+    margin-top: 22px;
+    color: rgba(250, 246, 238, 0.62);
+    font-size: 1.0rem;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    max-width: 580px;
+    margin-left: auto;
+    margin-right: auto;
+    animation: fadeUp 0.9s 0.4s both;
   }
-  .hero-card {
-    margin-top: 46px;
-    background: var(--parchment);
+
+  .verse-block {
+    margin-top: 52px;
+    position: relative;
+    animation: fadeUp 0.9s 0.55s both;
+    padding-bottom: 0;
+  }
+  .verse-card {
+    background: rgba(255, 255, 255, 0.04);
     border: 1px solid var(--gold-line);
-    border-radius: 12px;
-    padding: 34px 30px;
-    box-shadow: 0 24px 60px rgba(26, 22, 18, 0.18);
+    border-radius: 0;
+    padding: 36px 44px;
     text-align: left;
+    position: relative;
   }
-  .verse {
+  .verse-card::before, .verse-card::after {
+    content: '';
+    position: absolute;
+    width: 24px; height: 24px;
+    border-color: var(--gold);
+    border-style: solid;
+    opacity: 0.5;
+  }
+  .verse-card::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .verse-card::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+  .verse-mark {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 5rem;
+    color: var(--gold);
+    opacity: 0.18;
+    line-height: 0.7;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .verse-text {
     font-family: 'Cormorant Garamond', serif;
     font-style: italic;
-    font-size: 1.25rem;
-    color: var(--ink-soft);
-    border-left: 3px solid var(--gold);
-    padding-left: 18px;
-    margin: 0;
+    font-size: 1.28rem;
+    line-height: 1.55;
+    color: rgba(250, 246, 238, 0.88);
   }
-  .verse cite {
-    display:block;
-    margin-top: 10px;
+  .verse-ref {
+    display: block;
+    margin-top: 16px;
     font-style: normal;
-    font-size: 0.75rem;
-    color: var(--muted);
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    font-family: 'Manrope', sans-serif;
-  }
-
-  /* ---------- amounts ---------- */
-  .section { max-width: 1180px; margin: 0 auto; padding: 50px 28px; }
-  .section-label {
+    font-size: 0.7rem;
     color: var(--gold);
-    text-transform: uppercase;
     letter-spacing: 0.22em;
-    font-family: 'Manrope', sans-serif;
-    font-size: 0.74rem;
-    font-weight: 500;
-    margin-bottom: 8px;
-  }
-  .section-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 500;
-    font-size: clamp(1.7rem, 3.4vw, 2.4rem);
-    color: var(--ink);
-    margin: 0 0 30px;
-  }
-  .amount-grid {
-    display:grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
-    margin-bottom: 18px;
-  }
-  @media (max-width: 720px) {
-    .amount-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-  .amount-btn {
-    background: transparent;
-    border: 1px solid var(--gold-line);
-    color: var(--ink);
-    padding: 22px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.6rem;
-    font-weight: 500;
-    transition: all .18s ease;
-  }
-  .amount-btn .lbl {
-    display:block;
-    font-family: 'Jost', sans-serif;
-    font-size: 0.7rem;
     text-transform: uppercase;
-    letter-spacing: 0.16em;
-    color: var(--muted);
-    margin-top: 4px;
-  }
-  .amount-btn:hover { border-color: var(--gold); background: var(--gold-soft); }
-  .amount-btn.active {
-    background: var(--gold); color: var(--ink);
-    border-color: var(--gold);
-    box-shadow: 0 8px 24px rgba(201, 168, 76, 0.4);
-  }
-  .amount-btn.active .lbl { color: var(--ink-soft); }
-  .amount-custom {
-    display:flex; align-items:center; gap: 10px;
-    border:1px solid var(--gold-line);
-    border-radius:8px;
-    padding: 10px 14px;
-    background:#fff;
-    max-width:380px;
-  }
-  .amount-custom input {
-    border:none; outline:none;
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.4rem;
-    width: 100%;
-    background: transparent;
-    color: var(--ink);
-  }
-  .amount-custom .currency {
-    color: var(--muted);
-    font-family: 'Jost', sans-serif;
-    font-weight:500;
-    letter-spacing: 0.1em;
+    font-family: 'Manrope', sans-serif;
+    opacity: 0.75;
   }
 
-  /* ---------- methods (tabs) ---------- */
-  .methods {
+  /* =============================== STEPS =============================== */
+  .steps-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    max-width: 680px;
+    margin: 0 auto 56px;
+    padding: 0 48px;
+  }
+  .step-badge {
+    display: flex; align-items: center; gap: 12px; flex: 1;
+  }
+  .step-num {
+    width: 42px; height: 42px;
+    flex-shrink: 0;
     background: var(--ink);
-    color: var(--parchment);
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 30px 80px rgba(26, 22, 18, 0.25);
-  }
-  .method-tabs {
-    display:flex;
-    border-bottom: 1px solid rgba(201, 168, 76, 0.25);
-    background: rgba(0,0,0,0.25);
-    overflow-x: auto;
-  }
-  .method-tab {
-    flex: 1;
-    padding: 18px 16px;
-    background: none;
-    border: none;
-    color: rgba(250,246,238,0.6);
-    cursor: pointer;
-    font-family: 'Manrope', sans-serif;
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    border-bottom: 3px solid transparent;
-    transition: all .18s ease;
-    white-space: nowrap;
-  }
-  .method-tab:hover { color: var(--parchment); }
-  .method-tab.active {
-    color: var(--gold);
-    border-bottom-color: var(--gold);
-    background: rgba(201, 168, 76, 0.06);
-  }
-  .method-tab .ic { display:block; font-size: 1.3rem; margin-bottom:4px; }
-
-  .method-panel { display: none; padding: 32px 36px; }
-  .method-panel.active { display:block; }
-  .method-panel h3 {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight:500;
-    font-size: 1.6rem;
-    color: var(--parchment);
-    margin: 0 0 8px;
-  }
-  .method-panel p {
-    color: rgba(250,246,238, 0.7);
-    margin: 0 0 18px;
-  }
-  .field {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(201,168,76,0.25);
-    border-radius: 8px;
-    padding: 14px 16px;
-    margin-bottom: 12px;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 14px;
-  }
-  .field .lbl {
-    color: rgba(250, 246, 238, 0.5);
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    font-family: 'Manrope', sans-serif;
-    margin-bottom: 4px;
-  }
-  .field .val {
-    color: var(--parchment);
-    font-family: 'Jost', monospace, monospace;
-    font-size: 1rem;
-    word-break: break-all;
-  }
-  .field .copy {
-    background: transparent;
     border: 1px solid var(--gold-line);
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem; font-weight: 500;
     color: var(--gold);
-    padding: 7px 14px; border-radius: 4px;
+  }
+  .step-num.active { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+  .step-label {
     font-family: 'Manrope', sans-serif;
     font-size: 0.72rem;
     text-transform: uppercase;
-    letter-spacing: 0.14em;
-    cursor: pointer;
-    transition: all .15s ease;
+    letter-spacing: 0.2em;
+    color: var(--muted);
   }
-  .field .copy:hover { background: var(--gold); color: var(--ink); }
-  .field .copy.copied { background: var(--gold); color: var(--ink); }
+  .step-label.active { color: var(--ink); font-weight: 600; }
+  .step-line { flex: 1; height: 1px; background: var(--gold-line); max-width: 60px; }
 
-  .erip-steps {
-    list-style: none; counter-reset: step;
-    padding: 0; margin: 0 0 18px;
+  /* =============================== SECTION =============================== */
+  .section-wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 70px 48px 80px;
   }
-  .erip-steps li {
-    counter-increment: step;
-    padding-left: 50px;
-    position: relative;
-    margin-bottom: 14px;
-    color: rgba(250, 246, 238, 0.85);
-  }
-  .erip-steps li::before {
-    content: counter(step);
-    position: absolute; left: 0; top: -2px;
-    width: 36px; height: 36px;
-    background: rgba(201, 168, 76, 0.12);
+  .section-heading { text-align: center; margin-bottom: 36px; }
+  .section-label {
+    display: inline-block;
     color: var(--gold);
-    border-radius: 50%;
-    display: grid; place-items: center;
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.2rem;
-    font-weight: 600;
-    border: 1px solid var(--gold-line);
+    text-transform: uppercase;
+    letter-spacing: 0.32em;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.7rem; font-weight: 500;
+    margin-bottom: 12px;
   }
-  .erip-path {
-    background: rgba(201, 168, 76, 0.08);
-    border-left: 3px solid var(--gold);
-    padding: 12px 16px;
-    margin-bottom: 16px;
-    color: var(--parchment);
+  .section-title {
     font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 1.05rem;
+    font-weight: 300;
+    font-size: clamp(2rem, 4.5vw, 2.8rem);
+    line-height: 1.1;
+    color: var(--ink);
   }
 
-  .cta-row {
-    display:flex; flex-wrap:wrap; gap: 12px;
-    margin-top: 18px;
+  /* =============================== AMOUNTS =============================== */
+  .amount-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
   }
-  .btn {
-    display:inline-flex; align-items:center; gap:10px;
-    padding: 14px 26px;
-    border-radius: 6px;
+  .amount-btn {
+    background: rgba(255,255,255,0.5);
+    border: 1px solid var(--gold-line);
+    color: var(--ink);
+    padding: 22px 12px 18px;
+    cursor: pointer;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.7rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .amount-btn .lbl {
+    display: block;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .amount-btn:hover {
+    border-color: var(--gold);
+    background: rgba(201, 168, 76, 0.06);
+  }
+  .amount-btn.active {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--ink);
+  }
+  .amount-btn.active .lbl { color: rgba(26, 22, 18, 0.7); }
+
+  .amount-custom-wrap {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: rgba(255,255,255,0.6);
+    border: 1px solid var(--gold-line);
+    padding: 16px 22px;
+    margin-bottom: 56px;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .amount-prefix {
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  #amountInput {
+    flex: 1;
     border: none;
+    background: transparent;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.7rem;
+    color: var(--ink);
+    text-align: right;
+    outline: none;
+    min-width: 0;
+  }
+  #amountInput::-webkit-outer-spin-button,
+  #amountInput::-webkit-inner-spin-button {
+    -webkit-appearance: none; margin: 0;
+  }
+  .amount-currency {
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  /* =============================== METHODS =============================== */
+  .methods-wrap { margin-top: 32px; }
+  .methods {
+    background: var(--ink-2);
+    border: 1px solid var(--gold-line);
+    box-shadow: 0 24px 48px -16px rgba(26,22,18,0.18);
+  }
+  .method-tabs {
+    display: flex;
+    overflow-x: auto;
+    background: rgba(0,0,0,0.3);
+    border-bottom: 1px solid rgba(201,168,76,0.18);
+    scrollbar-width: none;
+  }
+  .method-tabs::-webkit-scrollbar { display: none; }
+  .method-tab {
+    flex: 1 1 auto;
+    background: transparent;
+    border: none;
+    padding: 18px 14px 16px;
+    color: rgba(250, 246, 238, 0.55);
     cursor: pointer;
     font-family: 'Manrope', sans-serif;
-    font-size: 0.82rem;
+    font-size: 0.66rem;
+    font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.18em;
+    border-right: 1px solid rgba(201,168,76,0.12);
+    transition: all 0.2s;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .method-tab:last-child { border-right: none; }
+  .method-tab:hover { color: rgba(250, 246, 238, 0.75); }
+  .method-tab.active {
+    color: var(--gold);
+    background: rgba(201, 168, 76, 0.08);
+    box-shadow: inset 0 -2px 0 0 var(--gold);
+  }
+  .method-tab .ic {
+    display: block;
+    font-size: 1.15rem;
+    margin-bottom: 5px;
+    letter-spacing: 0;
+  }
+  .method-panel {
+    display: none;
+    padding: 38px 36px;
+    color: rgba(250, 246, 238, 0.85);
+  }
+  .method-panel.active { display: block; }
+  .method-panel h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 1.7rem;
+    color: var(--cream);
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+  .method-panel > p {
+    color: rgba(250, 246, 238, 0.62);
+    font-size: 0.92rem;
+    margin-bottom: 26px;
+    max-width: 560px;
+  }
+  .method-panel .small {
+    margin-top: 22px;
+    color: rgba(250, 246, 238, 0.42);
+    font-size: 0.78rem;
+  }
+
+  /* fields */
+  .field {
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201, 168, 76, 0.18);
+    padding: 14px 18px;
+    margin-bottom: 10px;
+  }
+  .field > div:first-child { flex: 1; min-width: 0; }
+  .field .lbl {
+    display: block;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: rgba(250, 246, 238, 0.4);
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  .field .val {
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.95rem;
+    color: var(--cream);
+    word-break: break-all;
+    overflow-wrap: anywhere;
+  }
+  .copy {
+    flex-shrink: 0;
+    background: transparent;
+    border: 1px solid rgba(201, 168, 76, 0.3);
+    color: var(--gold);
+    padding: 8px 14px;
+    cursor: pointer;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-weight: 500;
+    transition: all 0.2s;
+    min-width: 100px;
+  }
+  .copy:hover { background: var(--gold-soft); border-color: var(--gold); }
+  .copy.copied { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+
+  /* erip steps */
+  .erip-steps { list-style: none; counter-reset: erip; padding: 0; }
+  .erip-steps li {
+    counter-increment: erip;
+    position: relative;
+    padding: 8px 0 8px 56px;
+    color: rgba(250, 246, 238, 0.75);
+    font-size: 0.95rem;
+  }
+  .erip-steps li::before {
+    content: counter(erip);
+    position: absolute;
+    left: 0; top: 4px;
+    width: 36px; height: 36px;
+    border: 1px solid var(--gold-line);
+    border-radius: 50%;
+    display: grid; place-items: center;
+    color: var(--gold);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+  }
+  .erip-steps li b { color: var(--cream); font-weight: 500; }
+  .erip-path {
+    margin-top: 8px;
+    background: rgba(201, 168, 76, 0.08);
+    border-left: 2px solid var(--gold);
+    padding: 10px 14px;
+    color: var(--gold-light);
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.86rem;
+    word-break: break-word;
+  }
+
+  /* CTA */
+  .cta-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 26px;
+    border: 1px solid var(--gold);
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.78rem;
     font-weight: 600;
-    transition: all .15s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    cursor: pointer;
+    transition: all 0.2s;
     text-decoration: none;
   }
-  .btn-primary {
+  .btn-primary { background: var(--gold); color: var(--ink); }
+  .btn-primary:hover { background: var(--gold-light); border-color: var(--gold-light); text-decoration: none; }
+  .btn-ghost { background: transparent; color: var(--gold); }
+  .btn-ghost:hover { background: var(--gold-soft); text-decoration: none; }
+  .unavailable-notice {
+    background: rgba(255, 200, 100, 0.08);
+    border: 1px solid rgba(255, 200, 100, 0.3);
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    color: rgba(250, 246, 238, 0.78);
+  }
+  .unavailable-notice .lbl {
+    color: rgba(255, 200, 100, 0.85);
+    text-transform: uppercase;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    font-weight: 600;
+  }
+  .unavailable-notice .msg { margin-top: 4px; font-size: 0.92rem; }
+
+  /* =============================== CRYPTO =============================== */
+  .crypto-coin-block {
+    margin-bottom: 22px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid rgba(201, 168, 76, 0.12);
+  }
+  .crypto-coin-block:last-of-type {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 8px;
+  }
+  .crypto-coin-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .crypto-coin-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.45rem;
+    color: var(--gold);
+    font-weight: 500;
+  }
+  .crypto-network-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: rgba(201, 168, 76, 0.1);
+    border: 1px solid rgba(201, 168, 76, 0.25);
+    color: var(--gold-light);
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+  }
+  .crypto-addr {
+    font-family: 'Jost', monospace;
+    font-size: 0.86rem;
+    letter-spacing: 0.02em;
+  }
+  .crypto-qr-hint {
+    margin-top: 10px;
+    font-size: 0.78rem;
+    color: rgba(250, 246, 238, 0.46);
+    font-style: italic;
+  }
+  .crypto-qr-hint b { color: rgba(250, 246, 238, 0.65); font-weight: 500; }
+  .crypto-notice {
+    background: rgba(255, 100, 100, 0.06);
+    border: 1px solid rgba(255, 120, 120, 0.22);
+    padding: 14px 16px;
+    margin-top: 16px;
+    color: rgba(250, 246, 238, 0.78);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    display: flex; gap: 10px;
+  }
+  .crypto-notice b { color: var(--gold); font-weight: 500; }
+  .crypto-notice-icon { flex-shrink: 0; color: rgba(255, 150, 100, 0.85); font-size: 1rem; line-height: 1.4; }
+
+  .net-switcher {
+    display: inline-flex;
+    gap: 4px;
+    background: rgba(0,0,0,0.25);
+    padding: 4px;
+    border-radius: 4px;
+  }
+  .net-btn {
+    background: transparent;
+    border: none;
+    color: rgba(250, 246, 238, 0.55);
+    padding: 6px 12px;
+    cursor: pointer;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-weight: 500;
+    transition: all 0.18s;
+    border-radius: 2px;
+  }
+  .net-btn:hover { color: var(--cream); }
+  .net-btn.active {
     background: var(--gold);
     color: var(--ink);
   }
-  .btn-primary:hover {
-    background: #d8b65a;
-    box-shadow: 0 8px 24px rgba(201, 168, 76, 0.4);
-    transform: translateY(-1px);
-  }
-  .btn-ghost {
-    background: transparent;
-    border: 1px solid var(--gold);
-    color: var(--gold);
-  }
-  .btn-ghost:hover { background: var(--gold-soft); }
 
-  /* ---------- thank you / why ---------- */
-  .why {
-    background: var(--parchment-2);
-    padding: 60px 28px;
+  /* =============================== THANK-YOU & WHY =============================== */
+  .thank-you {
+    margin-top: 48px;
+    padding: 32px 28px;
+    background: linear-gradient(135deg, rgba(201, 168, 76, 0.08) 0%, rgba(201, 168, 76, 0.02) 100%);
+    border: 1px solid var(--gold-line);
+    text-align: center;
   }
+  .thank-you .verse-text { font-size: 1.05rem; color: var(--ink-soft); }
+
+  .why {
+    background: var(--ink-2);
+    color: var(--cream);
+    padding: 80px 48px;
+    border-top: 1px solid var(--gold-line);
+  }
+  .why-header { text-align: center; max-width: 720px; margin: 0 auto 50px; }
+  .why-divider { width: 40px; height: 1px; background: var(--gold-line); margin: 22px auto 0; }
   .why-inner {
-    max-width: 1180px; margin: 0 auto;
+    max-width: 1080px;
+    margin: 0 auto;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
+    gap: 0;
+    border: 1px solid var(--gold-line);
+    background: rgba(255,255,255,0.02);
   }
-  @media (max-width: 880px) { .why-inner { grid-template-columns: 1fr; } }
   .why-card {
-    background: var(--parchment);
-    border: 1px solid var(--gold-line);
-    border-radius: 10px;
-    padding: 26px;
+    padding: 36px 32px;
+    border-right: 1px solid var(--gold-line);
+    transition: background 0.3s;
   }
-  .why-card .ic {
-    width: 44px; height: 44px;
-    background: var(--gold-soft);
-    border: 1px solid var(--gold-line);
-    border-radius: 50%;
-    display: grid; place-items: center;
-    font-size: 1.4rem;
-    margin-bottom: 16px;
-  }
+  .why-card:last-child { border-right: none; }
+  .why-card:hover { background: rgba(201, 168, 76, 0.05); }
+  .why-card .ic { font-size: 2rem; display: block; margin-bottom: 14px; opacity: 0.7; }
   .why-card h3 {
     font-family: 'Cormorant Garamond', serif;
     font-weight: 500;
-    font-size: 1.4rem;
-    color: var(--ink);
-    margin: 0 0 8px;
+    font-size: 1.3rem;
+    color: var(--gold-light);
+    margin-bottom: 8px;
   }
-  .why-card p {
-    color: var(--muted);
-    margin: 0;
-    font-size: 0.95rem;
-  }
+  .why-card p { color: rgba(250, 246, 238, 0.65); font-size: 0.92rem; line-height: 1.55; }
 
-  /* ---------- thank-you modal ---------- */
-  .thank-you {
-    text-align:center;
-    padding: 30px 24px;
-    background: rgba(201,168,76,0.07);
-    border-top: 1px solid rgba(201,168,76,0.2);
-  }
-  .thank-you .verse {
-    color: var(--gold);
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 1.5rem;
-    border: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  /* ---------- footer ---------- */
   footer {
     background: var(--ink);
-    color: rgba(250,246,238, 0.55);
-    padding: 32px 28px;
-    text-align:center;
-    font-size: 0.82rem;
+    color: rgba(250, 246, 238, 0.4);
+    padding: 28px 48px;
+    text-align: center;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.78rem;
+    border-top: 1px solid var(--gold-line);
   }
-  footer a { color: var(--gold); }
-  .small { font-size: 0.78rem; color: var(--muted); }
 
-  /* toast */
   .toast {
-    position: fixed; bottom: 30px; left: 50%;
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
     transform: translateX(-50%) translateY(20px);
     background: var(--ink);
     color: var(--gold);
-    padding: 14px 26px;
+    padding: 12px 24px;
     border: 1px solid var(--gold);
-    border-radius: 6px;
     font-family: 'Manrope', sans-serif;
-    font-size: 0.86rem;
-    letter-spacing: 0.05em;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
-    opacity: 0; pointer-events: none;
-    transition: all 0.25s ease;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s, transform 0.25s;
     z-index: 9999;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.3);
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 768px) {
+    .nav-inner { padding: 14px 18px; gap: 10px; flex-wrap: wrap; }
+    .brand-text span { font-size: 1rem; }
+    .nav-right { gap: 10px; }
+    .lang-switch { font-size: 0.62rem; }
+    .lang-switch a { padding: 5px 7px; }
+
+    .hero { padding: 64px 20px 52px; }
+    .eyebrow { font-size: 0.65rem; letter-spacing: 0.22em; margin-bottom: 22px; }
+    .hero h1 { font-size: clamp(2rem, 8vw, 2.8rem); }
+    .verse-card { padding: 22px 20px; }
+    .verse-text { font-size: 1.05rem; }
+    .verse-mark { font-size: 3.5rem; }
+
+    .steps-row { padding: 0; margin-bottom: 36px; gap: 8px; }
+    .step-label { font-size: 0.62rem; letter-spacing: 0.12em; }
+    .step-line { max-width: 28px; }
+
+    .section-wrap { padding: 48px 18px 60px; }
+    .section-title { font-size: clamp(1.5rem, 6vw, 2rem); }
+
+    .amount-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .amount-btn { padding: 16px 8px 12px; font-size: 1.5rem; }
+    .amount-btn .lbl { font-size: 0.55rem; }
+    .amount-custom-wrap { max-width: 100%; }
+
+    .methods { box-shadow: none; }
+    .method-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      background: rgba(0,0,0,0.3);
+      border-bottom: 1px solid rgba(201,168,76,0.18);
+    }
+    .method-tab {
+      flex: 1 1 calc(33.33% - 1px);
+      min-width: 0;
+      padding: 14px 8px 12px;
+      border-right: 1px solid rgba(201,168,76,0.1);
+      border-bottom: 1px solid rgba(201,168,76,0.1);
+    }
+    .method-tab .ic { font-size: 1rem; margin-bottom: 4px; }
+    .method-tab { font-size: 0.6rem; letter-spacing: 0.1em; }
+
+    .method-panel { padding: 24px 18px; }
+    .method-panel h3 { font-size: 1.45rem; }
+
+    .thank-you { padding: 24px 18px; }
+    .why { padding: 52px 18px; }
+    .why-inner { gap: 0; border: none; background: transparent; }
+    .why-card {
+      border: none;
+      border-bottom: 1px solid var(--gold-line);
+      border-radius: 0;
+      padding: 24px 0;
+      background: transparent;
+    }
+    .why-card:last-child { border-bottom: none; }
+    footer { padding: 24px 18px; }
+    .field { flex-wrap: wrap; gap: 10px; }
+    .field .copy { width: 100%; text-align: center; }
+    .erip-steps li { padding-left: 44px; }
+    .erip-steps li::before { width: 32px; height: 32px; font-size: 1rem; }
+    .net-switcher { gap: 6px; flex-wrap: wrap; }
+    .net-btn { padding: 6px 10px; font-size: 0.58rem; }
+    .cta-row { flex-direction: column; }
+    .btn { width: 100%; justify-content: center; }
+    .back-link::before { display: none; }
+    .back-link { font-size: 0.68rem; }
+  }
 </style>
 </head>
 <body>
@@ -505,280 +856,439 @@
 <!-- ===== Top nav ===== -->
 <header class="nav">
   <div class="nav-inner">
-    <a class="brand" href="/">
+    <a class="brand" href="/?lang={{ _l }}">
       <span class="brand-logo">
         <img src="/static/img/logo-gold.svg" alt="">
       </span>
       <span class="brand-text">
-        <em>ХДН</em>
-        <span>Библейский Колледж</span>
+        <em>{{ site.nav_logo_top }}</em>
+        <span>{{ site.nav_logo_main }}</span>
       </span>
     </a>
-    <span style="display:flex;align-items:center;gap:18px;">
+    <span class="nav-right">
       <span class="lang-switch" aria-label="Language switcher">
         {% for code in LANGS %}
           <a href="?lang={{ code }}" class="{{ 'active' if code == _l else '' }}">{{ LANG_LABELS[code] }}</a>
         {% endfor %}
       </span>
-      <a href="/" class="back-link">{{ t('donate.back_to_site', _l) }}</a>
+      <a href="/?lang={{ _l }}" class="back-link">{{ t('donate.back_to_site', _l) }}</a>
     </span>
   </div>
 </header>
 
 <!-- ===== Hero ===== -->
 <section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-ornament"></div>
+
   <div class="hero-inner">
     <div class="eyebrow">{{ site.donate_eyebrow }}</div>
     <h1>{{ site.donate_title|safe }}</h1>
     <p class="hero-lead">{{ site.donate_lead }}</p>
 
-    <div class="hero-card">
-      <p class="verse">
-        «Каждый уделяй по расположению сердца, не с огорчением и не с принуждением;
-        ибо доброхотно дающего любит Бог.»
-        <cite>2 Коринфянам 9:7</cite>
-      </p>
+    <div class="verse-block">
+      <div class="verse-card">
+        <span class="verse-mark">"</span>
+        <p class="verse-text">
+          {% if _l == 'be' %}
+            Кожны няхай ахвяруе па схільнасці сэрца, не з засмучэннем і не з прымусу;
+            бо ахвотна дае Бог любіць.
+          {% elif _l == 'en' %}
+            Each one must give as he has decided in his heart, not reluctantly or
+            under compulsion, for God loves a cheerful giver.
+          {% else %}
+            Каждый уделяй по расположению сердца, не с огорчением и не с принуждением;
+            ибо доброхотно дающего любит Бог.
+          {% endif %}
+        </p>
+        <cite class="verse-ref">
+          {% if _l == 'en' %}2 Corinthians 9:7
+          {% elif _l == 'be' %}2 Карынфянам 9:7
+          {% else %}2 Коринфянам 9:7{% endif %}
+        </cite>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- ===== Amounts + Methods ===== -->
-<section class="section">
-  <div class="section-label">{{ t('donate.step1', _l) }}</div>
-  <h2 class="section-title">{{ t('donate.choose_amount', _l) }}</h2>
+<section>
+  <div class="section-wrap">
 
-  <div class="amount-grid" id="amountGrid">
-    <button class="amount-btn" data-amount="20">20<span class="lbl">BYN</span></button>
-    <button class="amount-btn" data-amount="50">50<span class="lbl">BYN</span></button>
-    <button class="amount-btn active" data-amount="100">100<span class="lbl">BYN</span></button>
-    <button class="amount-btn" data-amount="200">200<span class="lbl">BYN</span></button>
-    <button class="amount-btn" data-amount="500">500<span class="lbl">BYN</span></button>
-  </div>
-
-  <div class="amount-custom">
-    <input type="number" min="1" id="amountInput" value="100" inputmode="decimal">
-    <span class="currency">BYN</span>
-  </div>
-
-  <div style="height: 50px;"></div>
-
-  <div class="section-label">{{ t('donate.step2', _l) }}</div>
-  <h2 class="section-title">{{ t('donate.choose_method', _l) }}</h2>
-
-  <div class="methods">
-    <div class="method-tabs">
-      <button type="button" class="method-tab active" data-tab="erip">
-        <span class="ic">🏦</span>{{ t('donate.method.erip', _l) }}
-      </button>
-      <button type="button" class="method-tab" data-tab="card">
-        <span class="ic">💳</span>{{ t('donate.method.card', _l) }}
-      </button>
-      <button type="button" class="method-tab" data-tab="bank">
-        <span class="ic">🧾</span>{{ t('donate.method.bank', _l) }}
-      </button>
-      <button type="button" class="method-tab" data-tab="cash">
-        <span class="ic">🤝</span>{{ t('donate.method.cash', _l) }}
-      </button>
+    <!-- Step indicators -->
+    <div class="steps-row" style="padding:0; max-width:100%; margin-bottom:52px;">
+      <div class="step-badge">
+        <div class="step-num active">1</div>
+        <div class="step-label active">{{ t('donate.step1', _l) }}</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step-badge">
+        <div class="step-num">2</div>
+        <div class="step-label">{{ t('donate.choose_method', _l) }}</div>
+      </div>
     </div>
 
-    {# ERIP method panel — contents are bilingual via the t() filter (donate.erip.*). #}
-    <div class="method-panel active" data-panel="erip">
-      <h3>
-        {%- if _l == 'be' %}Аплата раз ЕРІП
-        {%- elif _l == 'en' %}Pay via ERIP
-        {%- else %}Оплата через ЕРИП
-        {%- endif %}
-      </h3>
-      <p>
-        {%- if _l == 'be' %}Самы зручны спосаб для жыхароў Беларусі — займае 30 секундаў у любым банкаўскім дадатку або банкамаце.
-        {%- elif _l == 'en' %}The easiest way for residents of Belarus — 30 seconds in any banking app or ATM.
-        {%- else %}Самый удобный способ для жителей Беларуси — занимает 30 секунд в любом банковском приложении или банкомате.
-        {%- endif %}
-      </p>
+    <div class="section-heading">
+      <div class="section-label">{{ t('donate.step1', _l) }}</div>
+      <h2 class="section-title">{{ t('donate.choose_amount', _l) }}</h2>
+    </div>
 
-      <ol class="erip-steps">
-        {% if _l == 'be' %}
-        <li>У банкаўскім дадатку выберыце <b>«Плацяжы і пераказы → Сістэма ЕРІП»</b>.</li>
-        <li>Знайдзіце наш плацёж па&nbsp;наступным шляху:
-          <div class="erip-path">{{ site.donate_erip_path }}</div>
-        </li>
-        <li>Увядзіце суму (<span id="eripAmount">100</span>&nbsp;BYN) і&nbsp;пацвердзіце аплату.</li>
-        <li>У&nbsp;полі «Прызначэнне плацяжу» можна ўказаць «Ахвяраванне».</li>
-        {% elif _l == 'en' %}
-        <li>In your banking app pick <b>«Payments &amp; transfers → ERIP system»</b>.</li>
-        <li>Find our payment by following this path:
-          <div class="erip-path">{{ site.donate_erip_path }}</div>
-        </li>
-        <li>Enter the amount (<span id="eripAmount">100</span>&nbsp;BYN) and confirm the payment.</li>
-        <li>In the «Payment purpose» field you can write «Donation».</li>
-        {% else %}
-        <li>В банковском приложении выберите <b>«Платежи и переводы → Система ЕРИП»</b>.</li>
-        <li>Найдите наш платёж по&nbsp;следующему пути:
-          <div class="erip-path">{{ site.donate_erip_path }}</div>
-        </li>
-        <li>Введите сумму (<span id="eripAmount">100</span>&nbsp;BYN) и&nbsp;подтвердите оплату.</li>
-        <li>В&nbsp;поле «Назначение платежа» можно указать «Пожертвование».</li>
-        {% endif %}
-      </ol>
+    <div class="amount-grid" id="amountGrid">
+      <button class="amount-btn" data-amount="20">20<span class="lbl">BYN</span></button>
+      <button class="amount-btn" data-amount="50">50<span class="lbl">BYN</span></button>
+      <button class="amount-btn active" data-amount="100">100<span class="lbl">BYN</span></button>
+      <button class="amount-btn" data-amount="200">200<span class="lbl">BYN</span></button>
+      <button class="amount-btn" data-amount="500">500<span class="lbl">BYN</span></button>
+    </div>
 
-      {% if site.donate_erip_code and site.donate_erip_code != 'уточните в банке' %}
-      <div class="field">
-        <div>
-          <div class="lbl">
-            {%- if _l == 'be' %}Код ЕРІП
-            {%- elif _l == 'en' %}ERIP code
-            {%- else %}Код ЕРИП
-            {%- endif %}
+    <div class="amount-custom-wrap">
+      <span class="amount-prefix">{% if _l == 'en' %}Custom amount{% elif _l == 'be' %}Свая сума{% else %}Своя сумма{% endif %}</span>
+      <input type="number" min="1" id="amountInput" value="100" inputmode="decimal" placeholder="100">
+      <span class="amount-currency">BYN</span>
+    </div>
+
+    {# ---------- Visible-method bookkeeping ---------- #}
+    {% set _erip_on  = site.donate_method_erip_enabled  == '1' %}
+    {% set _card_on  = site.donate_method_card_enabled  == '1' %}
+    {% set _bank_on  = site.donate_method_bank_enabled  == '1' %}
+    {% set _cash_on  = site.donate_method_cash_enabled  == '1' %}
+    {% set _crypto_on = site.donate_method_crypto_enabled == '1' %}
+    {% set _first_on = namespace(set=False) %}
+
+    <!-- Methods -->
+    <div class="methods-wrap">
+      <div class="section-heading">
+        <div class="section-label">{{ t('donate.step2', _l) }}</div>
+        <h2 class="section-title">{{ t('donate.choose_method', _l) }}</h2>
+      </div>
+
+      <div class="methods">
+        <div class="method-tabs">
+          {% if _erip_on %}
+          <button type="button" class="method-tab{% if not _first_on.set %} active{% set _first_on.set = True %}{% endif %}" data-tab="erip">
+            <span class="ic">🏦</span>{{ t('donate.method.erip', _l) }}
+          </button>
+          {% endif %}
+          {% if _card_on %}
+          <button type="button" class="method-tab{% if not _first_on.set %} active{% set _first_on.set = True %}{% endif %}" data-tab="card">
+            <span class="ic">💳</span>{{ t('donate.method.card', _l) }}
+          </button>
+          {% endif %}
+          {% if _bank_on %}
+          <button type="button" class="method-tab{% if not _first_on.set %} active{% set _first_on.set = True %}{% endif %}" data-tab="bank">
+            <span class="ic">🧾</span>{{ t('donate.method.bank', _l) }}
+          </button>
+          {% endif %}
+          {% if _cash_on %}
+          <button type="button" class="method-tab{% if not _first_on.set %} active{% set _first_on.set = True %}{% endif %}" data-tab="cash">
+            <span class="ic">🤝</span>{{ t('donate.method.cash', _l) }}
+          </button>
+          {% endif %}
+          {% if _crypto_on %}
+          <button type="button" class="method-tab{% if not _first_on.set %} active{% set _first_on.set = True %}{% endif %}" data-tab="crypto">
+            <span class="ic">₿</span>{{ t('donate.method.crypto', _l) }}
+          </button>
+          {% endif %}
+        </div>
+
+        {% set _first_panel = namespace(set=False) %}
+
+        {% if _erip_on %}
+        <!-- ===== ERIP ===== -->
+        <div class="method-panel{% if not _first_panel.set %} active{% set _first_panel.set = True %}{% endif %}" data-panel="erip">
+          <h3>{% if _l == 'en' %}ERIP payment
+              {% elif _l == 'be' %}Аплата праз ЕРІП
+              {% else %}Оплата через ЕРИП{% endif %}</h3>
+          <p>{% if _l == 'en' %}The simplest way for residents of Belarus — takes 30 seconds in any banking app or ATM.
+              {% elif _l == 'be' %}Самы зручны спосаб для жыхароў Беларусі — займае 30 секунд у любым банкаўскім прыкладанні або банкамаце.
+              {% else %}Самый удобный способ для жителей Беларуси — занимает 30 секунд в любом банковском приложении или банкомате.{% endif %}</p>
+
+          <ol class="erip-steps">
+            {% if _l == 'en' %}
+              <li>In your banking app pick <b>Payments &amp; transfers → ERIP</b>.</li>
+              <li>Find our payment by the following path:
+                <div class="erip-path">{{ site.donate_erip_path }}</div>
+              </li>
+              <li>Enter the amount (<span id="eripAmount">100</span>&nbsp;BYN) and confirm the payment.</li>
+              <li>You can write &laquo;Donation&raquo; in the &laquo;Payment purpose&raquo; field.</li>
+            {% elif _l == 'be' %}
+              <li>У банкаўскім прыкладанні выберыце <b>«Плацяжы і пераказы → Сістэма ЕРІП»</b>.</li>
+              <li>Знайдзіце наш плацёж па наступным шляху:
+                <div class="erip-path">{{ site.donate_erip_path }}</div>
+              </li>
+              <li>Увядзіце суму (<span id="eripAmount">100</span>&nbsp;BYN) і пацвердзіце аплату.</li>
+              <li>У полі «Прызначэнне плацяжу» можна паказаць «Ахвяраванне».</li>
+            {% else %}
+              <li>В банковском приложении выберите <b>«Платежи и переводы → Система ЕРИП»</b>.</li>
+              <li>Найдите наш платёж по&nbsp;следующему пути:
+                <div class="erip-path">{{ site.donate_erip_path }}</div>
+              </li>
+              <li>Введите сумму (<span id="eripAmount">100</span>&nbsp;BYN) и&nbsp;подтвердите оплату.</li>
+              <li>В&nbsp;поле «Назначение платежа» можно указать «Пожертвование».</li>
+            {% endif %}
+          </ol>
+
+          {% if site.donate_erip_code and site.donate_erip_code != 'уточните в банке' %}
+          <div class="field">
+            <div>
+              <div class="lbl">{% if _l == 'en' %}ERIP code{% elif _l == 'be' %}Код ЕРІП{% else %}Код ЕРИП{% endif %}</div>
+              <div class="val" id="eripCode">{{ site.donate_erip_code }}</div>
+            </div>
+            <button type="button" class="copy" data-copy="eripCode">{{ t('donate.copy', _l) }}</button>
           </div>
-          <div class="val" id="eripCode">{{ site.donate_erip_code }}</div>
+          {% endif %}
+
+          <p class="small">{% if _l == 'en' %}Tip: add the payment to «Favorites» in your banking app to support the college regularly with a single tap.
+              {% elif _l == 'be' %}Парада: дадайце плацёж у «Абранае» ў прыкладанні банка, каб рэгулярна падтрымліваць каледж адным націскам.
+              {% else %}Совет: добавьте платёж в «Избранное» в&nbsp;приложении банка, чтобы регулярно поддерживать колледж в&nbsp;один клик.{% endif %}</p>
         </div>
-        <button type="button" class="copy" data-copy="eripCode">{{ t('donate.copy', _l) }}</button>
+        {% endif %}
+
+        {% if _card_on %}
+        <!-- ===== CARD ===== -->
+        <div class="method-panel{% if not _first_panel.set %} active{% set _first_panel.set = True %}{% endif %}" data-panel="card">
+          <h3>{% if _l == 'en' %}Card payment{% elif _l == 'be' %}Аплата банкаўскай картай{% else %}Оплата банковской картой{% endif %}</h3>
+          <p>{% if _l == 'en' %}We accept Visa, MasterCard, Belkart. Payment is processed on the bank's secure page.
+              {% elif _l == 'be' %}Прымаем Visa, MasterCard, Белкарт. Аплата праходзіць на бяспечнай старонцы банка-эквайра.
+              {% else %}Принимаем Visa, MasterCard, Белкарт. Оплата проходит на&nbsp;защищённой странице банка-эквайра.{% endif %}</p>
+
+          {% if site.donate_card_url %}
+          <div class="cta-row">
+            <a class="btn btn-primary" id="cardLink" href="{{ site.donate_card_url }}" target="_blank" rel="noopener">
+              💳&nbsp;{{ t('donate.pay_button', _l) }} <span id="cardAmount">100</span>&nbsp;BYN
+            </a>
+            <a class="btn btn-ghost" href="/?lang={{ _l }}">{{ t('donate.cancel', _l) }}</a>
+          </div>
+          {% else %}
+          <div class="unavailable-notice">
+            <div class="lbl">{{ t('donate.method_unavailable_title', _l) }}</div>
+            <div class="msg">{{ t('donate.method_unavailable_body', _l) }}</div>
+          </div>
+          {% endif %}
+
+          <p class="small">{% if _l == 'en' %}Payment via third-party processor, secure TLS 1.3 connection. The college does not store card data.
+              {% elif _l == 'be' %}Аплата праз старонняга плацежнага правайдара, абароненае злучэнне TLS&nbsp;1.3. Каледж не захоўвае даныя карт.
+              {% else %}Оплата через стороннего платёжного провайдера, защищённое соединение TLS&nbsp;1.3. Колледж не&nbsp;хранит данные карт.{% endif %}</p>
+        </div>
+        {% endif %}
+
+        {% if _bank_on %}
+        <!-- ===== BANK TRANSFER ===== -->
+        <div class="method-panel{% if not _first_panel.set %} active{% set _first_panel.set = True %}{% endif %}" data-panel="bank">
+          <h3>{% if _l == 'en' %}Bank transfer{% elif _l == 'be' %}Банкаўскі пераказ{% else %}Банковский перевод{% endif %}</h3>
+          <p>{% if _l == 'en' %}You can transfer from any bank in Belarus or from abroad. Use the details below.
+              {% elif _l == 'be' %}Можна пераказаць з любога банка ў Беларусі і з-за мяжы. Выкарыстоўвайце рэквізіты ніжэй.
+              {% else %}Можно перевести из&nbsp;любого банка в&nbsp;Беларуси и&nbsp;из-за&nbsp;рубежа. Используйте реквизиты&nbsp;ниже.{% endif %}</p>
+
+          <div class="field">
+            <div><div class="lbl">{{ t('donate.recipient', _l) }}</div><div class="val" id="bankName">{{ site.donate_bank_recipient }}</div></div>
+            <button type="button" class="copy" data-copy="bankName">{{ t('donate.copy', _l) }}</button>
+          </div>
+          <div class="field">
+            <div><div class="lbl">{{ t('donate.bank', _l) }}</div><div class="val" id="bankBank">{{ site.donate_bank_name }}</div></div>
+            <button type="button" class="copy" data-copy="bankBank">{{ t('donate.copy', _l) }}</button>
+          </div>
+          <div class="field">
+            <div><div class="lbl">{{ t('donate.iban', _l) }}</div><div class="val" id="bankIban">{{ site.donate_bank_iban }}</div></div>
+            <button type="button" class="copy" data-copy="bankIban">{{ t('donate.copy', _l) }}</button>
+          </div>
+          <div class="field">
+            <div><div class="lbl">{{ t('donate.swift', _l) }}</div><div class="val" id="bankBic">{{ site.donate_bank_bic }}</div></div>
+            <button type="button" class="copy" data-copy="bankBic">{{ t('donate.copy', _l) }}</button>
+          </div>
+          <div class="field">
+            <div><div class="lbl">{{ t('donate.unp', _l) }}</div><div class="val" id="bankUnp">{{ site.donate_bank_unp }}</div></div>
+            <button type="button" class="copy" data-copy="bankUnp">{{ t('donate.copy', _l) }}</button>
+          </div>
+          <div class="field">
+            <div><div class="lbl">{{ t('donate.purpose', _l) }}</div><div class="val">{{ t('donate.purpose_text', _l) }}</div></div>
+          </div>
+
+          <p class="small">{% if _l == 'en' %}For international transfers please use English in the purpose field: <i>«Voluntary donation for educational activities»</i>.
+              {% elif _l == 'be' %}Пры пераказе з-за мяжы пакажыце прызначэнне па-англійску: <i>«Voluntary donation for educational activities»</i>.
+              {% else %}При&nbsp;переводе из-за&nbsp;границы укажите назначение по-английски: <i>«Voluntary donation for educational activities»</i>.{% endif %}</p>
+        </div>
+        {% endif %}
+
+        {% if _cash_on %}
+        <!-- ===== CASH ===== -->
+        <div class="method-panel{% if not _first_panel.set %} active{% set _first_panel.set = True %}{% endif %}" data-panel="cash">
+          <h3>{% if _l == 'en' %}Cash at the college{% elif _l == 'be' %}Гатоўкай у каледжы{% else %}Наличными в&nbsp;колледже{% endif %}</h3>
+          <p>{% if _l == 'en' %}You can hand over your gift in person — at the college office or after a service.
+              {% elif _l == 'be' %}Вы можаце перадаць ахвяраванне асабіста — у офісе каледжа або пасля набажэнства.
+              {% else %}Вы можете передать пожертвование лично — в&nbsp;офисе колледжа или после&nbsp;богослужения.{% endif %}</p>
+
+          <div class="field">
+            <div>
+              <div class="lbl">{{ t('donate.address', _l) }}</div>
+              <div class="val" style="font-family:'Jost',sans-serif;">{{ site.contact_address|replace('\n', ', ') }}</div>
+            </div>
+          </div>
+          <div class="field">
+            <div>
+              <div class="lbl">{{ t('donate.hours', _l) }}</div>
+              <div class="val" style="font-family:'Jost',sans-serif;">{{ site.contact_hours|replace('\n', '. ') }}</div>
+            </div>
+          </div>
+          <div class="field">
+            <div>
+              <div class="lbl">{{ t('donate.phone', _l) }}</div>
+              <div class="val" style="font-family:'Jost',sans-serif;">{{ site.contact_phones.split('\n')[0] if site.contact_phones else '' }}</div>
+            </div>
+          </div>
+
+          <p class="small">{% if _l == 'en' %}If you plan a large gift — please call ahead so we can arrange a convenient time.
+              {% elif _l == 'be' %}Калі плануеце буйное ахвяраванне — патэлефануйце загадзя, мы ўзгоднім зручны час.
+              {% else %}Если планируете крупное пожертвование — заранее позвоните, мы согласуем удобное время.{% endif %}</p>
+        </div>
+        {% endif %}
+
+        {% if _crypto_on %}
+        {# Per-network and per-coin enable flags #}
+        {% set _trc_on = site.donate_crypto_usdt_trc20_enabled == '1' and site.donate_crypto_usdt_trc20 %}
+        {% set _bsc_on = site.donate_crypto_usdt_bsc_enabled   == '1' and site.donate_crypto_usdt_bsc %}
+        {% set _sol_on = site.donate_crypto_usdt_sol_enabled   == '1' and site.donate_crypto_usdt_sol %}
+        {% set _ton_on = site.donate_crypto_usdt_ton_enabled   == '1' and site.donate_crypto_usdt_ton %}
+        {% set _btc_on = site.donate_crypto_btc_enabled        == '1' and site.donate_crypto_btc %}
+        {% set _eth_on = site.donate_crypto_eth_enabled        == '1' and site.donate_crypto_eth %}
+        {% set _usdt_any = _trc_on or _bsc_on or _sol_on or _ton_on %}
+
+        <!-- ===== CRYPTO ===== -->
+        <div class="method-panel{% if not _first_panel.set %} active{% set _first_panel.set = True %}{% endif %}" data-panel="crypto">
+          <h3>{{ t('donate.crypto.title', _l) }}</h3>
+          <p>{{ t('donate.crypto.lead', _l) }}</p>
+
+          {% if _usdt_any %}
+          {% set _default_net = 'trc20' if _trc_on else ('bsc' if _bsc_on else ('sol' if _sol_on else 'ton')) %}
+          <div class="crypto-coin-block">
+            <div class="crypto-coin-header">
+              <span class="crypto-coin-name">USDT</span>
+              <div class="net-switcher" id="usdtNetSwitcher">
+                {% if _trc_on %}<button class="net-btn{% if _default_net == 'trc20' %} active{% endif %}" data-net="trc20" type="button">TRC-20</button>{% endif %}
+                {% if _bsc_on %}<button class="net-btn{% if _default_net == 'bsc' %} active{% endif %}" data-net="bsc" type="button">BSC</button>{% endif %}
+                {% if _sol_on %}<button class="net-btn{% if _default_net == 'sol' %} active{% endif %}" data-net="sol" type="button">SOL</button>{% endif %}
+                {% if _ton_on %}<button class="net-btn{% if _default_net == 'ton' %} active{% endif %}" data-net="ton" type="button">TON</button>{% endif %}
+              </div>
+            </div>
+
+            <div class="field">
+              <div style="min-width:0; flex:1;">
+                <div class="lbl">{{ t('donate.crypto.address', _l) }}</div>
+                <div class="val crypto-addr" id="cryptoUsdt">{{ site['donate_crypto_usdt_' ~ _default_net] }}</div>
+              </div>
+              <button type="button" class="copy" data-copy="cryptoUsdt">{{ t('donate.copy', _l) }}</button>
+            </div>
+
+            <p class="crypto-qr-hint" id="usdtNetHint">
+              {{ t('donate.crypto.hint.' ~ _default_net, _l)|safe }}
+            </p>
+          </div>
+
+          <script>
+          (function () {
+            var nets = {
+              {% if _trc_on %}trc20: { addr: {{ site.donate_crypto_usdt_trc20|tojson }}, hint: {{ t('donate.crypto.hint.trc20', _l)|tojson }} },{% endif %}
+              {% if _bsc_on %}bsc:   { addr: {{ site.donate_crypto_usdt_bsc|tojson }},   hint: {{ t('donate.crypto.hint.bsc', _l)|tojson }} },{% endif %}
+              {% if _sol_on %}sol:   { addr: {{ site.donate_crypto_usdt_sol|tojson }},   hint: {{ t('donate.crypto.hint.sol', _l)|tojson }} },{% endif %}
+              {% if _ton_on %}ton:   { addr: {{ site.donate_crypto_usdt_ton|tojson }},   hint: {{ t('donate.crypto.hint.ton', _l)|tojson }} }{% endif %}
+            };
+            var addrEl = document.getElementById('cryptoUsdt');
+            var hintEl = document.getElementById('usdtNetHint');
+            var sw = document.getElementById('usdtNetSwitcher');
+            if (sw) sw.addEventListener('click', function (e) {
+              var btn = e.target.closest('.net-btn');
+              if (!btn) return;
+              var net = btn.getAttribute('data-net');
+              if (!nets[net]) return;
+              sw.querySelectorAll('.net-btn').forEach(function (b) { b.classList.toggle('active', b === btn); });
+              addrEl.textContent = nets[net].addr;
+              hintEl.innerHTML = nets[net].hint;
+            });
+          })();
+          </script>
+          {% endif %}
+
+          {% if _btc_on %}
+          <div class="crypto-coin-block">
+            <div class="crypto-coin-header">
+              <span class="crypto-coin-name">BTC</span>
+              <span class="crypto-network-badge">Bitcoin</span>
+            </div>
+            <div class="field">
+              <div style="min-width:0; flex:1;">
+                <div class="lbl">{{ t('donate.crypto.address', _l) }}</div>
+                <div class="val crypto-addr" id="cryptoBtc">{{ site.donate_crypto_btc }}</div>
+              </div>
+              <button type="button" class="copy" data-copy="cryptoBtc">{{ t('donate.copy', _l) }}</button>
+            </div>
+            <p class="crypto-qr-hint">{{ t('donate.crypto.hint.btc', _l)|safe }}</p>
+          </div>
+          {% endif %}
+
+          {% if _eth_on %}
+          <div class="crypto-coin-block">
+            <div class="crypto-coin-header">
+              <span class="crypto-coin-name">ETH</span>
+              <span class="crypto-network-badge">Ethereum</span>
+            </div>
+            <div class="field">
+              <div style="min-width:0; flex:1;">
+                <div class="lbl">{{ t('donate.crypto.address', _l) }}</div>
+                <div class="val crypto-addr" id="cryptoEth">{{ site.donate_crypto_eth }}</div>
+              </div>
+              <button type="button" class="copy" data-copy="cryptoEth">{{ t('donate.copy', _l) }}</button>
+            </div>
+            <p class="crypto-qr-hint">{{ t('donate.crypto.hint.eth', _l)|safe }}</p>
+          </div>
+          {% endif %}
+
+          {% if not (_usdt_any or _btc_on or _eth_on) %}
+          <div class="unavailable-notice">
+            <div class="lbl">{{ t('donate.method_unavailable_title', _l) }}</div>
+            <div class="msg">{% if _l == 'en' %}Crypto donations are being set up. Please use ERIP or bank transfer.
+                {% elif _l == 'be' %}Крыпта-ахвяраванні падключаюцца. Скарыстайцеся ЕРІП або банкаўскім пераказам.
+                {% else %}Криптовалютные пожертвования сейчас подключаются. Пожалуйста, воспользуйтесь ЕРИП или банковским переводом.{% endif %}</div>
+          </div>
+          {% endif %}
+
+          <div class="crypto-notice">
+            <span class="crypto-notice-icon">⚠</span>
+            <div>{{ t('donate.crypto.warn', _l) }}</div>
+          </div>
+          <p class="small">{{ t('donate.crypto.thanks', _l) }}</p>
+        </div>
+        {% endif %}
+
+        <div class="thank-you">
+          <p class="verse-text">{{ site.donate_thank_you }}</p>
+        </div>
       </div>
-      {% endif %}
     </div>
 
-    {# CARD #}
-    <div class="method-panel" data-panel="card">
-      <h3>
-        {%- if _l == 'be' %}Аплата банкаўскай картай
-        {%- elif _l == 'en' %}Pay by bank card
-        {%- else %}Оплата банковской картой
-        {%- endif %}
-      </h3>
-      <p>
-        {%- if _l == 'be' %}Прымаем Visa, MasterCard, Белкарт. Аплата праходзіць на&nbsp;абароненай старонцы банка-эквайра.
-        {%- elif _l == 'en' %}We accept Visa, MasterCard, Belkart. Payment is processed on the bank acquirer's secure page.
-        {%- else %}Принимаем Visa, MasterCard, Белкарт. Оплата проходит на&nbsp;защищённой странице банка-эквайра.
-        {%- endif %}
-      </p>
-
-      {% if site.donate_card_url %}
-      <div class="cta-row">
-        <a class="btn btn-primary" id="cardLink" href="{{ site.donate_card_url }}" target="_blank" rel="noopener">
-          💳&nbsp;{{ t('donate.pay_button', _l) }} <span id="cardAmount">100</span>&nbsp;BYN
-        </a>
-        <a class="btn btn-ghost" href="/">{{ t('donate.cancel', _l) }}</a>
-      </div>
-      {% else %}
-      <div class="field" style="display:block;">
-        <div class="lbl" style="margin-bottom:6px;">{{ t('donate.method_unavailable_title', _l) }}</div>
-        <div class="val" style="font-family:'Jost',sans-serif;">
-          {{ t('donate.method_unavailable_body', _l) }}
-        </div>
-      </div>
-      {% endif %}
-
-      <p class="small">Оплата проходит через&nbsp;стороннего платёжного провайдера, защищённое соединение TLS&nbsp;1.3. Колледж не&nbsp;хранит данные карт.</p>
-    </div>
-
-    {# BANK TRANSFER #}
-    <div class="method-panel" data-panel="bank">
-      <h3>
-        {%- if _l == 'be' %}Банкаўскі пераказ
-        {%- elif _l == 'en' %}Bank transfer
-        {%- else %}Банковский перевод
-        {%- endif %}
-      </h3>
-      <p>
-        {%- if _l == 'be' %}Можна пераказаць з&nbsp;любога банка ў&nbsp;Беларусі і з-за&nbsp;мяжы. Скарыстайцеся рэквізітамі ніжэй.
-        {%- elif _l == 'en' %}You can transfer from any bank in Belarus and from abroad. Use the details below.
-        {%- else %}Можно перевести из&nbsp;любого банка в&nbsp;Беларуси и&nbsp;из-за&nbsp;рубежа. Используйте реквизиты&nbsp;ниже.
-        {%- endif %}
-      </p>
-
-      <div class="field">
-        <div>
-          <div class="lbl">{{ t('donate.recipient', _l) }}</div>
-          <div class="val" id="bankName">{{ site.donate_bank_recipient }}</div>
-        </div>
-        <button type="button" class="copy" data-copy="bankName">{{ t('donate.copy', _l) }}</button>
-      </div>
-      <div class="field">
-        <div>
-          <div class="lbl">{{ t('donate.bank', _l) }}</div>
-          <div class="val" id="bankBank">{{ site.donate_bank_name }}</div>
-        </div>
-        <button type="button" class="copy" data-copy="bankBank">{{ t('donate.copy', _l) }}</button>
-      </div>
-      <div class="field">
-        <div>
-          <div class="lbl">{{ t('donate.iban', _l) }}</div>
-          <div class="val" id="bankIban">{{ site.donate_bank_iban }}</div>
-        </div>
-        <button type="button" class="copy" data-copy="bankIban">{{ t('donate.copy', _l) }}</button>
-      </div>
-      <div class="field">
-        <div>
-          <div class="lbl">{{ t('donate.swift', _l) }}</div>
-          <div class="val" id="bankBic">{{ site.donate_bank_bic }}</div>
-        </div>
-        <button type="button" class="copy" data-copy="bankBic">{{ t('donate.copy', _l) }}</button>
-      </div>
-      <div class="field">
-        <div>
-          <div class="lbl">{{ t('donate.unp', _l) }}</div>
-          <div class="val" id="bankUnp">{{ site.donate_bank_unp }}</div>
-        </div>
-        <button type="button" class="copy" data-copy="bankUnp">{{ t('donate.copy', _l) }}</button>
-      </div>
-      <div class="field">
-        <div>
-          <div class="lbl">{{ t('donate.purpose', _l) }}</div>
-          <div class="val">{{ t('donate.purpose_text', _l) }}</div>
-        </div>
-      </div>
-
-      <p class="small">При&nbsp;переводе из-за&nbsp;границы укажите назначение по-английски: <i>«Voluntary donation for educational activities»</i>.</p>
-    </div>
-
-    <!-- ===== CASH ===== -->
-    <div class="method-panel" data-panel="cash">
-      <h3>Наличными в&nbsp;колледже</h3>
-      <p>Вы можете передать пожертвование лично — в&nbsp;офисе колледжа или после&nbsp;богослужения.</p>
-
-      <div class="field">
-        <div>
-          <div class="lbl">{{ t('donate.address', _l) }}</div>
-          <div class="val" style="font-family:'Jost',sans-serif;">{{ site.contact_address|replace('\n', ', ') }}</div>
-        </div>
-      </div>
-      <div class="field">
-        <div>
-          <div class="lbl">{{ t('donate.hours', _l) }}</div>
-          <div class="val" style="font-family:'Jost',sans-serif;">{{ site.contact_hours|replace('\n', '. ') }}</div>
-        </div>
-      </div>
-      <div class="field">
-        <div>
-          <div class="lbl">{{ t('donate.phone', _l) }}</div>
-          <div class="val" style="font-family:'Jost',sans-serif;">{{ site.contact_phones.split('\n')[0] if site.contact_phones else '' }}</div>
-        </div>
-      </div>
-
-      <p class="small">Если планируете крупное пожертвование — заранее позвоните, мы согласуем удобное время.</p>
-    </div>
-
-    <div class="thank-you">
-      <p class="verse">{{ site.donate_thank_you }}</p>
-    </div>
   </div>
 </section>
 
 <!-- ===== Why donate ===== -->
 <section class="why">
+  <div class="why-header">
+    <div class="section-label">{% if _l == 'en' %}Your support helps{% elif _l == 'be' %}Ваша падтрымка дапамагае{% else %}Ваша поддержка помогает{% endif %}</div>
+    <h2 class="section-title" style="color:var(--cream); font-weight:300;">{% if _l == 'en' %}Where donations go{% elif _l == 'be' %}Куды ідуць ахвяраванні{% else %}Куда идут пожертвования{% endif %}</h2>
+    <div class="why-divider"></div>
+  </div>
   <div class="why-inner">
     <div class="why-card">
-      <div class="ic">🎓</div>
+      <span class="ic">🎓</span>
       <h3>{{ t('donate.why_title.1', _l) }}</h3>
       <p>{{ t('donate.why_text.1', _l) }}</p>
     </div>
     <div class="why-card">
-      <div class="ic">📚</div>
+      <span class="ic">📚</span>
       <h3>{{ t('donate.why_title.2', _l) }}</h3>
       <p>{{ t('donate.why_text.2', _l) }}</p>
     </div>
     <div class="why-card">
-      <div class="ic">⛪</div>
+      <span class="ic">⛪</span>
       <h3>{{ t('donate.why_title.3', _l) }}</h3>
       <p>{{ t('donate.why_text.3', _l) }}</p>
     </div>
@@ -787,9 +1297,7 @@
 
 <!-- ===== Footer ===== -->
 <footer>
-  <div>
-    © {{ site.donate_eyebrow }} · ХДН Библейский Колледж · <a href="/">{{ t('footer.home', _l) }}</a>
-  </div>
+  © {{ site.donate_eyebrow }} · {{ site.site_title }} · <a href="/?lang={{ _l }}">{{ t('footer.home', _l) }}</a>
 </footer>
 
 <div class="toast" id="toast">{{ t('donate.copied', _l) }}</div>
@@ -815,7 +1323,6 @@
       var sep = u.indexOf('?') >= 0 ? '&' : '?';
       cardLink.setAttribute('href', cardLink.getAttribute('data-base') + sep + 'amount=' + n);
     }
-    // toggle .active
     grid.querySelectorAll('.amount-btn').forEach(function (b) {
       b.classList.toggle('active', parseInt(b.getAttribute('data-amount'), 10) === n);
     });
@@ -840,10 +1347,12 @@
 
   // ---- Copy buttons ----
   var toast = document.getElementById('toast');
+  var COPY_LABEL = {{ t('donate.copy', _l)|tojson }};
+  var COPIED_LABEL = {{ t('donate.copied', _l)|tojson }};
   function showToast(msg) {
     toast.textContent = msg;
     toast.classList.add('show');
-    setTimeout(function () { toast.classList.remove('show'); }, 1600);
+    setTimeout(function () { toast.classList.remove('show'); }, 1800);
   }
   document.querySelectorAll('.copy').forEach(function (btn) {
     btn.addEventListener('click', function () {
@@ -851,21 +1360,26 @@
       var el = document.getElementById(id);
       if (!el) return;
       var txt = el.textContent.trim();
+      function done() {
+        btn.classList.add('copied');
+        btn.textContent = '✓ ' + COPIED_LABEL;
+        showToast(COPIED_LABEL + ': ' + txt);
+        setTimeout(function () {
+          btn.classList.remove('copied');
+          btn.textContent = COPY_LABEL;
+        }, 1900);
+      }
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(txt).then(function () {
-          btn.classList.add('copied');
-          btn.textContent = '✓ Скопировано';
-          showToast('Скопировано: ' + txt);
-          setTimeout(function () {
-            btn.classList.remove('copied');
-            btn.textContent = 'Копировать';
-          }, 1800);
-        });
+        navigator.clipboard.writeText(txt).then(done, function () {});
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = txt; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) {}
+        document.body.removeChild(ta);
       }
     });
   });
 
-  // ---- Init defaults ----
   setAmount(input.value);
 })();
 </script>
