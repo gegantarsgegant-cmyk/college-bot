@@ -103,11 +103,12 @@ def admin_menu_kb(stats: dict[str, int] | None = None) -> InlineKeyboardMarkup:
 def application_kb(app_id: int) -> InlineKeyboardMarkup:
     rows: list[list[InlineKeyboardButton]] = [
         [
-            InlineKeyboardButton(text="⏳ В работу", callback_data=f"app:in_progress:{app_id}"),
-            InlineKeyboardButton(text="✅ Принять", callback_data=f"app:accepted:{app_id}"),
+            InlineKeyboardButton(text="📞 Связались", callback_data=f"app:contacted:{app_id}"),
+            InlineKeyboardButton(text="📄 Документы", callback_data=f"app:docs_submitted:{app_id}"),
         ],
         [
-            InlineKeyboardButton(text="✖ Отклонить", callback_data=f"app:rejected:{app_id}"),
+            InlineKeyboardButton(text="✅ Зачислить", callback_data=f"app:accepted:{app_id}"),
+            InlineKeyboardButton(text="✖ Отказ", callback_data=f"app:rejected:{app_id}"),
         ],
     ]
     if _webapp_supported():
@@ -160,9 +161,10 @@ def _format_stats(stats: dict[str, int]) -> str:
     return (
         "📊 <b>Статистика заявок</b>\n\n"
         f"📥 Новые: <b>{stats.get('new', 0)}</b>\n"
-        f"⏳ В работе: <b>{stats.get('in_progress', 0)}</b>\n"
-        f"✅ Принятые: <b>{stats.get('accepted', 0)}</b>\n"
-        f"✖ Отклонённые: <b>{stats.get('rejected', 0)}</b>\n"
+        f"📞 Связались: <b>{stats.get('contacted', 0)}</b>\n"
+        f"📄 Документы: <b>{stats.get('docs_submitted', 0)}</b>\n"
+        f"✅ Зачислены: <b>{stats.get('accepted', 0)}</b>\n"
+        f"✖ Отказы: <b>{stats.get('rejected', 0)}</b>\n"
         f"━━━━━━━━━━━━━\n"
         f"📊 Всего: <b>{stats.get('total', 0)}</b>"
     )
@@ -238,9 +240,10 @@ async def application_action(cb: CallbackQuery):
         await cb.answer("Не найдено", show_alert=True)
         return
     label_map = {
-        "in_progress": ("⏳", "В работе"),
-        "accepted": ("✅", "Принято"),
-        "rejected": ("✖", "Отклонено"),
+        "contacted": ("📞", "Связались"),
+        "docs_submitted": ("📄", "Документы поданы"),
+        "accepted": ("✅", "Зачислен"),
+        "rejected": ("✖", "Отказ"),
         "new": ("📥", "Новая"),
     }
     icon, label = label_map.get(status, ("•", status))

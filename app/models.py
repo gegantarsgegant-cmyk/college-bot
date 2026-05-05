@@ -14,10 +14,31 @@ def _utcnow() -> datetime:
 
 
 class ApplicationStatus(StrEnum):
+    """CRM funnel stages for incoming applications."""
+
     new = "new"
-    in_progress = "in_progress"
+    contacted = "contacted"
+    docs_submitted = "docs_submitted"
     accepted = "accepted"
     rejected = "rejected"
+
+
+# Display labels for each status. The kanban order follows this dict.
+STATUS_LABELS: dict[str, str] = {
+    "new": "Новая",
+    "contacted": "Связались",
+    "docs_submitted": "Документы поданы",
+    "accepted": "Зачислена",
+    "rejected": "Отказ",
+}
+
+STATUS_EMOJI: dict[str, str] = {
+    "new": "📥",
+    "contacted": "📞",
+    "docs_submitted": "📄",
+    "accepted": "✅",
+    "rejected": "✖",
+}
 
 
 class AdminUser(Base):
@@ -113,6 +134,12 @@ class Application(Base):
     admin_comment: Mapped[str] = mapped_column(Text, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
     notified_message_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # ---- CRM fields ----
+    tags: Mapped[list] = mapped_column(JSON, default=list)
+    history: Mapped[list] = mapped_column(JSON, default=list)
+    last_contacted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
+    assigned_to: Mapped[str] = mapped_column(String(120), default="", index=True)
+    last_reminder_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
 class Program(Base):
@@ -162,6 +189,8 @@ class BotUser(Base):
 
 
 __all__ = [
+    "STATUS_EMOJI",
+    "STATUS_LABELS",
     "AdminUser",
     "Application",
     "ApplicationStatus",

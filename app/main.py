@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -24,6 +25,28 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 log = logging.getLogger("college")
 
 
+async def _stale_reminders_loop() -> None:
+    """Background task: every 12h check for stale applications and ping admins.
+
+    Cancellable via task.cancel() during shutdown.
+    """
+    from .bot.notifier import notify_stale_applications
+
+    # Wait a bit so the bot has time to start before the first check.
+    await asyncio.sleep(60)
+    while True:
+        try:
+            n = await notify_stale_applications()
+            if n:
+                log.info("Stale applications digest sent to %s admin chat(s)", n)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            log.warning("Stale-reminders task failed: %s", exc)
+        # Run twice a day. The notifier itself rate-limits per-application.
+        await asyncio.sleep(12 * 3600)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
@@ -36,9 +59,15 @@ async def lifespan(app: FastAPI):
         await start_bot()
     else:
         log.warning("Bot disabled (no TELEGRAM_BOT_TOKEN). Web only.")
+    reminder_task = asyncio.create_task(_stale_reminders_loop())
     try:
         yield
     finally:
+        reminder_task.cancel()
+        try:
+            await reminder_task
+        except (asyncio.CancelledError, Exception):
+            pass
         await shutdown_bot()
 
 

@@ -19,10 +19,15 @@
     <div class="num">{{ counts.apps.new or 0 }}</div>
     <div class="lbl">не обработано</div>
   </a>
-  <a class="stat-tile" href="/admin/applications?status=in_progress">
-    <div class="stat-head"><span>В работе</span><span>⏳</span></div>
-    <div class="num">{{ counts.apps.in_progress or 0 }}</div>
-    <div class="lbl">в обработке</div>
+  <a class="stat-tile" href="/admin/applications?status=contacted">
+    <div class="stat-head"><span>Связались</span><span>📞</span></div>
+    <div class="num">{{ counts.apps.contacted or 0 }}</div>
+    <div class="lbl">в работе</div>
+  </a>
+  <a class="stat-tile" href="/admin/applications?status=docs_submitted">
+    <div class="stat-head"><span>Документы</span><span>📄</span></div>
+    <div class="num">{{ counts.apps.docs_submitted or 0 }}</div>
+    <div class="lbl">поданы</div>
   </a>
   <a class="stat-tile" href="/admin/applications?status=accepted">
     <div class="stat-head"><span>Принято</span><span>✅</span></div>
@@ -70,7 +75,8 @@
           <div class="app-id">№{{ app.id }} · {{ app.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
         </div>
         {% if app.status == "new" %}<span class="pill pill-new">Новая</span>
-        {% elif app.status == "in_progress" %}<span class="pill pill-progress">В работе</span>
+        {% elif app.status == "contacted" %}<span class="pill pill-progress">Связались</span>
+        {% elif app.status == "docs_submitted" %}<span class="pill pill-progress">Документы</span>
         {% elif app.status == "accepted" %}<span class="pill pill-accepted">Принята</span>
         {% elif app.status == "rejected" %}<span class="pill pill-rejected">Отклонена</span>{% endif %}
       </div>

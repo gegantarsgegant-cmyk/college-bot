@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import secrets as _secrets
+from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, UploadFile
@@ -37,6 +38,7 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 from .site import nl2br as _nl2br  # noqa: E402
 
 templates.env.filters["nl2br"] = _nl2br
+templates.env.globals["now"] = lambda: datetime.utcnow()
 
 
 def _redirect_login() -> RedirectResponse:
@@ -220,21 +222,82 @@ async def dashboard(request: Request, session: AsyncSession = Depends(get_sessio
     )
 
 
-# ----------------- Applications -----------------
+# ----------------- Applications (CRM) -----------------
+
+def _parse_date(s: str):
+    from datetime import datetime as _dt
+
+    if not s:
+        return None
+    for fmt in ("%Y-%m-%d", "%d.%m.%Y"):
+        try:
+            return _dt.strptime(s, fmt)
+        except ValueError:
+            pass
+    return None
+
 
 @router.get("/applications", response_class=HTMLResponse)
 async def applications_list(
     request: Request,
     status: str = "",
+    program: str = "",
+    q: str = "",
+    date_from: str = "",
+    date_to: str = "",
+    view: str = "kanban",
     session: AsyncSession = Depends(get_session),
 ):
     if not current_admin(request):
         return _redirect_login()
-    apps = await list_applications(session, status=status or None, limit=500)
+    df = _parse_date(date_from)
+    dt_ = _parse_date(date_to)
+    if dt_ is not None:
+        # include the whole "to" day
+        from datetime import timedelta as _td
+        dt_ = dt_ + _td(days=1)
+    apps = await list_applications(
+        session,
+        status=status or None,
+        program=program or None,
+        date_from=df,
+        date_to=dt_,
+        search=q or None,
+        limit=1000,
+    )
     stats = await application_stats(session)
+    # Group by status for kanban view, preserving the funnel order.
+    grouped: dict[str, list] = {s.value: [] for s in models.ApplicationStatus}
+    for a in apps:
+        grouped.setdefault(a.status, []).append(a)
+    # Distinct programs for the filter dropdown — pull titles from the table.
+    programs = list(
+        (
+            await session.execute(
+                select(models.Program.title)
+                .where(models.Program.published.is_(True))
+                .order_by(models.Program.sort_order.asc())
+            )
+        )
+        .scalars()
+        .all()
+    )
     return await _render(
         request, session, "admin/applications.html",
-        {"applications": apps, "status": status, "stats": stats},
+        {
+            "applications": apps,
+            "grouped": grouped,
+            "status": status,
+            "program": program,
+            "q": q,
+            "date_from": date_from,
+            "date_to": date_to,
+            "view": view if view in {"kanban", "list"} else "kanban",
+            "stats": stats,
+            "programs_list": programs,
+            "status_labels": models.STATUS_LABELS,
+            "status_emoji": models.STATUS_EMOJI,
+        },
     )
 
 
@@ -251,7 +314,164 @@ async def applications_set_status(
     if new_status not in {s.value for s in models.ApplicationStatus}:
         raise HTTPException(400, "Bad status")
     await update_application_status(session, app_id, new_status, admin_comment)
+    # AJAX request from the kanban board → return JSON; HTML form posts redirect.
+    if (request.headers.get("X-Requested-With") or "").lower() == "fetch":
+        return JSONResponse({"ok": True})
     return RedirectResponse("/admin/applications", status_code=303)
+
+
+@router.get("/applications/{app_id}", response_class=HTMLResponse)
+async def applications_detail(
+    request: Request, app_id: int, session: AsyncSession = Depends(get_session)
+):
+    if not current_admin(request):
+        return _redirect_login()
+    obj = await session.get(models.Application, app_id)
+    if obj is None:
+        raise HTTPException(404)
+    return JSONResponse(
+        {
+            "id": obj.id,
+            "name": obj.name,
+            "lastname": obj.lastname,
+            "phone": obj.phone,
+            "program": obj.program,
+            "church": obj.church,
+            "note": obj.note,
+            "status": obj.status,
+            "status_label": models.STATUS_LABELS.get(obj.status, obj.status),
+            "admin_comment": obj.admin_comment,
+            "tags": obj.tags or [],
+            "assigned_to": obj.assigned_to or "",
+            "history": obj.history or [],
+            "last_contacted_at": (
+                obj.last_contacted_at.isoformat() if obj.last_contacted_at else None
+            ),
+            "created_at": obj.created_at.isoformat() if obj.created_at else None,
+        }
+    )
+
+
+@router.post("/applications/{app_id}/note")
+async def applications_add_note(
+    request: Request,
+    app_id: int,
+    note: str = Form(...),
+    session: AsyncSession = Depends(get_session),
+):
+    if not current_admin(request):
+        return _redirect_login()
+    from ..services import add_application_note
+
+    await add_application_note(session, app_id, note, who=current_admin(request) or "admin")
+    if (request.headers.get("X-Requested-With") or "").lower() == "fetch":
+        return JSONResponse({"ok": True})
+    return RedirectResponse("/admin/applications", status_code=303)
+
+
+@router.post("/applications/{app_id}/contact")
+async def applications_mark_contact(
+    request: Request, app_id: int, session: AsyncSession = Depends(get_session)
+):
+    if not current_admin(request):
+        return _redirect_login()
+    from ..services import mark_application_contacted
+
+    await mark_application_contacted(session, app_id, who=current_admin(request) or "admin")
+    return JSONResponse({"ok": True})
+
+
+@router.post("/applications/{app_id}/tags")
+async def applications_set_tags(
+    request: Request,
+    app_id: int,
+    tags: str = Form(""),
+    session: AsyncSession = Depends(get_session),
+):
+    if not current_admin(request):
+        return _redirect_login()
+    from ..services import update_application_tags
+
+    parts = [t.strip() for t in tags.replace(";", ",").split(",")]
+    await update_application_tags(session, app_id, parts, who=current_admin(request) or "admin")
+    return JSONResponse({"ok": True})
+
+
+@router.post("/applications/{app_id}/assign")
+async def applications_set_assigned(
+    request: Request,
+    app_id: int,
+    assigned_to: str = Form(""),
+    session: AsyncSession = Depends(get_session),
+):
+    if not current_admin(request):
+        return _redirect_login()
+    from ..services import assign_application
+
+    await assign_application(session, app_id, assigned_to, who=current_admin(request) or "admin")
+    return JSONResponse({"ok": True})
+
+
+@router.get("/applications.csv")
+async def applications_export_csv(
+    request: Request,
+    status: str = "",
+    program: str = "",
+    q: str = "",
+    date_from: str = "",
+    date_to: str = "",
+    session: AsyncSession = Depends(get_session),
+):
+    if not current_admin(request):
+        return _redirect_login()
+    import csv
+    import io
+
+    df = _parse_date(date_from)
+    dt_ = _parse_date(date_to)
+    if dt_ is not None:
+        from datetime import timedelta as _td
+        dt_ = dt_ + _td(days=1)
+    apps = await list_applications(
+        session,
+        status=status or None,
+        program=program or None,
+        date_from=df,
+        date_to=dt_,
+        search=q or None,
+        limit=10_000,
+    )
+    buf = io.StringIO()
+    # UTF-8 BOM for Excel
+    buf.write("\ufeff")
+    writer = csv.writer(buf, delimiter=";")
+    writer.writerow([
+        "ID", "Дата", "Имя", "Фамилия", "Телефон", "Программа",
+        "Церковь", "Сообщение", "Статус", "Ответственный", "Теги",
+        "Последний контакт", "Комментарий",
+    ])
+    for a in apps:
+        writer.writerow([
+            a.id,
+            a.created_at.strftime("%d.%m.%Y %H:%M") if a.created_at else "",
+            a.name, a.lastname, a.phone, a.program, a.church,
+            (a.note or "").replace("\n", " "),
+            models.STATUS_LABELS.get(a.status, a.status),
+            a.assigned_to or "",
+            ", ".join(a.tags or []),
+            a.last_contacted_at.strftime("%d.%m.%Y %H:%M") if a.last_contacted_at else "",
+            (a.admin_comment or "").replace("\n", " "),
+        ])
+    from datetime import datetime as _dt
+
+    fname = f"applications-{_dt.utcnow():%Y%m%d-%H%M%S}.csv"
+    from fastapi.responses import Response
+
+    return Response(
+        content=buf.getvalue().encode("utf-8"),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{fname}"'},
+    )
 
 
 # ----------------- Generic CRUD helpers -----------------

@@ -154,6 +154,15 @@ async def ensure_default_teachers(session: AsyncSession) -> None:
 
 # ---------------- Applications ----------------
 
+def _new_history_event(kind: str, text: str = "", who: str = "system") -> dict[str, Any]:
+    return {
+        "ts": datetime.utcnow().isoformat(timespec="seconds"),
+        "who": who,
+        "kind": kind,  # created | status | note | contact | tag | assign
+        "text": text,
+    }
+
+
 async def create_application(session: AsyncSession, data: dict[str, Any]) -> models.Application:
     obj = models.Application(
         name=(data.get("name") or "").strip()[:120],
@@ -162,6 +171,8 @@ async def create_application(session: AsyncSession, data: dict[str, Any]) -> mod
         program=(data.get("program") or "").strip()[:64],
         church=(data.get("church") or "").strip()[:255],
         note=(data.get("note") or "").strip(),
+        tags=[],
+        history=[_new_history_event("created", "Заявка получена с сайта")],
     )
     session.add(obj)
     await session.commit()
@@ -173,11 +184,33 @@ async def list_applications(
     session: AsyncSession,
     *,
     status: str | None = None,
-    limit: int = 200,
+    program: str | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    search: str | None = None,
+    limit: int = 500,
 ) -> list[models.Application]:
     stmt = select(models.Application).order_by(models.Application.created_at.desc()).limit(limit)
     if status:
         stmt = stmt.where(models.Application.status == status)
+    if program:
+        stmt = stmt.where(models.Application.program == program)
+    if date_from:
+        stmt = stmt.where(models.Application.created_at >= date_from)
+    if date_to:
+        stmt = stmt.where(models.Application.created_at <= date_to)
+    if search:
+        from sqlalchemy import or_
+
+        like = f"%{search.strip()}%"
+        stmt = stmt.where(
+            or_(
+                models.Application.name.ilike(like),
+                models.Application.lastname.ilike(like),
+                models.Application.phone.ilike(like),
+                models.Application.church.ilike(like),
+            )
+        )
     return list((await session.execute(stmt)).scalars().all())
 
 
@@ -198,18 +231,132 @@ async def application_stats(session: AsyncSession) -> dict[str, int]:
     return counts
 
 
+def _append_history(obj: models.Application, event: dict[str, Any]) -> None:
+    """Append an event to the application's history JSON list (in place)."""
+    h = list(obj.history or [])
+    h.append(event)
+    obj.history = h
+
+
 async def update_application_status(
-    session: AsyncSession, app_id: int, status: str, admin_comment: str = ""
+    session: AsyncSession,
+    app_id: int,
+    status: str,
+    admin_comment: str = "",
+    who: str = "admin",
 ) -> models.Application | None:
     obj = await session.get(models.Application, app_id)
     if obj is None:
         return None
-    obj.status = status
+    if obj.status != status:
+        from .models import STATUS_LABELS
+
+        prev_lbl = STATUS_LABELS.get(obj.status, obj.status)
+        new_lbl = STATUS_LABELS.get(status, status)
+        _append_history(
+            obj,
+            _new_history_event(
+                "status", f"{prev_lbl} → {new_lbl}", who=who
+            ),
+        )
+        obj.status = status
+        # When the admin marks the application as 'contacted' we log this as
+        # the most recent contact moment so the stale-reminder skips it.
+        if status in {"contacted", "docs_submitted"}:
+            obj.last_contacted_at = datetime.utcnow()
     if admin_comment:
         obj.admin_comment = admin_comment
     await session.commit()
     await session.refresh(obj)
     return obj
+
+
+async def add_application_note(
+    session: AsyncSession, app_id: int, text: str, who: str = "admin"
+) -> models.Application | None:
+    obj = await session.get(models.Application, app_id)
+    if obj is None or not text.strip():
+        return obj
+    _append_history(obj, _new_history_event("note", text.strip()[:2000], who=who))
+    await session.commit()
+    await session.refresh(obj)
+    return obj
+
+
+async def mark_application_contacted(
+    session: AsyncSession, app_id: int, who: str = "admin"
+) -> models.Application | None:
+    obj = await session.get(models.Application, app_id)
+    if obj is None:
+        return None
+    obj.last_contacted_at = datetime.utcnow()
+    _append_history(obj, _new_history_event("contact", "Связались с абитуриентом", who=who))
+    await session.commit()
+    await session.refresh(obj)
+    return obj
+
+
+async def update_application_tags(
+    session: AsyncSession, app_id: int, tags: list[str], who: str = "admin"
+) -> models.Application | None:
+    obj = await session.get(models.Application, app_id)
+    if obj is None:
+        return None
+    cleaned = [t.strip()[:32] for t in tags if t and t.strip()]
+    cleaned = list(dict.fromkeys(cleaned))[:12]
+    if list(obj.tags or []) != cleaned:
+        obj.tags = cleaned
+        _append_history(
+            obj,
+            _new_history_event("tag", "Теги: " + (", ".join(cleaned) or "—"), who=who),
+        )
+    await session.commit()
+    await session.refresh(obj)
+    return obj
+
+
+async def assign_application(
+    session: AsyncSession, app_id: int, assigned_to: str, who: str = "admin"
+) -> models.Application | None:
+    obj = await session.get(models.Application, app_id)
+    if obj is None:
+        return None
+    name = (assigned_to or "").strip()[:120]
+    if obj.assigned_to != name:
+        obj.assigned_to = name
+        _append_history(
+            obj,
+            _new_history_event("assign", f"Ответственный: {name or '—'}", who=who),
+        )
+    await session.commit()
+    await session.refresh(obj)
+    return obj
+
+
+async def stale_applications(
+    session: AsyncSession, *, days: int = 3
+) -> list[models.Application]:
+    """Applications that haven't moved past 'new'/'contacted' for `days` days."""
+    from datetime import timedelta
+
+    cutoff = datetime.utcnow() - timedelta(days=days)
+    stmt = (
+        select(models.Application)
+        .where(models.Application.status.in_(["new", "contacted"]))
+        .where(models.Application.created_at <= cutoff)
+        .order_by(models.Application.created_at.asc())
+    )
+    rows = list((await session.execute(stmt)).scalars().all())
+    # Filter further: skip if last_contacted_at is recent, or last_reminder_at < 24h ago.
+    out: list[models.Application] = []
+    now = datetime.utcnow()
+    for r in rows:
+        if r.last_contacted_at and r.last_contacted_at >= cutoff:
+            continue
+        if r.last_reminder_at and (now - r.last_reminder_at) < timedelta(hours=20):
+            continue
+        out.append(r)
+    return out
 
 
 # ---------------- News / Events / Teachers / Gallery / Documents ----------------

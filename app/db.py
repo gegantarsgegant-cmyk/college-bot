@@ -58,3 +58,23 @@ def _apply_lightweight_migrations(sync_conn) -> None:
     for col, ddl in additions.items():
         if col not in documents_cols:
             sync_conn.execute(text(f"ALTER TABLE documents ADD COLUMN {col} {ddl}"))
+
+    # CRM fields on applications
+    apps_cols = _columns("applications")
+    apps_additions = {
+        "tags": "TEXT DEFAULT '[]'",
+        "history": "TEXT DEFAULT '[]'",
+        "last_contacted_at": "DATETIME",
+        "assigned_to": "VARCHAR(120) DEFAULT ''",
+        "last_reminder_at": "DATETIME",
+    }
+    for col, ddl in apps_additions.items():
+        if col not in apps_cols:
+            sync_conn.execute(text(f"ALTER TABLE applications ADD COLUMN {col} {ddl}"))
+    # Rename legacy 'in_progress' status to the new 'contacted' label so the
+    # kanban shows existing applications in the right column.
+    sync_conn.execute(
+        text(
+            "UPDATE applications SET status='contacted' WHERE status='in_progress'"
+        )
+    )
