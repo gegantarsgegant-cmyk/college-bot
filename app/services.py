@@ -41,6 +41,23 @@ DEFAULT_SETTINGS: dict[str, str] = {
     ),
     "cookie_banner_terms_url": "",
     "cookie_banner_button_text": "Принимаю",
+    # ----- Donations -----
+    "donate_eyebrow": "Поддержать колледж",
+    "donate_title": "Ваше пожертвование — это служение",
+    "donate_lead": (
+        "Каждое пожертвование помогает нам обучать новых служителей, "
+        "поддерживать преподавателей и развивать программы Библейского колледжа. "
+        "Спасибо, что вы с нами."
+    ),
+    "donate_erip_path": "Образование и развитие → Высшее, среднее → Библейский Колледж ХДН",
+    "donate_erip_code": "уточните в банке",
+    "donate_bank_name": "ОАО «Беларусбанк», г. Минск",
+    "donate_bank_iban": "BY00 AKBB 0000 0000 0000 0000 0000",
+    "donate_bank_bic": "AKBBBY2X",
+    "donate_bank_recipient": "ХДН «Библейский Колледж»",
+    "donate_bank_unp": "100000000",
+    "donate_card_url": "",
+    "donate_thank_you": "Да благословит вас Господь!",
 }
 
 

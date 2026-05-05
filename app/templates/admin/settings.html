@@ -97,6 +97,48 @@
     </div>
   </div>
 
+  <div class="card">
+    <div class="card-header">
+      <h2>♥ Онлайн-пожертвования</h2>
+      <a href="/donate" target="_blank" class="btn btn-ghost btn-sm">Открыть страницу /donate ↗</a>
+    </div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">
+      Эти поля видны на отдельной странице <code>/donate</code> и в футере главной (ссылка «♥ Поддержать колледж»). Страница автономная (standalone HTML), её можно отдать дизайнеру для переработки — всё, что меняется здесь, подставляется в шаблон автоматически.
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Заголовок-надпись (eyebrow)</label><input type="text" name="donate_eyebrow" value="{{ site.donate_eyebrow }}"></div>
+      <div class="form-group"><label>Главный заголовок</label><input type="text" name="donate_title" value="{{ site.donate_title }}"></div>
+    </div>
+    <div class="form-group"><label>Текст-лид под заголовком</label><textarea name="donate_lead" rows="3">{{ site.donate_lead }}</textarea></div>
+    <div class="form-group"><label>Текст благодарности (внизу карточки)</label><input type="text" name="donate_thank_you" value="{{ site.donate_thank_you }}"></div>
+
+    <h3 style="margin:20px 0 8px;font-family:'Cormorant Garamond',serif;font-weight:500;">ЕРИП</h3>
+    <div class="form-row">
+      <div class="form-group"><label>Путь в дереве ЕРИП</label><input type="text" name="donate_erip_path" value="{{ site.donate_erip_path }}" placeholder="Образование и развитие → … → Библейский Колледж"></div>
+      <div class="form-group"><label>Код ЕРИП (необязательно)</label><input type="text" name="donate_erip_code" value="{{ site.donate_erip_code }}" placeholder="42010001"></div>
+    </div>
+
+    <h3 style="margin:20px 0 8px;font-family:'Cormorant Garamond',serif;font-weight:500;">Банковский перевод</h3>
+    <div class="form-row">
+      <div class="form-group"><label>Получатель</label><input type="text" name="donate_bank_recipient" value="{{ site.donate_bank_recipient }}"></div>
+      <div class="form-group"><label>Банк</label><input type="text" name="donate_bank_name" value="{{ site.donate_bank_name }}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>IBAN</label><input type="text" name="donate_bank_iban" value="{{ site.donate_bank_iban }}"></div>
+      <div class="form-group"><label>SWIFT/BIC</label><input type="text" name="donate_bank_bic" value="{{ site.donate_bank_bic }}"></div>
+      <div class="form-group"><label>УНП</label><input type="text" name="donate_bank_unp" value="{{ site.donate_bank_unp }}"></div>
+    </div>
+
+    <h3 style="margin:20px 0 8px;font-family:'Cormorant Garamond',serif;font-weight:500;">Карта онлайн</h3>
+    <div class="form-group">
+      <label>Ссылка на платёжную страницу банка-эквайра (если есть)</label>
+      <input type="text" name="donate_card_url" value="{{ site.donate_card_url }}" placeholder="https://payment-provider.by/checkout/…">
+      <div style="font-size:12px;color:var(--muted);margin-top:6px;">
+        Если поле пустое — на странице покажется сообщение «Способ временно недоступен». Когда подключите эквайрера (bePaid, WebPay, Click), вставьте сюда ссылку — кнопка «Оплатить» сразу появится.
+      </div>
+    </div>
+  </div>
+
   <button class="btn" type="submit"><span>💾</span>Сохранить</button>
 </form>
 {% endblock %}

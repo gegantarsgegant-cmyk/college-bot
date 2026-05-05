@@ -139,6 +139,20 @@ async def health() -> str:
     return "ok"
 
 
+# ---------------- Donations ----------------
+
+@router.get("/donate", response_class=HTMLResponse)
+async def donate_page(request: Request, session: AsyncSession = Depends(get_session)):
+    """Standalone donations page.
+
+    Pulls payment-method overrides from the Setting table when available
+    so the church admin can edit ЕРИП code, bank account, etc. via
+    /admin/settings without touching the template.
+    """
+    site = await get_settings_dict(session)
+    return templates.TemplateResponse(request, "donate.html", {"site": site})
+
+
 # ---------------- Public file-share download page ----------------
 
 async def _get_doc_by_slug(slug: str, session: AsyncSession) -> models.Document:
