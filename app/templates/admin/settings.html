@@ -6,7 +6,21 @@
     <h1 class="page-title">Настройки <em>сайта</em></h1>
     <div class="page-subtitle">Контакты, соцсети и тексты главной страницы</div>
   </div>
-  <button form="settings-form" class="btn" type="submit"><span>💾</span>Сохранить всё</button>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <a href="/admin/edit-homepage" class="btn btn-ghost" style="text-decoration:none;"><span>✎</span>Редактировать главную</a>
+    <button form="settings-form" class="btn" type="submit"><span>💾</span>Сохранить всё</button>
+  </div>
+</div>
+
+<div class="card" style="border-left:3px solid var(--gold,#C9A84C);">
+  <div class="card-header"><h2>✎ Визуальный редактор главной страницы</h2></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;padding:6px 0;">
+    <div style="color:rgba(250,246,238,0.78);max-width:640px;line-height:1.55;">
+      Откройте главную страницу в режиме редактирования. Кликайте по любому тексту — заголовкам секций, абзацам, описаниям — и редактируйте прямо на месте. После всех правок нажмите <strong>«Сохранить»</strong> в верхней панели.
+      <div style="margin-top:6px;font-size:0.85em;color:rgba(250,246,238,0.55);">Карточки программ, преподавателей, файлы и контакты редактируются в своих разделах админки.</div>
+    </div>
+    <a href="/admin/edit-homepage" class="btn" style="text-decoration:none;white-space:nowrap;"><span>✎</span>Открыть редактор</a>
+  </div>
 </div>
 
 <form method="post" action="/admin/settings" id="settings-form">

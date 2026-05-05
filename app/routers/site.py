@@ -95,8 +95,8 @@ async def _published_programs(session: AsyncSession) -> list[dict]:
     ]
 
 
-@router.get("/", response_class=HTMLResponse)
-async def index(request: Request, session: AsyncSession = Depends(get_session)):
+async def homepage_context(session: AsyncSession) -> dict:
+    """Shared context for the public homepage and the admin visual editor."""
     site = await get_settings_dict(session)
     teachers = await published_teachers(session)
     teachers_data = [
@@ -111,21 +111,27 @@ async def index(request: Request, session: AsyncSession = Depends(get_session)):
         }
         for t in teachers
     ]
-    return templates.TemplateResponse(
-        request,
-        "index.html",
-        {
-            "site": site,
-            "news": await latest_news(session, limit=4),
-            "events": await upcoming_events(session, limit=8),
-            "teachers": teachers_data,
-            "gallery": await published_gallery(session),
-            "documents": await published_documents(session),
-            "programs": await _published_programs(session),
-            "PUBLIC_URL": settings.PUBLIC_URL,
-            "BOT_USERNAME": "",  # filled in via /api/site-info if you want a Mini App link
-        },
-    )
+    cms_overrides = {
+        k[4:]: v for k, v in site.items() if k.startswith("cms_") and v
+    }
+    return {
+        "site": site,
+        "cms_overrides": cms_overrides,
+        "cms_edit": False,
+        "news": await latest_news(session, limit=4),
+        "events": await upcoming_events(session, limit=8),
+        "teachers": teachers_data,
+        "gallery": await published_gallery(session),
+        "documents": await published_documents(session),
+        "programs": await _published_programs(session),
+        "PUBLIC_URL": settings.PUBLIC_URL,
+        "BOT_USERNAME": "",  # filled in via /api/site-info if you want a Mini App link
+    }
+
+
+@router.get("/", response_class=HTMLResponse)
+async def index(request: Request, session: AsyncSession = Depends(get_session)):
+    return templates.TemplateResponse(request, "index.html", await homepage_context(session))
 
 
 @router.get("/healthz", response_class=HTMLResponse)

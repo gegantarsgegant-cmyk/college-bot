@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import re
 import secrets as _secrets
 from typing import Any
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,6 +32,11 @@ from ..uploads import save_document, save_image, save_shared_file  # noqa: F401
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+# Reuse filters defined on the public-site Jinja env (e.g. nl2br) so the admin
+# can render the public homepage in edit mode.
+from .site import nl2br as _nl2br  # noqa: E402
+
+templates.env.filters["nl2br"] = _nl2br
 
 
 def _redirect_login() -> RedirectResponse:
@@ -877,6 +883,63 @@ async def settings_save(request: Request, session: AsyncSession = Depends(get_se
         elif k in form:
             await set_setting(session, k, str(form[k]))
     return RedirectResponse("/admin/settings", status_code=303)
+
+
+# ----------------- Visual editor -----------------
+
+# Keys that may be overridden via the visual editor. We accept any key on POST
+# but cap the length to keep the settings table sane.
+_CMS_KEY_RE = re.compile(r"^[a-z][a-z0-9_.]{0,63}$")
+
+
+@router.get("/edit-homepage", response_class=HTMLResponse)
+async def edit_homepage(request: Request, session: AsyncSession = Depends(get_session)):
+    if not current_admin(request):
+        return _redirect_login()
+    from .site import homepage_context
+    ctx = await homepage_context(session)
+    ctx["cms_edit"] = True
+    return templates.TemplateResponse(request, "index.html", ctx)
+
+
+@router.post("/api/cms")
+async def api_cms_save(request: Request, session: AsyncSession = Depends(get_session)):
+    if not current_admin(request):
+        return JSONResponse({"ok": False, "error": "auth"}, status_code=401)
+    try:
+        payload = await request.json()
+    except Exception:
+        return JSONResponse({"ok": False, "error": "invalid_json"}, status_code=400)
+    if not isinstance(payload, dict):
+        return JSONResponse({"ok": False, "error": "invalid_payload"}, status_code=400)
+    saved = 0
+    for key, value in payload.items():
+        if not isinstance(key, str) or not _CMS_KEY_RE.match(key):
+            continue
+        if not isinstance(value, str):
+            continue
+        # Cap individual values to ~32KB to keep the row reasonable.
+        if len(value) > 32_000:
+            value = value[:32_000]
+        await set_setting(session, f"cms_{key}", value)
+        saved += 1
+    return {"ok": True, "saved": saved}
+
+
+@router.post("/api/cms/reset")
+async def api_cms_reset(request: Request, session: AsyncSession = Depends(get_session)):
+    """Delete all cms_* overrides — restores defaults from the template."""
+    if not current_admin(request):
+        return JSONResponse({"ok": False, "error": "auth"}, status_code=401)
+    rows = (
+        await session.execute(
+            select(models.Setting).where(models.Setting.key.like("cms_%"))
+        )
+    ).scalars().all()
+    for r in rows:
+        await session.delete(r)
+    await session.commit()
+    return {"ok": True, "removed": len(rows)}
 
 
 # ----------------- Change password -----------------

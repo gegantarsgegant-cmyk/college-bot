@@ -1969,7 +1969,7 @@
     </svg>
     <div class="hero-content">
       <div class="hero-eyebrow">{{ site.hero_eyebrow }}</div>
-      <h1 class="hero-title">Библейский<br><em>Колледж</em></h1>
+      <h1 class="hero-title" data-cms="hero.title">Библейский<br><em>Колледж</em></h1>
       <p class="hero-sub">{{ site.hero_subtitle }}</p>
       <div class="hero-cta">
         <button class="btn-primary" onclick="scrollToPrograms()">Выбрать программу</button>
@@ -1985,10 +1985,10 @@
   <!-- STATS -->
   <div class="stats-bar">
     <div class="stats-inner stagger-children">
-      <div class="stat-item"><div class="stat-num">{{ site.stats_directions }}</div><div class="stat-label">Направления</div></div>
-      <div class="stat-item"><div class="stat-num">{{ site.stats_years }}</div><div class="stat-label">Лет служения</div></div>
-      <div class="stat-item"><div class="stat-num">{{ site.stats_degrees }}</div><div class="stat-label">Степеней</div></div>
-      <div class="stat-item"><div class="stat-num">{{ site.stats_callings }}</div><div class="stat-label">Призваний</div></div>
+      <div class="stat-item"><div class="stat-num">{{ site.stats_directions }}</div><div class="stat-label" data-cms="stats.label1">Направления</div></div>
+      <div class="stat-item"><div class="stat-num">{{ site.stats_years }}</div><div class="stat-label" data-cms="stats.label2">Лет служения</div></div>
+      <div class="stat-item"><div class="stat-num">{{ site.stats_degrees }}</div><div class="stat-label" data-cms="stats.label3">Степеней</div></div>
+      <div class="stat-item"><div class="stat-num">{{ site.stats_callings }}</div><div class="stat-label" data-cms="stats.label4">Призваний</div></div>
     </div>
   </div>
 
@@ -1999,9 +1999,9 @@
       <!-- LEAD -->
       <div class="mission-lead">
         <div class="reveal-left">
-          <div class="section-label">Почему мы</div>
-          <h2 class="section-title">Не просто<br><em>учёба</em></h2>
-          <p class="mission-lead-text">
+          <div class="section-label" data-cms="mission.label">Почему мы</div>
+          <h2 class="section-title" data-cms="mission.title">Не просто<br><em>учёба</em></h2>
+          <p class="mission-lead-text" data-cms="mission.lead">
             Большинство людей знают Библию — но <strong>не знают, что с ней делать.</strong>
             Чувствуют призвание — но не понимают, куда оно ведёт.
             Хотят служить — но не имеют инструментов.<br><br>
@@ -2012,8 +2012,8 @@
         </div>
         <div>
           <div class="mission-lead-quote">
-            <p>«Бог ищет не идеальных — Он ищет готовых. Готовых учиться, расти и идти туда, куда большинство не решается.»</p>
-            <cite>Пётр Ашейчик · Ректор</cite>
+            <p data-cms="mission.quote">«Бог ищет не идеальных — Он ищет готовых. Готовых учиться, расти и идти туда, куда большинство не решается.»</p>
+            <cite data-cms="mission.cite">Пётр Ашейчик · Ректор</cite>
           </div>
         </div>
       </div>
@@ -2021,13 +2021,13 @@
       <hr class="mission-divider">
 
       <!-- REASONS -->
-      <div class="mission-reasons-label">3 причины, которые меняют всё</div>
+      <div class="mission-reasons-label" data-cms="mission.reasons_label">3 причины, которые меняют всё</div>
       <div class="mission-reasons">
 
         <div class="mission-reason">
           <div class="mission-reason-num">01</div>
-          <div class="mission-reason-title">Ты уйдёшь с ответами, а не вопросами</div>
-          <div class="mission-reason-body">
+          <div class="mission-reason-title" data-cms="mission.r1.title">Ты уйдёшь с ответами, а не вопросами</div>
+          <div class="mission-reason-body" data-cms="mission.r1.body">
             Многие годами ходят на службы и так и не понимают,
             <strong>как самостоятельно читать и понимать Библию.</strong>
             Здесь ты изучишь герменевтику, экзегетику, богословие —
@@ -2037,8 +2037,8 @@
 
         <div class="mission-reason">
           <div class="mission-reason-num">02</div>
-          <div class="mission-reason-title">Призвание становится профессией</div>
-          <div class="mission-reason-body">
+          <div class="mission-reason-title" data-cms="mission.r2.title">Призвание становится профессией</div>
+          <div class="mission-reason-body" data-cms="mission.r2.body">
             Желание служить — это начало. Но без знаний оно быстро упирается в стену.
             <strong>Государственно признанный диплом бакалавра</strong> открывает двери
             в профессиональное служение — в Беларуси и за её пределами.
@@ -2047,8 +2047,8 @@
 
         <div class="mission-reason">
           <div class="mission-reason-num">03</div>
-          <div class="mission-reason-title">Формат, который работает для занятых</div>
-          <div class="mission-reason-body">
+          <div class="mission-reason-title" data-cms="mission.r3.title">Формат, который работает для занятых</div>
+          <div class="mission-reason-body" data-cms="mission.r3.body">
             Очно-заочная форма — <strong>4 сессии в год.</strong>
             Ты продолжаешь работать, служить в своей церкви, жить своей жизнью —
             и при этом системно растёшь. Не нужно бросать всё. Нужно просто начать.
@@ -2083,8 +2083,8 @@
   <!-- PROGRAMS -->
   <section class="programs" id="programs">
     <div class="programs-header fade-in">
-      <div class="section-label">Обучение</div>
-      <h2 class="section-title">Программы<br><em>Подготовки</em></h2>
+      <div class="section-label" data-cms="programs.label">Обучение</div>
+      <h2 class="section-title" data-cms="programs.title">Программы<br><em>Подготовки</em></h2>
     </div>
     <div class="programs-grid">
       {% for prog in programs %}
@@ -2110,9 +2110,9 @@
   <section class="rector" id="rector">
     <div class="rector-inner fade-in">
       <div class="rector-text-side">
-        <div class="section-label">Слово ректора</div>
-        <h2 class="section-title">Послание<br><em>Руководителя</em></h2>
-        <div class="rector-body">
+        <div class="section-label" data-cms="rector.label">Слово ректора</div>
+        <h2 class="section-title" data-cms="rector.title">Послание<br><em>Руководителя</em></h2>
+        <div class="rector-body" data-cms="rector.body">
           <p>Бог трудится над спасением людей в этом мире сегодня. Он ищет общения с тобой. Он хочет пригласить тебя в Свой труд.</p>
           <p>У Него есть конкретное призвание и дело для Твоей Жизни. Тебя ждёт серьёзный вызов, если примешь решение исполнять своё призвание.</p>
           <p>Его видение гораздо выше твоих возможностей. Потребуется вся вера и верность Ему. Придётся серьёзно подготовиться к выполнению Его задания.</p>
@@ -2121,8 +2121,8 @@
         <div class="rector-signature">
           <div class="ornament-cross"></div>
           <div>
-            <div class="rector-sig-name">Пётр Ашейчик</div>
-            <div class="rector-sig-title">Ректор · Доктор богословия</div>
+            <div class="rector-sig-name" data-cms="rector.sig_name">Пётр Ашейчик</div>
+            <div class="rector-sig-title" data-cms="rector.sig_title">Ректор · Доктор богословия</div>
           </div>
         </div>
       </div>
@@ -2131,8 +2131,8 @@
         <div class="rector-portrait-frame">
           <div class="rector-initials">ПА</div>
           <div class="rector-caption">
-            <div class="rector-caption-name">Пётр Викентьевич Ашейчик</div>
-            <div class="rector-caption-sub">Ректор · Доктор богословия · Основатель ХДН</div>
+            <div class="rector-caption-name" data-cms="rector.portrait_name">Пётр Викентьевич Ашейчик</div>
+            <div class="rector-caption-sub" data-cms="rector.portrait_sub">Ректор · Доктор богословия · Основатель ХДН</div>
           </div>
         </div>
         <div class="portrait-ornament2"></div>
@@ -2145,8 +2145,8 @@
     <div class="teachers-inner">
       <div class="teachers-header fade-in">
         <div>
-          <div class="section-label">Состав</div>
-          <h2 class="section-title">Наши<br><em>Преподаватели</em></h2>
+          <div class="section-label" data-cms="teachers.label">Состав</div>
+          <h2 class="section-title" data-cms="teachers.title">Наши<br><em>Преподаватели</em></h2>
         </div>
       </div>
       <div class="teachers-grid">
@@ -2288,13 +2288,13 @@
   <!-- ADMISSION -->
   <section class="admission" id="admission">
     <div class="admission-inner fade-in">
-      <div class="section-label">Поступление</div>
-      <h2 class="section-title">Правила<br><em>Приёма</em></h2>
+      <div class="section-label" data-cms="admission.label">Поступление</div>
+      <h2 class="section-title" data-cms="admission.title">Правила<br><em>Приёма</em></h2>
       <div class="admission-grid">
         <div>
           <div class="admission-block">
-            <h3>Требования к поступающим</h3>
-            <ul>
+            <h3 data-cms="admission.req_title">Требования к поступающим</h3>
+            <ul data-cms="admission.req_list">
               <li>Граждане Беларуси, иностранные граждане и лица без гражданства</li>
               <li>Возраст от 17 лет, наличие среднего образования</li>
               <li>Членство в евангельской церкви</li>
@@ -2303,13 +2303,13 @@
             </ul>
           </div>
           <div class="admission-block" style="margin-top:36px">
-            <h3>Организация учёбы</h3>
-            <p>Учебный процесс ведётся пять дней в неделю (пн.–пт.) в соответствии с учебными планами. Для сессионных программ — 4 очных недели в год. Богословское отделение работает полностью онлайн.</p>
+            <h3 data-cms="admission.org_title">Организация учёбы</h3>
+            <p data-cms="admission.org_body">Учебный процесс ведётся пять дней в неделю (пн.–пт.) в соответствии с учебными планами. Для сессионных программ — 4 очных недели в год. Богословское отделение работает полностью онлайн.</p>
           </div>
         </div>
         <div>
           <div class="admission-block">
-            <h3>Сроки приёма документов</h3>
+            <h3 data-cms="admission.dates_title">Сроки приёма документов</h3>
             <div class="dates-grid">
               <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Музыкальное отделение (уровень 1)</strong>1 августа — 15 сентября 2026 г.</div></div>
               <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Библейско-богословское отделение</strong>В течение всего года</div></div>
@@ -2325,8 +2325,8 @@
   <section class="contact" id="contact">
     <div class="contact-inner fade-in">
       <div class="contact-info">
-        <div class="section-label">Связь</div>
-        <h2 class="section-title">Контактная<br><em>Информация</em></h2>
+        <div class="section-label" data-cms="contact.label">Связь</div>
+        <h2 class="section-title" data-cms="contact.title">Контактная<br><em>Информация</em></h2>
         <div class="contact-items">
           <div class="contact-item">
             <div class="contact-icon">
@@ -3814,6 +3814,224 @@ filterTeachers = function(dept, btn) {
     banner.style.transform = 'translateY(120%)';
     banner.style.opacity = '0';
     setTimeout(function () { banner.remove(); }, 380);
+  });
+})();
+</script>
+{% endif %}
+
+<!-- ============================================================ -->
+<!-- VISUAL CMS: applies admin overrides + enables edit mode      -->
+<!-- ============================================================ -->
+<script>
+window.__CMS__ = {{ cms_overrides | tojson | safe }};
+window.__CMS_EDIT__ = {{ 'true' if cms_edit else 'false' }};
+(function () {
+  // 1) Apply saved overrides to all data-cms elements (always).
+  var data = window.__CMS__ || {};
+  document.querySelectorAll('[data-cms]').forEach(function (el) {
+    var key = el.getAttribute('data-cms');
+    if (Object.prototype.hasOwnProperty.call(data, key)) {
+      el.innerHTML = data[key];
+    }
+  });
+})();
+</script>
+
+{% if cms_edit %}
+<style>
+  /* Reserve space at the top so the toolbar doesn't cover the page. */
+  body { padding-top: 64px; }
+  /* Hide things that would navigate or clutter while editing. */
+  .cookie-banner, #cookieBanner { display:none !important; }
+  /* Editable hover/edit highlight */
+  [data-cms]:hover {
+    outline: 2px dashed rgba(201,168,76,0.85);
+    outline-offset: 4px;
+    cursor: text;
+  }
+  [data-cms][contenteditable="true"] {
+    outline: 2px solid #C9A84C !important;
+    outline-offset: 4px;
+    background: rgba(201,168,76,0.07);
+    border-radius: 4px;
+  }
+  [data-cms][data-cms-dirty="1"] {
+    outline-color: #f0c14b !important;
+    background: rgba(240,193,75,0.18);
+  }
+  /* Top toolbar */
+  #cmsBar {
+    position: fixed; top:0; left:0; right:0; z-index: 9999;
+    height: 56px;
+    background: linear-gradient(180deg, #1A1612 0%, #0e0c08 100%);
+    border-bottom: 1px solid rgba(201,168,76,0.45);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 0 22px;
+    color: #FAF6EE;
+    font-family: 'Jost', system-ui, sans-serif;
+  }
+  #cmsBar .cms-bar-left { display:flex; align-items:center; gap:14px; }
+  #cmsBar .cms-bar-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem; color: #C9A84C; letter-spacing: 0.05em;
+  }
+  #cmsBar .cms-bar-hint {
+    font-size: 0.78rem; color: rgba(250,246,238,0.6);
+    text-transform: uppercase; letter-spacing: 0.18em;
+  }
+  #cmsBar .cms-bar-right { display:flex; align-items:center; gap:10px; }
+  #cmsBar .cms-btn {
+    appearance:none; border:1px solid rgba(201,168,76,0.5);
+    background: transparent; color: #FAF6EE;
+    padding: 8px 16px; font-size: 0.78rem;
+    text-transform: uppercase; letter-spacing: 0.16em;
+    cursor:pointer; border-radius: 2px;
+    font-family: 'Jost', system-ui, sans-serif;
+    transition: all .18s ease;
+  }
+  #cmsBar .cms-btn:hover { background: rgba(201,168,76,0.12); color: #C9A84C; }
+  #cmsBar .cms-btn.primary {
+    background: #C9A84C; color: #1A1612; border-color: #C9A84C;
+    font-weight: 600;
+  }
+  #cmsBar .cms-btn.primary:hover { background: #d9b85c; color: #1A1612; }
+  #cmsBar .cms-btn.danger { color: #e98080; border-color: rgba(233,128,128,0.4); }
+  #cmsBar .cms-btn.danger:hover { background: rgba(233,128,128,0.10); color: #ffa8a8; }
+  #cmsBar .cms-status {
+    font-size: 0.78rem; color: rgba(250,246,238,0.6);
+    min-width: 120px; text-align:right;
+  }
+  /* Disable nav/buttons that would leave the page while editing */
+  #cmsBar ~ * a[href^="#"], #cmsBar ~ * a[href="/"] {}
+  /* Tiny toast for save feedback */
+  #cmsToast {
+    position: fixed; bottom: 28px; right: 28px; z-index: 10000;
+    padding: 12px 22px; background: #1A1612;
+    border: 1px solid #C9A84C; color: #C9A84C;
+    font-family: 'Jost', sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
+    font-size: 0.82rem;
+    transform: translateY(20px); opacity: 0;
+    transition: all .25s ease;
+    pointer-events: none;
+  }
+  #cmsToast.show { transform: translateY(0); opacity: 1; }
+  #cmsToast.error { border-color: #e98080; color: #e98080; }
+</style>
+<div id="cmsBar">
+  <div class="cms-bar-left">
+    <div class="cms-bar-title">✎ Редактор главной</div>
+    <div class="cms-bar-hint">Кликните по тексту, чтобы изменить</div>
+  </div>
+  <div class="cms-bar-right">
+    <span id="cmsStatus" class="cms-status"></span>
+    <button class="cms-btn danger" id="cmsResetBtn">Сбросить всё</button>
+    <a class="cms-btn" href="/admin/settings">Выйти</a>
+    <button class="cms-btn primary" id="cmsSaveBtn">💾 Сохранить</button>
+  </div>
+</div>
+<div id="cmsToast"></div>
+<script>
+(function () {
+  var dirty = {};
+  var origin = {};
+
+  function showToast(msg, isError) {
+    var t = document.getElementById('cmsToast');
+    t.textContent = msg;
+    t.classList.toggle('error', !!isError);
+    t.classList.add('show');
+    clearTimeout(t._tm);
+    t._tm = setTimeout(function () { t.classList.remove('show'); }, 2400);
+  }
+
+  function setStatus(text) {
+    document.getElementById('cmsStatus').textContent = text || '';
+  }
+
+  // Make everything editable + capture original HTML
+  document.querySelectorAll('[data-cms]').forEach(function (el) {
+    el.setAttribute('contenteditable', 'true');
+    // Don't let inner clicks (like onclick handlers on buttons that have
+    // data-cms) trigger navigation while editing.
+    el.addEventListener('click', function (e) { e.stopPropagation(); }, true);
+    origin[el.getAttribute('data-cms')] = el.innerHTML;
+    el.addEventListener('input', function () {
+      var key = el.getAttribute('data-cms');
+      if (el.innerHTML !== origin[key]) {
+        dirty[key] = el.innerHTML;
+        el.setAttribute('data-cms-dirty', '1');
+      } else {
+        delete dirty[key];
+        el.removeAttribute('data-cms-dirty');
+      }
+      var n = Object.keys(dirty).length;
+      setStatus(n ? ('Не сохранено: ' + n) : '');
+    });
+    el.addEventListener('keydown', function (e) {
+      // Ctrl/Cmd+S anywhere triggers save.
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        document.getElementById('cmsSaveBtn').click();
+      }
+    });
+  });
+
+  // Disable navigation: clicks on links/buttons that would leave or scroll
+  // the page should still work (so admins can scroll), but form submissions,
+  // page navigations, openPage(), and similar must NOT trigger.
+  document.querySelectorAll('form').forEach(function (f) {
+    f.addEventListener('submit', function (e) { e.preventDefault(); });
+  });
+  document.querySelectorAll('[onclick*="openPage"], [onclick*="openTeacherModal"]').forEach(function (b) {
+    b.removeAttribute('onclick');
+    b.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); });
+  });
+
+  document.getElementById('cmsSaveBtn').addEventListener('click', function () {
+    var keys = Object.keys(dirty);
+    if (!keys.length) { showToast('Нет изменений'); return; }
+    setStatus('Сохраняю…');
+    fetch('/admin/api/cms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dirty),
+      credentials: 'same-origin'
+    }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function (j) {
+      if (!j.ok) throw new Error('save failed');
+      // Mark all as clean
+      Object.keys(dirty).forEach(function (k) {
+        origin[k] = dirty[k];
+        var el = document.querySelector('[data-cms="' + k + '"]');
+        if (el) el.removeAttribute('data-cms-dirty');
+      });
+      dirty = {};
+      setStatus('Сохранено ✓');
+      showToast('Сохранено ✓ (' + j.saved + ')');
+    }).catch(function (err) {
+      console.error(err);
+      setStatus('Ошибка');
+      showToast('Ошибка сохранения', true);
+    });
+  });
+
+  document.getElementById('cmsResetBtn').addEventListener('click', function () {
+    if (!confirm('Сбросить ВСЕ изменения главной страницы и вернуться к стандартным текстам?')) return;
+    fetch('/admin/api/cms/reset', {
+      method: 'POST',
+      credentials: 'same-origin'
+    }).then(function (r) { return r.json(); })
+      .then(function () { window.location.reload(); });
+  });
+
+  window.addEventListener('beforeunload', function (e) {
+    if (Object.keys(dirty).length) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
   });
 })();
 </script>
