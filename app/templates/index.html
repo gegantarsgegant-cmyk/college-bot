@@ -1,4 +1,64 @@
 {% set _l = lang|default('ru') %}
+{# ── Inline expandable application form for program subpages ─────────── #}
+{% macro prog_apply_form(form_id, program_slug, _l) -%}
+<div class="prog-apply-form" id="{{ form_id }}" data-program="{{ program_slug }}" aria-hidden="true">
+  <div class="prog-apply-form-inner">
+    <div class="prog-apply-body">
+      <h4>
+        {%- if _l == 'en' %}Application
+        {%- elif _l == 'be' %}Заяўка
+        {%- else %}Заявка
+        {%- endif -%}
+      </h4>
+      <div class="prog-apply-sub">
+        {%- if _l == 'en' %}Direction:
+          {% if program_slug == 'music' %}Music ministry
+          {%- elif program_slug == 'theology' %}Theology &amp; Christian ministry
+          {%- elif program_slug == 'theatre' %}Theatre ministry
+          {%- endif %}
+        {%- elif _l == 'be' %}Накірунак:
+          {% if program_slug == 'music' %}Музычнае служэнне
+          {%- elif program_slug == 'theology' %}Тэалогія і хрысціянскае служэнне
+          {%- elif program_slug == 'theatre' %}Тэатральнае служэнне
+          {%- endif %}
+        {%- else %}Направление:
+          {% if program_slug == 'music' %}Музыкальное служение
+          {%- elif program_slug == 'theology' %}Богословие и христианское служение
+          {%- elif program_slug == 'theatre' %}Театральное служение
+          {%- endif %}
+        {%- endif -%}
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>{% if _l == 'en' %}Your name{% elif _l == 'be' %}Ваша імя{% else %}Ваше имя{% endif %}</label>
+          <input type="text" name="name" placeholder="{% if _l == 'en' %}John Smith{% elif _l == 'be' %}Іван Іваноў{% else %}Иван Иванов{% endif %}" autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label>{% if _l == 'en' %}Phone{% elif _l == 'be' %}Тэлефон{% else %}Телефон{% endif %}</label>
+          <input type="tel" name="phone" placeholder="+375 XX XXX XX XX" autocomplete="tel">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>{% if _l == 'en' %}Church (optional){% elif _l == 'be' %}Царква (неабавязкова){% else %}Церковь (необязательно){% endif %}</label>
+        <input type="text" name="church" placeholder="{% if _l == 'en' %}City, church name{% elif _l == 'be' %}Горад, назва царквы{% else %}Город, название церкви{% endif %}">
+      </div>
+      <div class="form-group">
+        <label>{% if _l == 'en' %}Comment (optional){% elif _l == 'be' %}Каментарый (неабавязкова){% else %}Комментарий (необязательно){% endif %}</label>
+        <textarea name="note" placeholder="{% if _l == 'en' %}Your question or comment…{% elif _l == 'be' %}Ваша пытанне ці каментарый…{% else %}Ваш вопрос или комментарий…{% endif %}"></textarea>
+      </div>
+      <div class="prog-apply-actions">
+        <button type="button" class="pa-cancel js-prog-apply-cancel">{% if _l == 'en' %}Cancel{% elif _l == 'be' %}Адмена{% else %}Отмена{% endif %}</button>
+        <button type="button" class="pa-submit js-prog-apply-submit">{% if _l == 'en' %}Send application{% elif _l == 'be' %}Адправіць заяўку{% else %}Отправить заявку{% endif %}</button>
+      </div>
+    </div>
+    <div class="prog-apply-thanks" hidden>
+      {% if _l == 'en' %}Thank you! We will contact you shortly.
+      {%- elif _l == 'be' %}Дзякуй! Мы хутка з вамі звяжамся.
+      {%- else %}Спасибо! Скоро мы свяжемся с вами.{% endif %}
+    </div>
+  </div>
+</div>
+{%- endmacro %}
 <!DOCTYPE html>
 <html lang="{{ _l }}">
 <head>
@@ -1613,6 +1673,108 @@
   }
   .prog-cta .btn-cta:hover { background: var(--ink-soft); }
 
+  /* ----- inline application form on program pages ----- */
+  .prog-apply-form {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.45s ease, opacity 0.35s ease, margin-top 0.3s ease;
+    margin-top: 0;
+    text-align: left;
+  }
+  .prog-apply-form.open {
+    max-height: 1100px;
+    opacity: 1;
+    margin-top: 36px;
+  }
+  .prog-apply-form-inner {
+    background: rgba(26, 22, 18, 0.06);
+    border: 1px solid rgba(26, 22, 18, 0.15);
+    padding: 32px 28px;
+    max-width: 620px;
+    margin: 0 auto;
+  }
+  .prog-apply-form-inner h4 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--ink);
+    margin: 0 0 6px;
+    text-align: center;
+  }
+  .prog-apply-form-inner .prog-apply-sub {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(26, 22, 18, 0.6);
+    text-align: center;
+    margin-bottom: 22px;
+    font-weight: 500;
+  }
+  .prog-apply-form-inner .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .prog-apply-form-inner .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .prog-apply-form-inner label {
+    font-size: 0.66rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(26, 22, 18, 0.6);
+    font-weight: 600;
+  }
+  .prog-apply-form-inner input,
+  .prog-apply-form-inner textarea {
+    border: 1px solid rgba(26, 22, 18, 0.2);
+    background: var(--cream);
+    padding: 11px 14px;
+    font-size: 0.92rem;
+    color: var(--ink);
+    font-family: 'Jost', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+    border-radius: 0;
+  }
+  .prog-apply-form-inner input:focus,
+  .prog-apply-form-inner textarea:focus { border-color: var(--ink); }
+  .prog-apply-form-inner textarea { min-height: 86px; resize: vertical; }
+  .prog-apply-actions { display: flex; gap: 12px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+  .prog-apply-actions button {
+    padding: 14px 36px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border: 1px solid var(--ink);
+    cursor: pointer;
+    transition: all 0.25s;
+    border-radius: 0;
+  }
+  .prog-apply-actions .pa-submit { background: var(--ink); color: var(--gold); }
+  .prog-apply-actions .pa-submit:hover { background: rgba(26, 22, 18, 0.85); }
+  .prog-apply-actions .pa-submit:disabled { opacity: 0.6; cursor: default; }
+  .prog-apply-actions .pa-cancel { background: transparent; color: var(--ink); }
+  .prog-apply-actions .pa-cancel:hover { background: rgba(26, 22, 18, 0.08); }
+  .prog-apply-thanks {
+    text-align: center;
+    padding: 28px;
+    color: var(--ink);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem;
+    font-style: italic;
+  }
+  .prog-apply-thanks::before {
+    content: '✓';
+    display: block;
+    font-size: 2rem;
+    color: var(--ink);
+    margin-bottom: 10px;
+    font-style: normal;
+  }
+  @media (max-width: 768px) {
+    .prog-apply-form-inner { padding: 22px 18px; }
+    .prog-apply-form-inner .form-row { grid-template-columns: 1fr; gap: 0; }
+    .prog-apply-actions button { padding: 12px 24px; flex: 1; }
+  }
+
   /* Subpage nav highlight */
   .bottom-nav-item.prog-home-btn { }
 
@@ -2934,7 +3096,8 @@
   <div class="prog-cta">
     {% if _l == 'en' %}<h3>Ready to begin?</h3>{% elif _l == 'be' %}<h3>Гатовы пачаць шлях?</h3>{% else %}<h3>Готов начать путь?</h3>{% endif %}
     <p>{% if _l == 'en' %}Applications: August 1 — September 15, 2026{% elif _l == 'be' %}Прыём дакументаў: 1 жніўня — 15 верасня 2026 г.{% else %}Приём документов: 1 августа — 15 сентября 2026 г.{% endif %}</p>
-    <a href="mailto:cfnbel@gmail.com" class="btn-cta">{% if _l == 'en' %}Email the admissions office{% elif _l == 'be' %}Напісаць у прыёмную камісію{% else %}Написать в приёмную комиссию{% endif %}</a>
+    <button type="button" class="btn-cta js-prog-apply-toggle" data-program="music" data-target="apply-form-music" aria-expanded="false">{% if _l == 'en' %}Email the admissions office{% elif _l == 'be' %}Напісаць у прыёмную камісію{% else %}Написать в приёмную комиссию{% endif %}</button>
+    {{ prog_apply_form('apply-form-music', 'music', _l) }}
   </div>
 
   <footer>
@@ -3107,7 +3270,8 @@
   <div class="prog-cta">
     {% if _l == 'en' %}<h3>Begin studying the Word</h3>{% elif _l == 'be' %}<h3>Пачні вывучаць Слова</h3>{% else %}<h3>Начни изучать Слово</h3>{% endif %}
     {% if _l == 'en' %}<p>Applications open year-round. Start any time.</p>{% elif _l == 'be' %}<p>Прыём дакументаў на працягу ўсяго года. Пачатак — у любы час.</p>{% else %}<p>Приём документов в течение всего года. Начало — в любое время.</p>{% endif %}
-    {% if _l == 'en' %}<a href="mailto:cfnbel@gmail.com" class="btn-cta">Apply now</a>{% elif _l == 'be' %}<a href="mailto:cfnbel@gmail.com" class="btn-cta">Падаць дакументы</a>{% else %}<a href="mailto:cfnbel@gmail.com" class="btn-cta">Подать документы</a>{% endif %}
+    <button type="button" class="btn-cta js-prog-apply-toggle" data-program="theology" data-target="apply-form-theology" aria-expanded="false">{% if _l == 'en' %}Apply now{% elif _l == 'be' %}Падаць дакументы{% else %}Подать документы{% endif %}</button>
+    {{ prog_apply_form('apply-form-theology', 'theology', _l) }}
   </div>
 
   <footer>
@@ -3289,7 +3453,8 @@
   <div class="prog-cta">
     {% if _l == 'en' %}<h3>Create for the glory of God</h3>{% elif _l == 'be' %}<h3>Твары на славу Божую</h3>{% else %}<h3>Твори во славу Божию</h3>{% endif %}
     {% if _l == 'en' %}<p>Applications due February 8, 2026</p>{% elif _l == 'be' %}<p>Прыём дакументаў да 8 лютага 2026 г.</p>{% else %}<p>Приём документов до 8 февраля 2026 г.</p>{% endif %}
-    <a href="mailto:cfnbel@gmail.com" class="btn-cta">{% if _l == 'en' %}Email the admissions office{% elif _l == 'be' %}Напісаць у прыёмную камісію{% else %}Написать в приёмную комиссию{% endif %}</a>
+    <button type="button" class="btn-cta js-prog-apply-toggle" data-program="theatre" data-target="apply-form-theatre" aria-expanded="false">{% if _l == 'en' %}Email the admissions office{% elif _l == 'be' %}Напісаць у прыёмную камісію{% else %}Написать в приёмную комиссию{% endif %}</button>
+    {{ prog_apply_form('apply-form-theatre', 'theatre', _l) }}
   </div>
 
   <footer>
@@ -3697,6 +3862,132 @@ async function handleSubmit(e) {
 
 // Init
 renderBottomNav();
+
+// ===================== Inline application form on program subpages =====================
+(function () {
+  function langPack() {
+    var lang = (window.__LANG__ || 'ru');
+    return ({
+      ru: { needName: 'Укажите имя', send: 'Отправить заявку', sending: 'Отправляем…', err: 'Ошибка. Повторить?' },
+      be: { needName: 'Пакажыце імя', send: 'Адправіць заяўку', sending: 'Адпраўляем…', err: 'Памылка. Паўтарыць?' },
+      en: { needName: 'Please enter your name', send: 'Send application', sending: 'Sending…', err: 'Error. Retry?' },
+    })[lang] || ({ needName: 'Укажите имя', send: 'Отправить заявку', sending: 'Отправляем…', err: 'Ошибка. Повторить?' });
+  }
+
+  function closeAllForms(except) {
+    document.querySelectorAll('.prog-apply-form.open').forEach(function (f) {
+      if (f === except) return;
+      f.classList.remove('open');
+      f.setAttribute('aria-hidden', 'true');
+      var ttl = f.previousElementSibling;
+      if (ttl && ttl.classList && ttl.classList.contains('js-prog-apply-toggle')) {
+        ttl.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  function resetForm(form) {
+    form.querySelectorAll('input, textarea').forEach(function (el) { el.value = ''; });
+    var body = form.querySelector('.prog-apply-body');
+    var thanks = form.querySelector('.prog-apply-thanks');
+    if (body) body.hidden = false;
+    if (thanks) thanks.hidden = true;
+    var btn = form.querySelector('.js-prog-apply-submit');
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = langPack().send;
+    }
+  }
+
+  // Toggle button
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.js-prog-apply-toggle');
+    if (!btn) return;
+    e.preventDefault();
+    var targetId = btn.getAttribute('data-target');
+    var form = document.getElementById(targetId);
+    if (!form) return;
+    var willOpen = !form.classList.contains('open');
+    closeAllForms(form);
+    form.classList.toggle('open', willOpen);
+    form.setAttribute('aria-hidden', String(!willOpen));
+    btn.setAttribute('aria-expanded', String(willOpen));
+    if (willOpen) {
+      resetForm(form);
+      // Focus first input after the expand transition has begun
+      setTimeout(function () {
+        var first = form.querySelector('input[name="name"]');
+        if (first) first.focus({ preventScroll: false });
+        // Scroll the form into view inside the active page scroller
+        try {
+          form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch (_e) {
+          form.scrollIntoView();
+        }
+      }, 250);
+    }
+  });
+
+  // Cancel button
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.js-prog-apply-cancel');
+    if (!btn) return;
+    var form = btn.closest('.prog-apply-form');
+    if (!form) return;
+    form.classList.remove('open');
+    form.setAttribute('aria-hidden', 'true');
+    var toggle = document.querySelector('.js-prog-apply-toggle[data-target="' + form.id + '"]');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  });
+
+  // Submit
+  document.addEventListener('click', async function (e) {
+    var btn = e.target.closest('.js-prog-apply-submit');
+    if (!btn) return;
+    var form = btn.closest('.prog-apply-form');
+    if (!form) return;
+    var T = langPack();
+    var program = form.getAttribute('data-program') || '';
+    var data = { name: '', phone: '', church: '', note: '', program: program };
+    form.querySelectorAll('input, textarea').forEach(function (el) {
+      var n = el.getAttribute('name');
+      if (n && n in data) data[n] = (el.value || '').trim();
+    });
+    if (!data.name) {
+      btn.textContent = T.needName;
+      setTimeout(function () { btn.textContent = T.send; }, 2500);
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = T.sending;
+    try {
+      var res = await fetch('/api/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('http ' + res.status);
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = T.err;
+      setTimeout(function () { btn.textContent = T.send; }, 2500);
+      return;
+    }
+    // Success: show thank-you, then auto-collapse after a moment
+    var body = form.querySelector('.prog-apply-body');
+    var thanks = form.querySelector('.prog-apply-thanks');
+    if (body) body.hidden = true;
+    if (thanks) thanks.hidden = false;
+    setTimeout(function () {
+      form.classList.remove('open');
+      form.setAttribute('aria-hidden', 'true');
+      var toggle = document.querySelector('.js-prog-apply-toggle[data-target="' + form.id + '"]');
+      if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      // Reset for next open
+      setTimeout(function () { resetForm(form); }, 500);
+    }, 2200);
+  });
+})();
 
 // ===================== ANIMATION SYSTEM =====================
 

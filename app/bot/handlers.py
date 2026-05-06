@@ -165,22 +165,23 @@ def admin_link_html(
 
 
 def admin_menu_kb(
-    stats: dict[str, int] | None = None,
+    stats: dict[str, int] | None = None,  # kept for backwards compat
     tg_user_id: int | None = None,
 ) -> InlineKeyboardMarkup:
+    """Bot start-menu: a single button that opens the admin panel.
+
+    Stats are already rendered in the message body, so we deliberately do
+    NOT add a "show stats" callback button here — that would just duplicate
+    information the user can already see.
+    """
     rows: list[list[InlineKeyboardButton]] = []
-    btn = _open_admin_button(tg_user_id)
+    btn = _open_admin_button(
+        tg_user_id,
+        text="🛠 Открыть панель управления",
+        next_path="/admin/applications",
+    )
     if btn:
         rows.append([btn])
-    new_count = (stats or {}).get("new", 0)
-    rows.append(
-        [
-            InlineKeyboardButton(
-                text=f"📥 Новые заявки{(' · ' + str(new_count)) if new_count else ''}",
-                callback_data="adm:stats",
-            )
-        ]
-    )
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
@@ -241,16 +242,18 @@ async def _ensure_bot_user(message: Message) -> None:
 
 
 def _format_stats(stats: dict[str, int]) -> str:
-    return (
-        "📊 <b>Статистика заявок</b>\n\n"
-        f"📥 Новые: <b>{stats.get('new', 0)}</b>\n"
-        f"📞 Связались: <b>{stats.get('contacted', 0)}</b>\n"
-        f"📄 Документы: <b>{stats.get('docs_submitted', 0)}</b>\n"
-        f"✅ Зачислены: <b>{stats.get('accepted', 0)}</b>\n"
-        f"✖ Отказы: <b>{stats.get('rejected', 0)}</b>\n"
-        f"━━━━━━━━━━━━━\n"
-        f"📊 Всего: <b>{stats.get('total', 0)}</b>"
-    )
+    lines = [
+        "📊 <b>Статистика заявок</b>",
+        "",
+        f"📥 Новые: <b>{stats.get('new', 0)}</b>",
+        f"📞 Связались: <b>{stats.get('contacted', 0)}</b>",
+        f"📄 Документы: <b>{stats.get('docs_submitted', 0)}</b>",
+        f"✅ Зачислены: <b>{stats.get('accepted', 0)}</b>",
+        f"✖ Отказы: <b>{stats.get('rejected', 0)}</b>",
+        "",
+        f"📊 Всего: <b>{stats.get('total', 0)}</b>",
+    ]
+    return "\n".join(lines)
 
 
 # ============== /start ==============
@@ -284,23 +287,6 @@ async def cmd_start(message: Message, state: FSMContext):
         + _format_stats(stats),
         reply_markup=admin_menu_kb(stats, tg_user_id=user.id),
     )
-
-
-# ============== Callbacks ==============
-
-@router.callback_query(F.data == "adm:stats")
-async def cb_stats(cb: CallbackQuery):
-    if not cb.from_user or not is_admin(cb.from_user.id):
-        await cb.answer("⛔ Только админы", show_alert=True)
-        return
-    async with AsyncSessionLocal() as session:
-        stats = await application_stats(session)
-    if cb.message:
-        await cb.message.answer(
-            _format_stats(stats),
-            reply_markup=admin_menu_kb(stats, tg_user_id=cb.from_user.id),
-        )
-    await cb.answer()
 
 
 # ============== Application status callbacks ==============
@@ -362,7 +348,7 @@ async def fallback(message: Message):
     async with AsyncSessionLocal() as session:
         stats = await application_stats(session)
     await message.answer(
-        "Используйте кнопки ниже:\n\n" + _format_stats(stats),
+        _format_stats(stats),
         reply_markup=admin_menu_kb(stats, tg_user_id=user.id),
     )
 
