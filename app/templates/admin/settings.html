@@ -1,61 +1,314 @@
 {% extends "admin/_base.html" %}
 {% block title %}Настройки{% endblock %}
+
+{# ---------- per-language input macros ---------- #}
+{% macro l10n_input(key, label, type="text", placeholder="") %}
+  <div class="form-group i18n-group">
+    <label>{{ label }}</label>
+    {% for lng in ['ru','be','en'] %}
+      <input type="{{ type }}" data-lang="{{ lng }}"
+             name="{{ key if lng=='ru' else key ~ '__' ~ lng }}"
+             value="{{ (site_i18n.get(key, {}).get(lng, '')) }}"
+             placeholder="{{ placeholder }}{% if lng != 'ru' and not site_i18n.get(key, {}).get(lng, '') %} · {{ {'be':'оставьте пустым → возьмётся RU', 'en':'leave blank → falls back to RU'}[lng] }}{% endif %}">
+    {% endfor %}
+  </div>
+{% endmacro %}
+
+{% macro l10n_textarea(key, label, rows=3, placeholder="") %}
+  <div class="form-group i18n-group">
+    <label>{{ label }}</label>
+    {% for lng in ['ru','be','en'] %}
+      <textarea data-lang="{{ lng }}" rows="{{ rows }}"
+                name="{{ key if lng=='ru' else key ~ '__' ~ lng }}"
+                placeholder="{{ placeholder }}{% if lng != 'ru' and not site_i18n.get(key, {}).get(lng, '') %} · {{ {'be':'оставьте пустым → возьмётся RU', 'en':'leave blank → falls back to RU'}[lng] }}{% endif %}">{{ site_i18n.get(key, {}).get(lng, '') }}</textarea>
+    {% endfor %}
+  </div>
+{% endmacro %}
+
+{# Neutral (language-agnostic) fields stay single-input. #}
+{% macro plain_input(key, label, type="text", placeholder="") %}
+  <div class="form-group">
+    <label>{{ label }}</label>
+    <input type="{{ type }}" name="{{ key }}" value="{{ site.get(key, '') }}" placeholder="{{ placeholder }}">
+  </div>
+{% endmacro %}
+
+{# Toggle (boolean stored as '0'/'1'). The settings_save handler treats keys
+   in _BOOLEAN_SETTINGS specially: if name is present in the POST → '1', else
+   → '0'. So we just render a plain checkbox (no hidden companion needed). #}
+{% macro toggle(key, label) %}
+  <label class="toggle-row" style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer;user-select:none;padding:8px 0;">
+    <input type="checkbox" name="{{ key }}" value="1" {% if site.get(key, '') == '1' %}checked{% endif %} style="width:18px;height:18px;cursor:pointer;flex-shrink:0;">
+    <span>{{ label }}</span>
+  </label>
+{% endmacro %}
+
 {% block content %}
+<style>
+  /* per-language tabs */
+  .lang-tabs {
+    display:inline-flex;
+    align-items:center;
+    background:rgba(201,168,76,0.08);
+    border:1px solid rgba(201,168,76,0.32);
+    border-radius:999px;
+    padding:4px;
+    gap:4px;
+  }
+  .lang-tab {
+    border:0;
+    background:transparent;
+    color:var(--text);
+    padding:6px 16px;
+    border-radius:999px;
+    font:600 13px/1 'Inter',sans-serif;
+    letter-spacing:0.06em;
+    cursor:pointer;
+    transition:all 0.18s ease;
+  }
+  .lang-tab.active {
+    background:#C9A84C;
+    color:#1A1612;
+    box-shadow:0 2px 8px rgba(201,168,76,0.4);
+  }
+  .lang-tab:not(.active):hover { background:rgba(201,168,76,0.16); }
+  /* By default, only the active-lang inputs are visible. */
+  .i18n-group [data-lang]:not([data-lang="ru"]) { display:none; }
+  body[data-active-lang="be"] .i18n-group [data-lang="ru"],
+  body[data-active-lang="be"] .i18n-group [data-lang="en"],
+  body[data-active-lang="en"] .i18n-group [data-lang="ru"],
+  body[data-active-lang="en"] .i18n-group [data-lang="be"] { display:none; }
+  body[data-active-lang="be"] .i18n-group [data-lang="be"],
+  body[data-active-lang="en"] .i18n-group [data-lang="en"] { display:block; }
+  /* hint chip near each i18n group */
+  .i18n-hint {
+    display:inline-block;
+    margin-top:4px;
+    font:500 11px/1 'Inter',sans-serif;
+    color:rgba(250,246,238,0.55);
+    letter-spacing:0.04em;
+  }
+</style>
+
 <div class="main-header">
   <div>
     <h1 class="page-title">Настройки <em>сайта</em></h1>
-    <div class="page-subtitle">Контакты, соцсети и тексты главной страницы</div>
+    <div class="page-subtitle">Контакты, соцсети и тексты главной страницы &middot; редактируется на 3 языках</div>
   </div>
-  <button form="settings-form" class="btn" type="submit"><span>💾</span>Сохранить всё</button>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+    <div class="lang-tabs" id="settingsLangTabs" role="tablist" aria-label="Язык редактирования">
+      <button type="button" class="lang-tab active" data-set-lang="ru">RU</button>
+      <button type="button" class="lang-tab" data-set-lang="be">BE</button>
+      <button type="button" class="lang-tab" data-set-lang="en">EN</button>
+    </div>
+    <a href="/admin/edit-homepage" class="btn btn-ghost" style="text-decoration:none;"><span>✎</span>Редактировать главную</a>
+    <button form="settings-form" class="btn" type="submit"><span>💾</span>Сохранить всё</button>
+  </div>
+</div>
+
+<div class="card" style="border-left:3px solid var(--gold,#C9A84C);">
+  <div class="card-header"><h2>🌐 Поля с языковыми вкладками</h2></div>
+  <div style="color:rgba(250,246,238,0.78);max-width:760px;line-height:1.55;padding:6px 0;">
+    Все текстовые поля ниже редактируются на трёх языках: <strong>RU</strong> (основной), <strong>BE</strong> (беларуская), <strong>EN</strong> (English). Переключатель сверху меняет, какой язык вы сейчас редактируете. Если оставить BE или EN пустым — на сайте подставится русский вариант. Цифры, ссылки, IBAN/SWIFT и т.п. едины для всех языков и идут одним полем.
+  </div>
+</div>
+
+<div class="card" style="border-left:3px solid var(--gold,#C9A84C);">
+  <div class="card-header"><h2>✎ Визуальный редактор главной страницы</h2></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;padding:6px 0;">
+    <div style="color:rgba(250,246,238,0.78);max-width:640px;line-height:1.55;">
+      Откройте главную страницу в режиме редактирования. Кликайте по любому тексту — заголовкам секций, абзацам, описаниям — и редактируйте прямо на месте. После всех правок нажмите <strong>«Сохранить»</strong> в верхней панели.
+      <div style="margin-top:6px;font-size:0.85em;color:rgba(250,246,238,0.55);">Карточки программ, преподавателей, файлы и контакты редактируются в своих разделах админки.</div>
+    </div>
+    <a href="/admin/edit-homepage" class="btn" style="text-decoration:none;white-space:nowrap;"><span>✎</span>Открыть редактор</a>
+  </div>
 </div>
 
 <form method="post" action="/admin/settings" id="settings-form">
   <div class="card">
     <div class="card-header"><h2>📌 Заголовки</h2></div>
-    <div class="form-group"><label>Название сайта</label><input type="text" name="site_title" value="{{ site.site_title }}"></div>
-    <div class="form-row">
-      <div class="form-group"><label>Подзаголовок «hero»</label><input type="text" name="hero_eyebrow" value="{{ site.hero_eyebrow }}"></div>
-      <div class="form-group"><label>Девиз «hero»</label><input type="text" name="hero_subtitle" value="{{ site.hero_subtitle }}"></div>
-    </div>
+    {{ l10n_input('site_title', 'Название сайта (логотип в шапке + футер)') }}
+    {{ l10n_input('hero_eyebrow', 'Подзаголовок «hero»') }}
+    {{ l10n_input('hero_subtitle', 'Девиз «hero»') }}
   </div>
 
   <div class="card">
     <div class="card-header"><h2>📍 Контакты</h2></div>
     <div class="form-row">
-      <div class="form-group"><label>Адрес</label><textarea name="contact_address" rows="3">{{ site.contact_address }}</textarea></div>
-      <div class="form-group"><label>Режим работы</label><textarea name="contact_hours" rows="3">{{ site.contact_hours }}</textarea></div>
+      {{ l10n_textarea('contact_address', 'Адрес', 3) }}
+      {{ l10n_textarea('contact_hours', 'Режим работы', 3) }}
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Email</label><textarea name="contact_email" rows="3">{{ site.contact_email }}</textarea></div>
-      <div class="form-group"><label>Телефоны</label><textarea name="contact_phones" rows="3">{{ site.contact_phones }}</textarea></div>
+      {{ l10n_textarea('contact_email', 'Email', 3) }}
+      {{ l10n_textarea('contact_phones', 'Телефоны', 3) }}
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Email в подвале</label><input type="text" name="footer_email" value="{{ site.footer_email }}"></div>
-      <div class="form-group"><label>Телефон в подвале</label><input type="text" name="footer_phone" value="{{ site.footer_phone }}"></div>
+      {{ plain_input('footer_email', 'Email в подвале') }}
+      {{ plain_input('footer_phone', 'Телефон в подвале') }}
     </div>
   </div>
 
   <div class="card">
     <div class="card-header"><h2>🌐 Соцсети</h2></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Ссылки одинаковые для всех языков.</div>
     <div class="form-row">
-      <div class="form-group"><label>📷 Instagram</label><input type="url" name="social_instagram" placeholder="https://instagram.com/…" value="{{ site.social_instagram }}"></div>
-      <div class="form-group"><label>✈ Telegram</label><input type="url" name="social_telegram" placeholder="https://t.me/…" value="{{ site.social_telegram }}"></div>
-      <div class="form-group"><label>🆅 VK</label><input type="url" name="social_vk" placeholder="https://vk.com/…" value="{{ site.social_vk }}"></div>
-      <div class="form-group"><label>📘 Facebook</label><input type="url" name="social_facebook" placeholder="https://facebook.com/…" value="{{ site.social_facebook }}"></div>
-      <div class="form-group"><label>📞 Viber</label><input type="text" name="social_viber" placeholder="viber://chat?number=…" value="{{ site.social_viber }}"></div>
+      {{ plain_input('social_instagram', '📷 Instagram', 'url', 'https://instagram.com/…') }}
+      {{ plain_input('social_telegram', '✈ Telegram', 'url', 'https://t.me/…') }}
+      {{ plain_input('social_vk', '🆅 VK', 'url', 'https://vk.com/…') }}
+      {{ plain_input('social_facebook', '📘 Facebook', 'url', 'https://facebook.com/…') }}
+      {{ plain_input('social_viber', '📞 Viber', 'text', 'viber://chat?number=…') }}
     </div>
   </div>
 
   <div class="card">
     <div class="card-header"><h2>📊 Статистика на главной</h2></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Цифры одинаковые. Подписи к ним переводятся в коде шаблона.</div>
     <div class="form-row">
-      <div class="form-group"><label>Направления</label><input type="text" name="stats_directions" value="{{ site.stats_directions }}"></div>
-      <div class="form-group"><label>Лет служения</label><input type="text" name="stats_years" value="{{ site.stats_years }}"></div>
-      <div class="form-group"><label>Степеней</label><input type="text" name="stats_degrees" value="{{ site.stats_degrees }}"></div>
-      <div class="form-group"><label>Призваний</label><input type="text" name="stats_callings" value="{{ site.stats_callings }}"></div>
+      {{ plain_input('stats_directions', 'Направления') }}
+      {{ plain_input('stats_years', 'Лет служения') }}
+      {{ plain_input('stats_degrees', 'Степеней') }}
+      {{ plain_input('stats_callings', 'Призваний') }}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h2>🍪 Cookie / Пользовательское соглашение</h2></div>
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:10px;text-transform:none;letter-spacing:0;font-size:15px;color:var(--text);font-weight:500;">
+        <input type="checkbox" name="cookie_banner_enabled" value="1" {% if site.cookie_banner_enabled == '1' %}checked{% endif %}>
+        Показывать баннер согласия с cookie при первом заходе
+      </label>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px;">
+        Пользователь увидит баннер внизу экрана. После клика на «Принимаю» баннер скрывается и больше не появляется в этом браузере.
+      </div>
+    </div>
+    {{ l10n_textarea('cookie_banner_text', 'Текст баннера', 3) }}
+    <div class="form-row">
+      {{ plain_input('cookie_banner_terms_url', 'Ссылка на пользовательское соглашение (необязательно)', 'text', 'https://… или /terms') }}
+      {{ l10n_input('cookie_banner_button_text', 'Текст кнопки') }}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>♥ Онлайн-пожертвования</h2>
+      <a href="/donate" target="_blank" class="btn btn-ghost btn-sm">Открыть страницу /donate ↗</a>
+    </div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">
+      Эти поля видны на отдельной странице <code>/donate</code> и в футере главной (ссылка «♥ Поддержать колледж»).
+    </div>
+    <div class="form-row">
+      {{ l10n_input('donate_eyebrow', 'Заголовок-надпись (eyebrow)') }}
+      {{ l10n_input('donate_title', 'Главный заголовок') }}
+    </div>
+    {{ l10n_textarea('donate_lead', 'Текст-лид под заголовком', 3) }}
+    {{ l10n_input('donate_thank_you', 'Текст благодарности (внизу карточки)') }}
+
+    <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);padding:14px 16px;margin:16px 0 8px;font-size:13px;">
+      <b style="color:var(--gold);">Включение/выключение способов оплаты.</b>
+      Если способ выключен, его вкладка не появляется на странице <code>/donate</code>.
+    </div>
+
+    {# ─── ЕРИП ─── #}
+    <h3 style="margin:24px 0 6px;font-family:'Cormorant Garamond',serif;font-weight:500;">🏦 ЕРИП</h3>
+    {{ toggle('donate_method_erip_enabled', 'Показывать вкладку «ЕРИП» на странице пожертвований') }}
+    <div class="form-row" style="margin-top:8px;">
+      {{ l10n_input('donate_erip_path', 'Путь в дереве ЕРИП', 'text', 'Образование и развитие → … → Библейский Колледж') }}
+      {{ plain_input('donate_erip_code', 'Код ЕРИП (необязательно)', 'text', '42010001') }}
+    </div>
+
+    {# ─── Банковский перевод ─── #}
+    <h3 style="margin:24px 0 6px;font-family:'Cormorant Garamond',serif;font-weight:500;">🧾 Банковский перевод</h3>
+    {{ toggle('donate_method_bank_enabled', 'Показывать вкладку «Банковский перевод»') }}
+    <div class="form-row" style="margin-top:8px;">
+      {{ l10n_input('donate_bank_recipient', 'Получатель') }}
+      {{ l10n_input('donate_bank_name', 'Банк') }}
+    </div>
+    <div class="form-row">
+      {{ plain_input('donate_bank_iban', 'IBAN') }}
+      {{ plain_input('donate_bank_bic', 'SWIFT/BIC') }}
+      {{ plain_input('donate_bank_unp', 'УНП') }}
+    </div>
+
+    {# ─── Карта онлайн ─── #}
+    <h3 style="margin:24px 0 6px;font-family:'Cormorant Garamond',serif;font-weight:500;">💳 Карта онлайн</h3>
+    {{ toggle('donate_method_card_enabled', 'Показывать вкладку «Картой онлайн»') }}
+    <div class="form-group" style="margin-top:8px;">
+      <label>Ссылка на платёжную страницу банка-эквайра</label>
+      <input type="text" name="donate_card_url" value="{{ site.donate_card_url }}" placeholder="https://payment-provider.by/checkout/…">
+      <div style="font-size:12px;color:var(--muted);margin-top:6px;">
+        Если поле пустое — на вкладке покажется сообщение «Способ временно недоступен».
+      </div>
+    </div>
+
+    {# ─── Наличные ─── #}
+    <h3 style="margin:24px 0 6px;font-family:'Cormorant Garamond',serif;font-weight:500;">🤝 Наличные в офисе</h3>
+    {{ toggle('donate_method_cash_enabled', 'Показывать вкладку «Наличными»') }}
+    <div style="font-size:12px;color:var(--muted);margin-top:4px;">
+      Адрес, режим работы и телефон берутся из секции «📍 Контакты» выше.
+    </div>
+
+    {# ─── Криптовалюта ─── #}
+    <h3 style="margin:24px 0 6px;font-family:'Cormorant Garamond',serif;font-weight:500;">₿ Криптовалюта</h3>
+    {{ toggle('donate_method_crypto_enabled', 'Показывать вкладку «Криптовалюта»') }}
+    <div style="font-size:12px;color:var(--muted);margin:4px 0 12px;">
+      Включите вкладку и заполните адреса нужных кошельков. Каждую сеть USDT и каждый альт-коин
+      (BTC / ETH) можно показывать или скрывать индивидуально.
+    </div>
+
+    <div style="border-left:2px solid var(--gold);padding:6px 0 6px 14px;margin-bottom:14px;">
+      <div style="font-weight:600;margin-bottom:6px;">USDT — несколько сетей</div>
+      <div class="form-row">
+        <div class="form-group">
+          {{ toggle('donate_crypto_usdt_trc20_enabled', 'TRC-20 (TRON)') }}
+          <input type="text" name="donate_crypto_usdt_trc20" value="{{ site.donate_crypto_usdt_trc20 }}" placeholder="T-адрес USDT TRC-20…">
+        </div>
+        <div class="form-group">
+          {{ toggle('donate_crypto_usdt_bsc_enabled', 'BSC / BEP-20 (BNB Smart Chain)') }}
+          <input type="text" name="donate_crypto_usdt_bsc" value="{{ site.donate_crypto_usdt_bsc }}" placeholder="0x… USDT BEP-20">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          {{ toggle('donate_crypto_usdt_sol_enabled', 'Solana (SPL)') }}
+          <input type="text" name="donate_crypto_usdt_sol" value="{{ site.donate_crypto_usdt_sol }}" placeholder="Solana-адрес…">
+        </div>
+        <div class="form-group">
+          {{ toggle('donate_crypto_usdt_ton_enabled', 'TON (Jetton USDT)') }}
+          <input type="text" name="donate_crypto_usdt_ton" value="{{ site.donate_crypto_usdt_ton }}" placeholder="TON-адрес (UQ…/EQ…)…">
+        </div>
+      </div>
+    </div>
+
+    <div style="border-left:2px solid var(--gold);padding:6px 0 6px 14px;margin-bottom:14px;">
+      <div style="font-weight:600;margin-bottom:6px;">BTC — Bitcoin</div>
+      {{ toggle('donate_crypto_btc_enabled', 'Показывать BTC') }}
+      <input type="text" name="donate_crypto_btc" value="{{ site.donate_crypto_btc }}" placeholder="bc1…">
+    </div>
+
+    <div style="border-left:2px solid var(--gold);padding:6px 0 6px 14px;margin-bottom:8px;">
+      <div style="font-weight:600;margin-bottom:6px;">ETH — Ethereum (ERC-20)</div>
+      {{ toggle('donate_crypto_eth_enabled', 'Показывать ETH') }}
+      <input type="text" name="donate_crypto_eth" value="{{ site.donate_crypto_eth }}" placeholder="0x…">
     </div>
   </div>
 
   <button class="btn" type="submit"><span>💾</span>Сохранить</button>
 </form>
+
+<script>
+(function () {
+  var body = document.body;
+  body.setAttribute('data-active-lang', 'ru');
+  document.querySelectorAll('[data-set-lang]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var lng = btn.getAttribute('data-set-lang');
+      body.setAttribute('data-active-lang', lng);
+      document.querySelectorAll('.lang-tab').forEach(function (t) {
+        t.classList.toggle('active', t.getAttribute('data-set-lang') === lng);
+      });
+    });
+  });
+})();
+</script>
 {% endblock %}

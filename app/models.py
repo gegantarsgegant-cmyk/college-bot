@@ -14,10 +14,31 @@ def _utcnow() -> datetime:
 
 
 class ApplicationStatus(StrEnum):
+    """CRM funnel stages for incoming applications."""
+
     new = "new"
-    in_progress = "in_progress"
+    contacted = "contacted"
+    docs_submitted = "docs_submitted"
     accepted = "accepted"
     rejected = "rejected"
+
+
+# Display labels for each status. The kanban order follows this dict.
+STATUS_LABELS: dict[str, str] = {
+    "new": "Новая",
+    "contacted": "Связались",
+    "docs_submitted": "Документы поданы",
+    "accepted": "Зачислена",
+    "rejected": "Отказ",
+}
+
+STATUS_EMOJI: dict[str, str] = {
+    "new": "📥",
+    "contacted": "📞",
+    "docs_submitted": "📄",
+    "accepted": "✅",
+    "rejected": "✖",
+}
 
 
 class AdminUser(Base):
@@ -63,6 +84,8 @@ class Teacher(Base):
     photo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
     published: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Per-language overrides: {"be": {"name": "...", "role": "...", ...}, "en": {...}}
+    i18n: Mapped[dict] = mapped_column(JSON, default=dict)
 
 
 class GalleryItem(Base):
@@ -80,6 +103,14 @@ class Document(Base):
     title: Mapped[str] = mapped_column(String(255))
     description: Mapped[str] = mapped_column(Text, default="")
     file_url: Mapped[str] = mapped_column(String(500))
+    slug: Mapped[str] = mapped_column(String(32), unique=True, index=True, default="")
+    original_filename: Mapped[str] = mapped_column(String(500), default="")
+    size_bytes: Mapped[int] = mapped_column(Integer, default=0)
+    mime_type: Mapped[str] = mapped_column(String(120), default="")
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    max_downloads: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    download_count: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
     published: Mapped[bool] = mapped_column(Boolean, default=True)
 
@@ -105,6 +136,49 @@ class Application(Base):
     admin_comment: Mapped[str] = mapped_column(Text, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
     notified_message_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # ---- CRM fields ----
+    tags: Mapped[list] = mapped_column(JSON, default=list)
+    history: Mapped[list] = mapped_column(JSON, default=list)
+    last_contacted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
+    assigned_to: Mapped[str] = mapped_column(String(120), default="", index=True)
+    last_reminder_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class Program(Base):
+    """A study program shown on the homepage and as a sub-page."""
+
+    __tablename__ = "programs"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    slug: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    number: Mapped[str] = mapped_column(String(8), default="")
+    tag: Mapped[str] = mapped_column(String(120), default="")
+    title: Mapped[str] = mapped_column(String(255))
+    description: Mapped[str] = mapped_column(Text, default="")
+    form_label: Mapped[str] = mapped_column(String(120), default="")
+    term_label: Mapped[str] = mapped_column(String(255), default="")
+    degree_label: Mapped[str] = mapped_column(String(255), default="")
+    tuition_amount: Mapped[str] = mapped_column(String(64), default="")
+    tuition_note: Mapped[str] = mapped_column(String(500), default="")
+    documents: Mapped[list] = mapped_column(JSON, default=list)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    published: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Per-language overrides: {"be": {"title": "...", "description": "...", ...}, "en": {...}}
+    # Empty/missing key for a given lang → fall back to the canonical (RU) value above.
+    i18n: Mapped[dict] = mapped_column(JSON, default=dict)
+
+
+class ProgramSpecialty(Base):
+    """A specialty / track inside a program (e.g. 'Звукорежиссура')."""
+
+    __tablename__ = "program_specialties"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    program_id: Mapped[int] = mapped_column(Integer, index=True)
+    num: Mapped[str] = mapped_column(String(8), default="")
+    name: Mapped[str] = mapped_column(String(255))
+    subs: Mapped[str] = mapped_column(Text, default="")
+    qualification: Mapped[str] = mapped_column(String(500), default="")
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    i18n: Mapped[dict] = mapped_column(JSON, default=dict)
 
 
 class BotUser(Base):
@@ -121,6 +195,8 @@ class BotUser(Base):
 
 
 __all__ = [
+    "STATUS_EMOJI",
+    "STATUS_LABELS",
     "AdminUser",
     "Application",
     "ApplicationStatus",
@@ -129,6 +205,8 @@ __all__ = [
     "Event",
     "GalleryItem",
     "News",
+    "Program",
+    "ProgramSpecialty",
     "Setting",
     "Teacher",
 ]

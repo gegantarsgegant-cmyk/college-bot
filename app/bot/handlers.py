@@ -45,92 +45,177 @@ def is_admin(user_id: int) -> bool:
     return user_id in settings.admin_ids
 
 
+def _bot_base_url(*, with_creds: bool = True) -> str:
+    """Base URL used for links sent to Telegram.
+
+    If `with_creds` is True (default) and BOT_PUBLIC_URL is configured with
+    embedded basic-auth credentials, those credentials are kept in the URL —
+    used for inline `<a>` links that Telegram opens in the system browser
+    (which honours `user:pass@` in the URL).
+
+    If `with_creds` is False, any embedded userinfo is stripped — used for
+    inline-keyboard URL buttons because Telegram rejects URLs with userinfo
+    via `BUTTON_URL_INVALID`.
+    """
+    base = (settings.BOT_PUBLIC_URL or settings.PUBLIC_URL).rstrip("/")
+    if with_creds:
+        return base
+    if "://" in base:
+        scheme, rest = base.split("://", 1)
+        if "@" in rest.split("/", 1)[0]:
+            host_and_path = rest.split("@", 1)[1]
+            return f"{scheme}://{host_and_path}"
+    return base
+
+
 def _admin_panel_url() -> str:
-    """URL открываемый кнопкой Mini App."""
-    return settings.PUBLIC_URL.rstrip("/") + "/admin/tg"
+    """URL открываемый кнопкой Mini App (Telegram WebApp)."""
+    # WebApp also forbids userinfo in URL — keep it clean.
+    return _bot_base_url(with_creds=False) + "/admin/tg"
+
+
+def _admin_magic_url(
+    tg_user_id: int,
+    *,
+    next_path: str = "/admin/",
+    with_creds: bool = True,
+) -> str:
+    """One-shot login URL for the given Telegram admin."""
+    from urllib.parse import quote
+
+    from ..auth import make_magic_token
+
+    token = make_magic_token(tg_user_id)
+    base = _bot_base_url(with_creds=with_creds)
+    return f"{base}/admin/magic?t={token}&next={quote(next_path)}"
 
 
 def _public_url() -> str:
+    """User-facing site URL (never contains basic-auth creds)."""
     return settings.PUBLIC_URL.rstrip("/")
 
 
 def _webapp_supported() -> bool:
     """Telegram WebApp требует HTTPS."""
-    return settings.PUBLIC_URL.startswith("https://")
+    base = _bot_base_url(with_creds=False)
+    return base.startswith("https://")
 
 
 def _public_link_button_supported() -> bool:
     """Telegram отвергает URL-кнопки на localhost/127.0.0.1."""
-    url = settings.PUBLIC_URL
+    url = _bot_base_url(with_creds=False)
     if not (url.startswith("http://") or url.startswith("https://")):
         return False
+    host_part = url.split("://", 1)[1].split("/", 1)[0]
     bad_hosts = ("localhost", "127.0.0.1", "0.0.0.0")
-    return not any(host in url for host in bad_hosts)
+    return not any(host_part.startswith(h) for h in bad_hosts)
 
 
-def admin_menu_kb(stats: dict[str, int] | None = None) -> InlineKeyboardMarkup:
-    rows: list[list[InlineKeyboardButton]] = []
+def _has_embedded_creds() -> bool:
+    """True if BOT_PUBLIC_URL has user:pass@ — implies tunnel basic auth."""
+    base = (settings.BOT_PUBLIC_URL or "").strip()
+    if "://" not in base:
+        return False
+    rest = base.split("://", 1)[1]
+    return "@" in rest.split("/", 1)[0]
+
+
+def _open_admin_button(
+    tg_user_id: int | None,
+    *,
+    text: str = "🛠 Открыть админ-панель",
+    next_path: str = "/admin/",
+) -> InlineKeyboardButton | None:
+    """Build a button that opens the admin panel.
+
+    URLs sent in inline-button MUST NOT contain userinfo (`user:pass@`) — the
+    Telegram Bot API rejects them with `BUTTON_URL_INVALID`. We always build
+    the button URL with `with_creds=False`, so basic-auth credentials in
+    BOT_PUBLIC_URL are stripped before sending to Telegram. When the user
+    taps the button Telegram opens it in the system browser; if the host is
+    behind a basic-auth tunnel the browser will show the auth dialog, after
+    which the magic-token logs the admin into the panel.
+    """
+    if tg_user_id is not None and is_admin(tg_user_id) and _public_link_button_supported():
+        url = _admin_magic_url(tg_user_id, next_path=next_path, with_creds=False)
+        return InlineKeyboardButton(text=text, url=url)
     if _webapp_supported():
-        rows.append(
-            [
-                InlineKeyboardButton(
-                    text="🛠 Открыть админ-панель",
-                    web_app=WebAppInfo(url=_admin_panel_url()),
-                )
-            ]
+        return InlineKeyboardButton(
+            text=text, web_app=WebAppInfo(url=_admin_panel_url())
         )
-    elif _public_link_button_supported():
-        rows.append(
-            [
-                InlineKeyboardButton(
-                    text="🌐 Открыть админ-панель",
-                    url=_admin_panel_url(),
-                )
-            ]
-        )
-    new_count = (stats or {}).get("new", 0)
-    rows.append(
-        [
-            InlineKeyboardButton(
-                text=f"📥 Новые заявки{(' · ' + str(new_count)) if new_count else ''}",
-                callback_data="adm:stats",
-            )
-        ]
+    if _public_link_button_supported():
+        return InlineKeyboardButton(text=text, url=_admin_panel_url())
+    return None
+
+
+def admin_link_html(
+    tg_user_id: int | None,
+    *,
+    text: str = "🛠 Открыть в админке",
+    next_path: str = "/admin/",
+) -> str:
+    """Inline `<a>` link rendered in message body — used as a fallback when
+    a URL inline-keyboard button is not possible (basic-auth tunnel).
+    Returns an empty string if we have no usable URL.
+    """
+    if tg_user_id is None or not is_admin(tg_user_id):
+        return ""
+    url = _admin_magic_url(tg_user_id, next_path=next_path, with_creds=True)
+    return f"<a href=\"{escape(url, quote=True)}\">{escape(text)}</a>"
+
+
+def admin_menu_kb(
+    stats: dict[str, int] | None = None,  # kept for backwards compat
+    tg_user_id: int | None = None,
+) -> InlineKeyboardMarkup:
+    """Bot start-menu: a single button that opens the admin panel.
+
+    Stats are already rendered in the message body, so we deliberately do
+    NOT add a "show stats" callback button here — that would just duplicate
+    information the user can already see.
+    """
+    rows: list[list[InlineKeyboardButton]] = []
+    btn = _open_admin_button(
+        tg_user_id,
+        text="🛠 Открыть панель управления",
+        next_path="/admin/applications",
     )
+    if btn:
+        rows.append([btn])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-def application_kb(app_id: int) -> InlineKeyboardMarkup:
+def application_kb(app_id: int, tg_user_id: int | None = None) -> InlineKeyboardMarkup:
     rows: list[list[InlineKeyboardButton]] = [
         [
-            InlineKeyboardButton(text="⏳ В работу", callback_data=f"app:in_progress:{app_id}"),
-            InlineKeyboardButton(text="✅ Принять", callback_data=f"app:accepted:{app_id}"),
+            InlineKeyboardButton(text="📞 Связались", callback_data=f"app:contacted:{app_id}"),
+            InlineKeyboardButton(text="📄 Документы", callback_data=f"app:docs_submitted:{app_id}"),
         ],
         [
-            InlineKeyboardButton(text="✖ Отклонить", callback_data=f"app:rejected:{app_id}"),
+            InlineKeyboardButton(text="✅ Зачислить", callback_data=f"app:accepted:{app_id}"),
+            InlineKeyboardButton(text="✖ Отказ", callback_data=f"app:rejected:{app_id}"),
         ],
     ]
-    if _webapp_supported():
-        rows.append(
-            [
-                InlineKeyboardButton(
-                    text="🛠 Открыть в админке",
-                    web_app=WebAppInfo(
-                        url=_admin_panel_url() + f"?app={app_id}#applications"
-                    ),
-                )
-            ]
-        )
-    elif _public_link_button_supported():
-        rows.append(
-            [
-                InlineKeyboardButton(
-                    text="🌐 Открыть в админке",
-                    url=_admin_panel_url() + f"?app={app_id}#applications",
-                )
-            ]
-        )
+    btn = _open_admin_button(
+        tg_user_id,
+        text="🛠 Посмотреть в админке",
+        next_path=f"/admin/applications?app={app_id}",
+    )
+    if btn:
+        rows.append([btn])
     return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def admin_link_kb(tg_user_id: int | None = None) -> InlineKeyboardMarkup | None:
+    """Single-button keyboard that opens the admin panel (for stale digest etc.)."""
+    btn = _open_admin_button(
+        tg_user_id,
+        text="🛠 Открыть в админке",
+        next_path="/admin/applications",
+    )
+    if btn is None:
+        return None
+    return InlineKeyboardMarkup(inline_keyboard=[[btn]])
 
 
 async def _ensure_bot_user(message: Message) -> None:
@@ -157,15 +242,18 @@ async def _ensure_bot_user(message: Message) -> None:
 
 
 def _format_stats(stats: dict[str, int]) -> str:
-    return (
-        "📊 <b>Статистика заявок</b>\n\n"
-        f"📥 Новые: <b>{stats.get('new', 0)}</b>\n"
-        f"⏳ В работе: <b>{stats.get('in_progress', 0)}</b>\n"
-        f"✅ Принятые: <b>{stats.get('accepted', 0)}</b>\n"
-        f"✖ Отклонённые: <b>{stats.get('rejected', 0)}</b>\n"
-        f"━━━━━━━━━━━━━\n"
-        f"📊 Всего: <b>{stats.get('total', 0)}</b>"
-    )
+    lines = [
+        "📊 <b>Статистика заявок</b>",
+        "",
+        f"📥 Новые: <b>{stats.get('new', 0)}</b>",
+        f"📞 Связались: <b>{stats.get('contacted', 0)}</b>",
+        f"📄 Документы: <b>{stats.get('docs_submitted', 0)}</b>",
+        f"✅ Зачислены: <b>{stats.get('accepted', 0)}</b>",
+        f"✖ Отказы: <b>{stats.get('rejected', 0)}</b>",
+        "",
+        f"📊 Всего: <b>{stats.get('total', 0)}</b>",
+    ]
+    return "\n".join(lines)
 
 
 # ============== /start ==============
@@ -197,22 +285,8 @@ async def cmd_start(message: Message, state: FSMContext):
         "Это <b>административный бот</b> Библейского колледжа ХВЕ.\n"
         "Сюда приходят уведомления о заявках с сайта.\n\n"
         + _format_stats(stats),
-        reply_markup=admin_menu_kb(stats),
+        reply_markup=admin_menu_kb(stats, tg_user_id=user.id),
     )
-
-
-# ============== Callbacks ==============
-
-@router.callback_query(F.data == "adm:stats")
-async def cb_stats(cb: CallbackQuery):
-    if not cb.from_user or not is_admin(cb.from_user.id):
-        await cb.answer("⛔ Только админы", show_alert=True)
-        return
-    async with AsyncSessionLocal() as session:
-        stats = await application_stats(session)
-    if cb.message:
-        await cb.message.answer(_format_stats(stats), reply_markup=admin_menu_kb(stats))
-    await cb.answer()
 
 
 # ============== Application status callbacks ==============
@@ -238,9 +312,10 @@ async def application_action(cb: CallbackQuery):
         await cb.answer("Не найдено", show_alert=True)
         return
     label_map = {
-        "in_progress": ("⏳", "В работе"),
-        "accepted": ("✅", "Принято"),
-        "rejected": ("✖", "Отклонено"),
+        "contacted": ("📞", "Связались"),
+        "docs_submitted": ("📄", "Документы поданы"),
+        "accepted": ("✅", "Зачислен"),
+        "rejected": ("✖", "Отказ"),
         "new": ("📥", "Новая"),
     }
     icon, label = label_map.get(status, ("•", status))
@@ -249,7 +324,9 @@ async def application_action(cb: CallbackQuery):
             new_text = (cb.message.html_text or cb.message.text or "")
             new_text += f"\n\n<i>{icon} Статус: <b>{escape(label)}</b></i>"
             await cb.message.edit_text(
-                new_text, parse_mode="HTML", reply_markup=application_kb(app.id)
+                new_text,
+                parse_mode="HTML",
+                reply_markup=application_kb(app.id, tg_user_id=cb.from_user.id),
             )
         except Exception:  # noqa: BLE001
             pass
@@ -271,8 +348,8 @@ async def fallback(message: Message):
     async with AsyncSessionLocal() as session:
         stats = await application_stats(session)
     await message.answer(
-        "Используйте кнопки ниже:\n\n" + _format_stats(stats),
-        reply_markup=admin_menu_kb(stats),
+        _format_stats(stats),
+        reply_markup=admin_menu_kb(stats, tg_user_id=user.id),
     )
 
 

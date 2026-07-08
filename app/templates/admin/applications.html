@@ -1,10 +1,300 @@
 {% extends "admin/_base.html" %}
-{% block title %}Заявки{% endblock %}
+{% block title %}Заявки · CRM{% endblock %}
 {% block content %}
+<style>
+  .crm-toolbar {
+    display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+    margin-bottom:18px;
+  }
+  .crm-toolbar input[type=text],
+  .crm-toolbar input[type=date],
+  .crm-toolbar select {
+    background: rgba(0,0,0,0.35);
+    border:1px solid rgba(201,168,76,0.25);
+    color: var(--text);
+    padding:9px 12px;
+    border-radius:6px;
+    font-family:'Jost', system-ui, sans-serif;
+    font-size:0.9rem;
+  }
+  .crm-toolbar input[type=text]:focus,
+  .crm-toolbar input[type=date]:focus,
+  .crm-toolbar select:focus {
+    border-color: var(--gold, #C9A84C);
+    outline:none;
+  }
+  .crm-view-toggle {
+    display:inline-flex; border:1px solid rgba(201,168,76,0.3);
+    border-radius:6px; overflow:hidden;
+  }
+  .crm-view-toggle a {
+    padding:9px 14px; color: rgba(250,246,238,0.75);
+    text-decoration:none; font-size:0.78rem;
+    text-transform:uppercase; letter-spacing:0.12em;
+    background: rgba(0,0,0,0.25);
+    transition: all .15s ease;
+  }
+  .crm-view-toggle a.active {
+    background: var(--gold, #C9A84C); color:#1A1612; font-weight:600;
+  }
+  .crm-view-toggle a:hover:not(.active) { background: rgba(201,168,76,0.12); color: var(--gold); }
+
+  /* ---- Kanban ---- */
+  .kanban {
+    display:grid; grid-template-columns: repeat(5, minmax(220px, 1fr));
+    gap:12px;
+    align-items:start;
+  }
+  @media (max-width: 1280px) {
+    .kanban { overflow-x:auto; grid-auto-columns: 260px; grid-template-columns: unset; grid-auto-flow:column; }
+  }
+  .kan-col {
+    background: rgba(0,0,0,0.28);
+    border:1px solid rgba(201,168,76,0.18);
+    border-radius:8px;
+    padding:10px;
+    min-height: 280px;
+  }
+  .kan-col-head {
+    display:flex; justify-content:space-between; align-items:center;
+    padding: 4px 6px 10px;
+    border-bottom: 1px solid rgba(201,168,76,0.18);
+    margin-bottom:10px;
+    font-family:'Jost', sans-serif;
+    font-size:0.75rem;
+    text-transform:uppercase;
+    letter-spacing:0.16em;
+    color: rgba(250,246,238,0.78);
+  }
+  .kan-col-head .count {
+    background: rgba(201,168,76,0.15); color: var(--gold);
+    padding: 2px 9px; border-radius: 99px;
+    font-size: 0.78rem; font-weight:600;
+    letter-spacing: 0.05em;
+  }
+  .kan-col[data-status="new"] .kan-col-head { color: #f0c14b; }
+  .kan-col[data-status="accepted"] .kan-col-head { color:#7fd17f; }
+  .kan-col[data-status="rejected"] .kan-col-head { color:#e98080; }
+
+  .kan-card {
+    background: rgba(26, 22, 18, 0.85);
+    border:1px solid rgba(201,168,76,0.24);
+    border-left: 3px solid var(--gold, #C9A84C);
+    border-radius:6px;
+    padding:11px 12px;
+    margin-bottom:9px;
+    cursor:grab;
+    transition: all .15s ease;
+  }
+  .kan-card:hover {
+    border-color: var(--gold, #C9A84C);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  }
+  .kan-card.dragging { opacity: 0.4; }
+  .kan-card.stale { border-left-color: #e98080; }
+  .kan-card .name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    color: #FAF6EE;
+    margin-bottom: 3px;
+  }
+  .kan-card .meta {
+    font-size: 0.75rem;
+    color: rgba(250,246,238,0.55);
+    line-height:1.5;
+  }
+  .kan-card .pgm {
+    font-size: 0.72rem;
+    color: var(--gold, #C9A84C);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top:3px;
+  }
+  .kan-card .stale-warn {
+    margin-top: 6px;
+    font-size: 0.7rem;
+    color: #e98080;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .kan-card .tag-row {
+    margin-top: 6px;
+    display:flex; flex-wrap:wrap; gap:4px;
+  }
+  .kan-card .tag {
+    background: rgba(201,168,76,0.14); color: var(--gold);
+    padding:2px 8px; border-radius:99px; font-size:0.66rem;
+    letter-spacing: 0.05em;
+  }
+  .kan-card .assignee {
+    font-size: 0.7rem;
+    color: rgba(250,246,238,0.55);
+    margin-top: 5px;
+  }
+  .kan-card .assignee::before { content:"👤 "; }
+  .kan-col.drag-over .kan-empty,
+  .kan-col.drag-over { background: rgba(201,168,76,0.07); border-color:var(--gold); }
+  .kan-empty {
+    padding: 24px 10px;
+    text-align:center;
+    color: rgba(250,246,238,0.3);
+    font-size: 0.78rem;
+    border: 1px dashed rgba(201,168,76,0.2);
+    border-radius:6px;
+  }
+
+  /* ---- Drawer ---- */
+  #appDrawer {
+    position: fixed; top:0; right:0; height:100vh; width: min(560px, 92vw);
+    background: linear-gradient(180deg,#1A1612 0%, #14110d 100%);
+    border-left: 1px solid rgba(201,168,76,0.4);
+    box-shadow: -10px 0 40px rgba(0,0,0,0.6);
+    z-index: 9998;
+    transform: translateX(100%);
+    transition: transform .25s ease;
+    overflow-y: auto;
+  }
+  #appDrawer.open { transform: translateX(0); }
+  #appDrawerBackdrop {
+    position: fixed; inset:0;
+    background: rgba(0,0,0,0.55);
+    z-index: 9997;
+    opacity: 0; pointer-events:none;
+    transition: opacity .25s ease;
+  }
+  #appDrawerBackdrop.open { opacity:1; pointer-events:auto; }
+  .drawer-head {
+    padding: 18px 22px;
+    border-bottom: 1px solid rgba(201,168,76,0.25);
+    display:flex; justify-content:space-between; align-items:flex-start;
+  }
+  .drawer-head h2 {
+    margin:0;
+    font-family:'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    color: #FAF6EE;
+  }
+  .drawer-head .sub {
+    color: rgba(250,246,238,0.55);
+    font-size: 0.78rem;
+    margin-top:2px;
+  }
+  .drawer-head .close-x {
+    background:none; border:none; color: rgba(250,246,238,0.6);
+    font-size: 1.5rem; cursor:pointer; padding:0 6px;
+  }
+  .drawer-head .close-x:hover { color: var(--gold); }
+  .drawer-body { padding: 18px 22px; }
+  .drawer-section { margin-bottom: 22px; }
+  .drawer-section h3 {
+    font-family:'Jost', sans-serif;
+    font-size: 0.72rem;
+    text-transform:uppercase;
+    letter-spacing: 0.18em;
+    color: var(--gold);
+    margin: 0 0 10px;
+  }
+  .info-row { display:grid; grid-template-columns: 100px 1fr; gap:8px; margin-bottom:6px; font-size:0.88rem; }
+  .info-row .lbl { color: rgba(250,246,238,0.5); }
+  .info-row .val { color: #FAF6EE; }
+  .info-row a { color: var(--gold); text-decoration:none; }
+
+  .timeline { border-left: 2px solid rgba(201,168,76,0.2); padding-left: 14px; }
+  .tl-item { margin-bottom: 10px; position:relative; }
+  .tl-item::before {
+    content:""; position:absolute; left:-19px; top:6px;
+    width:8px; height:8px; border-radius:50%;
+    background: rgba(201,168,76,0.5);
+  }
+  .tl-item.kind-status::before { background: var(--gold); }
+  .tl-item.kind-note::before { background: #7fd17f; }
+  .tl-item.kind-contact::before { background: #6cc1ff; }
+  .tl-item.kind-tag::before { background: #d99fff; }
+  .tl-item .ts {
+    font-size: 0.7rem; color: rgba(250,246,238,0.45);
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .tl-item .text {
+    color: #FAF6EE; font-size:0.88rem; margin-top:2px;
+    white-space: pre-wrap;
+  }
+
+  .drawer-status-bar {
+    display:flex; flex-wrap:wrap; gap:6px;
+    margin-bottom: 10px;
+  }
+  .drawer-status-bar button {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(201,168,76,0.25);
+    color: rgba(250,246,238,0.75);
+    padding: 7px 12px; border-radius: 4px;
+    font-size: 0.74rem; font-family:'Jost',sans-serif;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .drawer-status-bar button:hover { background: rgba(201,168,76,0.12); color: var(--gold); border-color: var(--gold); }
+  .drawer-status-bar button.active {
+    background: var(--gold); color:#1A1612; border-color:var(--gold);
+    font-weight:600;
+  }
+  .drawer-form input, .drawer-form textarea {
+    width:100%; box-sizing:border-box;
+    background: rgba(0,0,0,0.35);
+    border:1px solid rgba(201,168,76,0.22);
+    color: var(--text);
+    padding:8px 11px; border-radius:5px;
+    font-family:'Jost', sans-serif; font-size:0.86rem;
+    resize: vertical;
+  }
+  .drawer-form .row { display:flex; gap:8px; align-items:center; }
+  .drawer-form .row input { flex:1; }
+  .drawer-form button {
+    background: var(--gold, #C9A84C); color:#1A1612;
+    border:none; padding:8px 14px; border-radius:4px;
+    font-family:'Jost', sans-serif; font-size:0.78rem;
+    font-weight:600; text-transform:uppercase; letter-spacing:0.1em;
+    cursor:pointer;
+  }
+  .drawer-form button.ghost {
+    background:transparent; color:var(--gold); border:1px solid var(--gold);
+  }
+  .drawer-form button.ghost:hover { background: rgba(201,168,76,0.1); }
+
+  /* ---- List view ---- */
+  .crm-table { width:100%; border-collapse:collapse; }
+  .crm-table th, .crm-table td {
+    padding: 10px 12px; text-align:left;
+    border-bottom: 1px solid rgba(201,168,76,0.12);
+    font-size: 0.85rem;
+  }
+  .crm-table thead th {
+    color: rgba(250,246,238,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.7rem;
+    font-weight:500;
+  }
+  .crm-table tbody tr { cursor:pointer; transition: background .12s ease; }
+  .crm-table tbody tr:hover { background: rgba(201,168,76,0.05); }
+  .pill {
+    display:inline-block; padding:3px 9px; border-radius:99px;
+    font-size: 0.7rem; letter-spacing: 0.05em;
+    background: rgba(201,168,76,0.14); color: var(--gold);
+  }
+  .pill.new { background: rgba(240,193,75,0.14); color:#f0c14b; }
+  .pill.accepted { background: rgba(127,209,127,0.14); color:#7fd17f; }
+  .pill.rejected { background: rgba(233,128,128,0.14); color:#e98080; }
+</style>
+
 <div class="main-header">
   <div>
-    <h1 class="page-title">Заявки</h1>
-    <div class="page-subtitle">Все обращения через форму на сайте</div>
+    <h1 class="page-title">Заявки <em>CRM</em></h1>
+    <div class="page-subtitle">Воронка приёма: от обращения до зачисления</div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <a href="/admin/applications.csv?status={{ status }}&program={{ program|urlencode }}&q={{ q|urlencode }}&date_from={{ date_from }}&date_to={{ date_to }}" class="btn btn-ghost" style="text-decoration:none;"><span>📥</span>Экспорт CSV</a>
   </div>
 </div>
 
@@ -13,83 +303,344 @@
     <div class="stat-head"><span>Всего</span><span>📊</span></div>
     <div class="num">{{ stats.total or 0 }}</div>
   </a>
-  <a class="stat-tile{% if status=='new' %} gold{% endif %}" href="/admin/applications?status=new">
-    <div class="stat-head"><span>Новые</span><span>📥</span></div>
-    <div class="num">{{ stats.new or 0 }}</div>
+  {% for k, lbl in status_labels.items() %}
+  <a class="stat-tile{% if status==k %} gold{% endif %}" href="/admin/applications?status={{ k }}">
+    <div class="stat-head"><span>{{ lbl }}</span><span>{{ status_emoji[k] }}</span></div>
+    <div class="num">{{ stats[k] or 0 }}</div>
   </a>
-  <a class="stat-tile{% if status=='in_progress' %} gold{% endif %}" href="/admin/applications?status=in_progress">
-    <div class="stat-head"><span>В работе</span><span>⏳</span></div>
-    <div class="num">{{ stats.in_progress or 0 }}</div>
-  </a>
-  <a class="stat-tile{% if status=='accepted' %} gold{% endif %}" href="/admin/applications?status=accepted">
-    <div class="stat-head"><span>Принято</span><span>✅</span></div>
-    <div class="num">{{ stats.accepted or 0 }}</div>
-  </a>
-  <a class="stat-tile{% if status=='rejected' %} gold{% endif %}" href="/admin/applications?status=rejected">
-    <div class="stat-head"><span>Отклонено</span><span>✖</span></div>
-    <div class="num">{{ stats.rejected or 0 }}</div>
-  </a>
+  {% endfor %}
 </div>
 
-<div class="filters">
-  <a href="/admin/applications" class="{% if not status %}active{% endif %}">Все</a>
-  <a href="/admin/applications?status=new" class="{% if status=='new' %}active{% endif %}">📥 Новые</a>
-  <a href="/admin/applications?status=in_progress" class="{% if status=='in_progress' %}active{% endif %}">⏳ В работе</a>
-  <a href="/admin/applications?status=accepted" class="{% if status=='accepted' %}active{% endif %}">✅ Принятые</a>
-  <a href="/admin/applications?status=rejected" class="{% if status=='rejected' %}active{% endif %}">✖ Отклонённые</a>
-</div>
+<form method="get" action="/admin/applications" class="crm-toolbar">
+  <input type="hidden" name="view" value="{{ view }}">
+  <input type="text" name="q" value="{{ q }}" placeholder="🔎 Поиск: имя, телефон, церковь" style="min-width:220px;">
+  <select name="status">
+    <option value="">Все статусы</option>
+    {% for k, lbl in status_labels.items() %}
+    <option value="{{ k }}" {% if status==k %}selected{% endif %}>{{ status_emoji[k] }} {{ lbl }}</option>
+    {% endfor %}
+  </select>
+  <select name="program">
+    <option value="">Все программы</option>
+    {% for p in programs_list %}
+    <option value="{{ p }}" {% if program==p %}selected{% endif %}>{{ p }}</option>
+    {% endfor %}
+  </select>
+  <input type="date" name="date_from" value="{{ date_from }}" title="С даты">
+  <input type="date" name="date_to" value="{{ date_to }}" title="По дату">
+  <button class="btn btn-sm" type="submit">Применить</button>
+  {% if status or program or q or date_from or date_to %}
+  <a href="/admin/applications?view={{ view }}" class="btn btn-sm btn-ghost" style="text-decoration:none;">Сбросить</a>
+  {% endif %}
+  <span style="margin-left:auto;"></span>
+  <div class="crm-view-toggle">
+    <a href="?status={{ status }}&program={{ program|urlencode }}&q={{ q|urlencode }}&date_from={{ date_from }}&date_to={{ date_to }}&view=kanban" class="{% if view=='kanban' %}active{% endif %}">▦ Канбан</a>
+    <a href="?status={{ status }}&program={{ program|urlencode }}&q={{ q|urlencode }}&date_from={{ date_from }}&date_to={{ date_to }}&view=list" class="{% if view=='list' %}active{% endif %}">☰ Список</a>
+  </div>
+</form>
 
-{% if applications %}
-<div class="app-list">
-  {% for app in applications %}
-  <div class="app-card" id="app-{{ app.id }}">
-    <div class="app-head">
-      <div>
-        <div class="app-name">{{ app.name }} {{ app.lastname }}</div>
-        <div class="app-id">Заявка №{{ app.id }} · {{ app.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
-      </div>
-      {% if app.status == "new" %}<span class="pill pill-new">Новая</span>
-      {% elif app.status == "in_progress" %}<span class="pill pill-progress">В работе</span>
-      {% elif app.status == "accepted" %}<span class="pill pill-accepted">Принята</span>
-      {% elif app.status == "rejected" %}<span class="pill pill-rejected">Отклонена</span>{% endif %}
+{% if not applications %}
+<div class="card empty">
+  <div style="font-size:48px;margin-bottom:8px;">📭</div>
+  <div class="big">Заявок не найдено</div>
+  <div>{% if status or program or q or date_from or date_to %}Попробуйте сбросить фильтры.{% else %}Когда кто-то отправит форму на сайте — заявка появится здесь.{% endif %}</div>
+</div>
+{% elif view == 'list' %}
+<div class="card" style="padding:0;overflow:hidden;">
+  <table class="crm-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Имя</th><th>Телефон</th><th>Программа</th>
+        <th>Статус</th><th>Ответственный</th><th>Получено</th><th>Контакт</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for app in applications %}
+      <tr data-app-id="{{ app.id }}" class="crm-row">
+        <td style="color:rgba(250,246,238,0.5);">{{ app.id }}</td>
+        <td><strong>{{ app.name }}</strong>{% if app.lastname %} {{ app.lastname }}{% endif %}{% if app.church %}<div style="font-size:.75em;color:rgba(250,246,238,0.5);">⛪ {{ app.church }}</div>{% endif %}</td>
+        <td>{% if app.phone %}<a href="tel:{{ app.phone }}" style="color:var(--text);">{{ app.phone }}</a>{% else %}—{% endif %}</td>
+        <td>{{ app.program or '—' }}</td>
+        <td><span class="pill {{ app.status }}">{{ status_emoji[app.status] }} {{ status_labels.get(app.status, app.status) }}</span></td>
+        <td>{{ app.assigned_to or '—' }}</td>
+        <td style="font-size:.78rem;color:rgba(250,246,238,0.6);">{{ app.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+        <td style="font-size:.78rem;color:rgba(250,246,238,0.6);">{% if app.last_contacted_at %}{{ app.last_contacted_at.strftime('%d.%m.%Y') }}{% else %}<span style="color:#e98080;">не было</span>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+{# kanban #}
+<div class="kanban" id="kanban">
+  {% for k, lbl in status_labels.items() %}
+  <div class="kan-col" data-status="{{ k }}">
+    <div class="kan-col-head">
+      <span>{{ status_emoji[k] }} {{ lbl }}</span>
+      <span class="count">{{ grouped[k]|length if grouped[k] is defined else 0 }}</span>
     </div>
-
-    {% if app.phone %}<div class="meta"><span class="ic">☎</span><span><a href="tel:{{ app.phone }}" style="color:var(--text);">{{ app.phone }}</a></span></div>{% endif %}
-    {% if app.program %}<div class="meta"><span class="ic">🎓</span><span>{{ app.program }}</span></div>{% endif %}
-    {% if app.church %}<div class="meta"><span class="ic">⛪</span><span>{{ app.church }}</span></div>{% endif %}
-    {% if app.note %}<div class="note">{{ app.note }}</div>{% endif %}
-    {% if app.admin_comment %}<div class="meta"><span class="ic">📝</span><span style="color:var(--muted);">{{ app.admin_comment }}</span></div>{% endif %}
-
-    <hr class="sep">
-    <form method="post" action="/admin/applications/{{ app.id }}/status">
-      <div class="quick" style="margin-bottom:10px;">
-        <button name="new_status" value="in_progress" class="btn btn-sm btn-secondary">⏳ В работу</button>
-        <button name="new_status" value="accepted" class="btn btn-sm btn-secondary">✅ Принять</button>
-        <button name="new_status" value="rejected" class="btn btn-sm btn-secondary">✖ Отклонить</button>
-        <button name="new_status" value="new" class="btn btn-sm btn-secondary">↻ Новая</button>
-      </div>
-      <details>
-        <summary class="muted" style="font-size:12px;cursor:pointer;">+ комментарий и сменить статус</summary>
-        <div style="margin-top:10px;display:grid;grid-template-columns:1fr auto auto;gap:8px;">
-          <input type="text" name="admin_comment" placeholder="Комментарий (необязательно)" value="{{ app.admin_comment or '' }}">
-          <select name="new_status">
-            <option value="new" {% if app.status=='new' %}selected{% endif %}>Новая</option>
-            <option value="in_progress" {% if app.status=='in_progress' %}selected{% endif %}>В работе</option>
-            <option value="accepted" {% if app.status=='accepted' %}selected{% endif %}>Принята</option>
-            <option value="rejected" {% if app.status=='rejected' %}selected{% endif %}>Отклонена</option>
-          </select>
-          <button class="btn btn-sm">OK</button>
+    <div class="kan-col-body">
+      {% for app in grouped[k] if grouped[k] is defined %}
+      <div class="kan-card{% if app.status in ['new','contacted'] and app.last_contacted_at is none and (now() - app.created_at).days >= 3 %} stale{% endif %}"
+           draggable="true"
+           data-app-id="{{ app.id }}">
+        <div class="name">{{ app.name }}{% if app.lastname %} {{ app.lastname }}{% endif %}</div>
+        <div class="meta">
+          {% if app.phone %}☎ {{ app.phone }}<br>{% endif %}
+          {{ app.created_at.strftime('%d.%m.%Y · %H:%M') }}
         </div>
-      </details>
-    </form>
+        {% if app.program %}<div class="pgm">{{ app.program }}</div>{% endif %}
+        {% if app.tags %}
+        <div class="tag-row">
+          {% for t in app.tags %}<span class="tag">{{ t }}</span>{% endfor %}
+        </div>
+        {% endif %}
+        {% if app.assigned_to %}<div class="assignee">{{ app.assigned_to }}</div>{% endif %}
+        {% if app.status in ['new','contacted'] and app.last_contacted_at is none and (now() - app.created_at).days >= 3 %}
+        <div class="stale-warn">⚠ висит {{ (now() - app.created_at).days }} дн.</div>
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="kan-empty">пусто</div>
+      {% endfor %}
+    </div>
   </div>
   {% endfor %}
 </div>
-{% else %}
-<div class="card empty">
-  <div style="font-size:48px;margin-bottom:8px;">📭</div>
-  <div class="big">Заявок пока нет</div>
-  <div>Когда кто-то отправит форму на сайте — заявка появится здесь и придёт в Telegram.</div>
-</div>
 {% endif %}
+
+<!-- Drawer for application details -->
+<div id="appDrawerBackdrop"></div>
+<aside id="appDrawer" aria-hidden="true">
+  <div class="drawer-head">
+    <div>
+      <h2 id="dwName">—</h2>
+      <div class="sub" id="dwSub">—</div>
+    </div>
+    <button type="button" class="close-x" id="dwClose" title="Закрыть">×</button>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-section">
+      <div class="drawer-status-bar" id="dwStatusBar">
+        {% for k, lbl in status_labels.items() %}
+        <button type="button" data-status="{{ k }}">{{ status_emoji[k] }} {{ lbl }}</button>
+        {% endfor %}
+      </div>
+      <div style="font-size:.75rem;color:rgba(250,246,238,0.55);">
+        Нажмите быстрое действие <button type="button" id="dwContactBtn" class="btn btn-sm btn-ghost" style="margin-left:8px;">📞 Связались сейчас</button>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <h3>Контакты</h3>
+      <div class="info-row"><span class="lbl">Телефон</span><span class="val" id="dwPhone">—</span></div>
+      <div class="info-row"><span class="lbl">Программа</span><span class="val" id="dwProgram">—</span></div>
+      <div class="info-row"><span class="lbl">Церковь</span><span class="val" id="dwChurch">—</span></div>
+      <div class="info-row"><span class="lbl">Получено</span><span class="val" id="dwCreated">—</span></div>
+      <div class="info-row"><span class="lbl">Контакт</span><span class="val" id="dwContacted">—</span></div>
+    </div>
+
+    <div class="drawer-section">
+      <h3>Сообщение от абитуриента</h3>
+      <div id="dwMessage" style="color:#FAF6EE;font-size:.9rem;white-space:pre-wrap;color:rgba(250,246,238,0.85);">—</div>
+    </div>
+
+    <div class="drawer-section">
+      <h3>Ответственный</h3>
+      <form class="drawer-form" id="dwAssignForm">
+        <div class="row">
+          <input type="text" id="dwAssigned" placeholder="Имя ответственного (например, Анна)">
+          <button type="submit">OK</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="drawer-section">
+      <h3>Теги</h3>
+      <form class="drawer-form" id="dwTagsForm">
+        <div class="row">
+          <input type="text" id="dwTags" placeholder="через запятую: vip, повторно, иногородний">
+          <button type="submit">OK</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="drawer-section">
+      <h3>История и заметки</h3>
+      <div class="timeline" id="dwTimeline"></div>
+      <form class="drawer-form" id="dwNoteForm" style="margin-top:14px;">
+        <textarea id="dwNote" rows="2" placeholder="Добавить заметку (например: «звонила в 15:00, абитуриент попросил перезвонить вечером»)"></textarea>
+        <div style="margin-top:6px;display:flex;justify-content:flex-end;">
+          <button type="submit">＋ Добавить заметку</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</aside>
+
+<script>
+(function () {
+  var drawer = document.getElementById('appDrawer');
+  var backdrop = document.getElementById('appDrawerBackdrop');
+  var current = null;
+
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    var d = new Date(iso);
+    if (isNaN(d)) return iso;
+    return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
+  }
+
+  function renderTimeline(history) {
+    var labels = { created:'📥 Создание', status:'🔁 Статус', note:'📝 Заметка', contact:'📞 Контакт', tag:'🏷 Теги', assign:'👤 Ответственный' };
+    var html = (history || []).slice().reverse().map(function (e) {
+      return '<div class="tl-item kind-' + e.kind + '">'
+        + '<div class="ts">' + fmtDate(e.ts) + ' · ' + (labels[e.kind] || e.kind) + (e.who ? ' · ' + e.who : '') + '</div>'
+        + '<div class="text">' + (e.text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>'
+        + '</div>';
+    }).join('');
+    document.getElementById('dwTimeline').innerHTML = html || '<div style="color:rgba(250,246,238,0.4);font-size:.8rem;">Истории пока нет</div>';
+  }
+
+  function setStatusBtns(status) {
+    document.querySelectorAll('#dwStatusBar button').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.status === status);
+    });
+  }
+
+  function open(id) {
+    current = id;
+    fetch('/admin/applications/' + id, { credentials:'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        document.getElementById('dwName').textContent = (d.name || '') + ' ' + (d.lastname || '');
+        document.getElementById('dwSub').textContent = '#' + d.id + ' · ' + fmtDate(d.created_at);
+        document.getElementById('dwPhone').innerHTML = d.phone ? '<a href="tel:' + d.phone + '">' + d.phone + '</a>' : '—';
+        document.getElementById('dwProgram').textContent = d.program || '—';
+        document.getElementById('dwChurch').textContent = d.church || '—';
+        document.getElementById('dwCreated').textContent = fmtDate(d.created_at);
+        document.getElementById('dwContacted').innerHTML = d.last_contacted_at
+          ? fmtDate(d.last_contacted_at)
+          : '<span style="color:#e98080;">контакта ещё не было</span>';
+        document.getElementById('dwMessage').textContent = d.note || '—';
+        document.getElementById('dwAssigned').value = d.assigned_to || '';
+        document.getElementById('dwTags').value = (d.tags || []).join(', ');
+        renderTimeline(d.history);
+        setStatusBtns(d.status);
+        drawer.classList.add('open');
+        backdrop.classList.add('open');
+        drawer.setAttribute('aria-hidden', 'false');
+      });
+  }
+  function close() {
+    drawer.classList.remove('open');
+    backdrop.classList.remove('open');
+    drawer.setAttribute('aria-hidden', 'true');
+    current = null;
+  }
+  document.getElementById('dwClose').addEventListener('click', close);
+  backdrop.addEventListener('click', close);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && current) close();
+  });
+
+  // Open drawer on card / row click
+  document.querySelectorAll('.kan-card[data-app-id], .crm-row[data-app-id]').forEach(function (c) {
+    c.addEventListener('click', function (e) {
+      // ignore drag operations
+      if (c._wasDragged) { c._wasDragged = false; return; }
+      open(c.getAttribute('data-app-id'));
+    });
+  });
+
+  function postForm(url, formData) {
+    return fetch(url, { method:'POST', credentials:'same-origin', headers:{'X-Requested-With':'fetch'}, body: formData });
+  }
+
+  // Status buttons in drawer
+  document.querySelectorAll('#dwStatusBar button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (!current) return;
+      var fd = new FormData();
+      fd.append('new_status', b.dataset.status);
+      postForm('/admin/applications/' + current + '/status', fd).then(function () {
+        // refresh drawer + reload page after short delay so the kanban updates
+        open(current);
+        setTimeout(function () { window.location.reload(); }, 600);
+      });
+    });
+  });
+
+  document.getElementById('dwContactBtn').addEventListener('click', function () {
+    if (!current) return;
+    postForm('/admin/applications/' + current + '/contact', new FormData()).then(function () { open(current); });
+  });
+
+  document.getElementById('dwNoteForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!current) return;
+    var n = document.getElementById('dwNote').value;
+    if (!n.trim()) return;
+    var fd = new FormData(); fd.append('note', n);
+    postForm('/admin/applications/' + current + '/note', fd).then(function () {
+      document.getElementById('dwNote').value = '';
+      open(current);
+    });
+  });
+
+  document.getElementById('dwAssignForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!current) return;
+    var fd = new FormData(); fd.append('assigned_to', document.getElementById('dwAssigned').value);
+    postForm('/admin/applications/' + current + '/assign', fd).then(function () { open(current); });
+  });
+
+  document.getElementById('dwTagsForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!current) return;
+    var fd = new FormData(); fd.append('tags', document.getElementById('dwTags').value);
+    postForm('/admin/applications/' + current + '/tags', fd).then(function () { open(current); });
+  });
+
+  // ---- Drag & drop on kanban ----
+  var dragId = null;
+  document.querySelectorAll('.kan-card').forEach(function (card) {
+    card.addEventListener('dragstart', function (e) {
+      dragId = card.getAttribute('data-app-id');
+      card.classList.add('dragging');
+      card._wasDragged = true;
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', function () {
+      card.classList.remove('dragging');
+      dragId = null;
+    });
+  });
+  // If the URL has ?app=NN (e.g. via magic-link from the bot), open that
+  // application's drawer automatically.
+  (function () {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var appId = params.get('app');
+      if (appId) setTimeout(function () { open(appId); }, 100);
+    } catch (e) {}
+  })();
+
+  document.querySelectorAll('.kan-col').forEach(function (col) {
+    col.addEventListener('dragover', function (e) { e.preventDefault(); col.classList.add('drag-over'); });
+    col.addEventListener('dragleave', function () { col.classList.remove('drag-over'); });
+    col.addEventListener('drop', function (e) {
+      e.preventDefault();
+      col.classList.remove('drag-over');
+      if (!dragId) return;
+      var newStatus = col.getAttribute('data-status');
+      var fd = new FormData();
+      fd.append('new_status', newStatus);
+      postForm('/admin/applications/' + dragId + '/status', fd).then(function () {
+        window.location.reload();
+      });
+    });
+  });
+})();
+</script>
 {% endblock %}

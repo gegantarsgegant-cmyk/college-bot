@@ -1,5 +1,66 @@
+{% set _l = lang|default('ru') %}
+{# ── Inline expandable application form for program subpages ─────────── #}
+{% macro prog_apply_form(form_id, program_slug, _l) -%}
+<div class="prog-apply-form" id="{{ form_id }}" data-program="{{ program_slug }}" aria-hidden="true">
+  <div class="prog-apply-form-inner">
+    <div class="prog-apply-body">
+      <h4>
+        {%- if _l == 'en' %}Application
+        {%- elif _l == 'be' %}Заяўка
+        {%- else %}Заявка
+        {%- endif -%}
+      </h4>
+      <div class="prog-apply-sub">
+        {%- if _l == 'en' %}Direction:
+          {% if program_slug == 'music' %}Music ministry
+          {%- elif program_slug == 'theology' %}Theology &amp; Christian ministry
+          {%- elif program_slug == 'theatre' %}Theatre ministry
+          {%- endif %}
+        {%- elif _l == 'be' %}Накірунак:
+          {% if program_slug == 'music' %}Музычнае служэнне
+          {%- elif program_slug == 'theology' %}Тэалогія і хрысціянскае служэнне
+          {%- elif program_slug == 'theatre' %}Тэатральнае служэнне
+          {%- endif %}
+        {%- else %}Направление:
+          {% if program_slug == 'music' %}Музыкальное служение
+          {%- elif program_slug == 'theology' %}Богословие и христианское служение
+          {%- elif program_slug == 'theatre' %}Театральное служение
+          {%- endif %}
+        {%- endif -%}
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>{% if _l == 'en' %}Your name{% elif _l == 'be' %}Ваша імя{% else %}Ваше имя{% endif %}</label>
+          <input type="text" name="name" placeholder="{% if _l == 'en' %}John Smith{% elif _l == 'be' %}Іван Іваноў{% else %}Иван Иванов{% endif %}" autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label>{% if _l == 'en' %}Phone{% elif _l == 'be' %}Тэлефон{% else %}Телефон{% endif %}</label>
+          <input type="tel" name="phone" placeholder="+375 XX XXX XX XX" autocomplete="tel">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>{% if _l == 'en' %}Church (optional){% elif _l == 'be' %}Царква (неабавязкова){% else %}Церковь (необязательно){% endif %}</label>
+        <input type="text" name="church" placeholder="{% if _l == 'en' %}City, church name{% elif _l == 'be' %}Горад, назва царквы{% else %}Город, название церкви{% endif %}">
+      </div>
+      <div class="form-group">
+        <label>{% if _l == 'en' %}Comment (optional){% elif _l == 'be' %}Каментарый (неабавязкова){% else %}Комментарий (необязательно){% endif %}</label>
+        <textarea name="note" placeholder="{% if _l == 'en' %}Your question or comment…{% elif _l == 'be' %}Ваша пытанне ці каментарый…{% else %}Ваш вопрос или комментарий…{% endif %}"></textarea>
+      </div>
+      <div class="prog-apply-actions">
+        <button type="button" class="pa-cancel js-prog-apply-cancel">{% if _l == 'en' %}Cancel{% elif _l == 'be' %}Адмена{% else %}Отмена{% endif %}</button>
+        <button type="button" class="pa-submit js-prog-apply-submit">{% if _l == 'en' %}Send application{% elif _l == 'be' %}Адправіць заяўку{% else %}Отправить заявку{% endif %}</button>
+      </div>
+    </div>
+    <div class="prog-apply-thanks" hidden>
+      {% if _l == 'en' %}Thank you! We will contact you shortly.
+      {%- elif _l == 'be' %}Дзякуй! Мы хутка з вамі звяжамся.
+      {%- else %}Спасибо! Скоро мы свяжемся с вами.{% endif %}
+    </div>
+  </div>
+</div>
+{%- endmacro %}
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="{{ _l }}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -847,14 +908,34 @@
     font-size: 0.95rem;
     font-weight: 300;
     outline: none;
-    transition: border-color 0.3s;
+    transition: border-color 0.3s, background 0.3s;
     width: 100%;
     appearance: none;
+    -webkit-appearance: none;
+    border-radius: 2px;
   }
   .form-group input:focus,
   .form-group textarea:focus,
-  .form-group select:focus { border-color: var(--gold); }
+  .form-group select:focus { border-color: var(--gold); background: rgba(255,255,255,0.08); }
   .form-group textarea { resize: none; height: 100px; }
+  /* Custom select dropdown — gold chevron, dark options */
+  .form-group select {
+    color-scheme: dark;
+    cursor: pointer;
+    padding-right: 44px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8' fill='none' stroke='%23C9A84C' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='1 1 7 7 13 1'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 12px 7px;
+  }
+  .form-group select:hover { border-color: rgba(201,168,76,0.4); }
+  .form-group select option {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 12px;
+    font-family: 'Jost', sans-serif;
+  }
+  .form-group select option:disabled { color: rgba(245,240,232,0.4); }
   .form-submit {
     width: 100%;
     padding: 16px;
@@ -1211,6 +1292,39 @@
   }
   .nav-links a:hover::after { transform: scaleX(1); transform-origin: left; }
 
+  /* Language switcher in the navbar */
+  .lang-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    margin-left: 28px;
+    border: 1px solid rgba(201, 168, 76, 0.35);
+    border-radius: 4px;
+    overflow: hidden;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+  }
+  .lang-switch a {
+    padding: 6px 10px;
+    color: rgba(254, 254, 254, 0.7);
+    text-decoration: none;
+    transition: all .15s ease;
+    border-right: 1px solid rgba(201, 168, 76, 0.2);
+    line-height: 1;
+  }
+  .lang-switch a:last-child { border-right: none; }
+  .lang-switch a:hover { color: var(--gold); background: rgba(201, 168, 76, 0.1); }
+  .lang-switch a.active {
+    background: var(--gold);
+    color: var(--ink);
+    font-weight: 600;
+  }
+  @media (max-width: 720px) {
+    .lang-switch { margin-left: 12px; font-size: 0.68rem; }
+    .lang-switch a { padding: 5px 7px; }
+  }
+
   /* Gold shimmer on hero title */
   @keyframes shimmer {
     0%   { background-position: -200% center; }
@@ -1558,6 +1672,108 @@
     text-decoration: none;
   }
   .prog-cta .btn-cta:hover { background: var(--ink-soft); }
+
+  /* ----- inline application form on program pages ----- */
+  .prog-apply-form {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.45s ease, opacity 0.35s ease, margin-top 0.3s ease;
+    margin-top: 0;
+    text-align: left;
+  }
+  .prog-apply-form.open {
+    max-height: 1100px;
+    opacity: 1;
+    margin-top: 36px;
+  }
+  .prog-apply-form-inner {
+    background: rgba(26, 22, 18, 0.06);
+    border: 1px solid rgba(26, 22, 18, 0.15);
+    padding: 32px 28px;
+    max-width: 620px;
+    margin: 0 auto;
+  }
+  .prog-apply-form-inner h4 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--ink);
+    margin: 0 0 6px;
+    text-align: center;
+  }
+  .prog-apply-form-inner .prog-apply-sub {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(26, 22, 18, 0.6);
+    text-align: center;
+    margin-bottom: 22px;
+    font-weight: 500;
+  }
+  .prog-apply-form-inner .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .prog-apply-form-inner .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .prog-apply-form-inner label {
+    font-size: 0.66rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(26, 22, 18, 0.6);
+    font-weight: 600;
+  }
+  .prog-apply-form-inner input,
+  .prog-apply-form-inner textarea {
+    border: 1px solid rgba(26, 22, 18, 0.2);
+    background: var(--cream);
+    padding: 11px 14px;
+    font-size: 0.92rem;
+    color: var(--ink);
+    font-family: 'Jost', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+    border-radius: 0;
+  }
+  .prog-apply-form-inner input:focus,
+  .prog-apply-form-inner textarea:focus { border-color: var(--ink); }
+  .prog-apply-form-inner textarea { min-height: 86px; resize: vertical; }
+  .prog-apply-actions { display: flex; gap: 12px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+  .prog-apply-actions button {
+    padding: 14px 36px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border: 1px solid var(--ink);
+    cursor: pointer;
+    transition: all 0.25s;
+    border-radius: 0;
+  }
+  .prog-apply-actions .pa-submit { background: var(--ink); color: var(--gold); }
+  .prog-apply-actions .pa-submit:hover { background: rgba(26, 22, 18, 0.85); }
+  .prog-apply-actions .pa-submit:disabled { opacity: 0.6; cursor: default; }
+  .prog-apply-actions .pa-cancel { background: transparent; color: var(--ink); }
+  .prog-apply-actions .pa-cancel:hover { background: rgba(26, 22, 18, 0.08); }
+  .prog-apply-thanks {
+    text-align: center;
+    padding: 28px;
+    color: var(--ink);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem;
+    font-style: italic;
+  }
+  .prog-apply-thanks::before {
+    content: '✓';
+    display: block;
+    font-size: 2rem;
+    color: var(--ink);
+    margin-bottom: 10px;
+    font-style: normal;
+  }
+  @media (max-width: 768px) {
+    .prog-apply-form-inner { padding: 22px 18px; }
+    .prog-apply-form-inner .form-row { grid-template-columns: 1fr; gap: 0; }
+    .prog-apply-actions button { padding: 12px 24px; flex: 1; }
+  }
 
   /* Subpage nav highlight */
   .bottom-nav-item.prog-home-btn { }
@@ -1923,18 +2139,23 @@
         <path fill="rgb(254,254,254)" d="M 563.408 430.403 C 576.145 433.628 678.372 513.149 697.694 526.463 C 716.843 539.658 737.542 551.847 758.634 561.638 C 818.56 589.457 884.238 605.575 948.594 619.54 C 977.989 625.919 1007.82 630.572 1037.05 637.633 C 1104.53 653.928 1174.59 683.386 1228.09 728.187 C 1272.91 765.73 1309.4 816.635 1314.64 876.309 C 1316.33 874.797 1318.07 873.338 1319.85 871.936 C 1363.81 837.465 1429.6 812.696 1484.96 819.892 C 1588.5 833.353 1652.04 926.722 1679.2 1019.74 C 1681.95 1029.16 1688.71 1042.19 1687.47 1051.78 C 1685.58 1054.54 1682.81 1056.06 1679.56 1056.47 C 1659.65 1059.95 1633.32 1054.47 1613.93 1057.86 C 1503.36 1077.18 1426.67 1182.34 1392.16 1282.39 C 1380.52 1316.12 1373.64 1346.49 1361.7 1378.8 C 1325.28 1477.35 1254.15 1558.24 1158.47 1602.42 C 1040.34 1656.5 907.662 1645.73 788.226 1599.53 C 730.559 1579.5 676.429 1543.78 622.729 1515.2 C 613.533 1510.3 579.421 1494.33 579.351 1484.25 C 584.686 1479.35 600.085 1480.39 607.421 1479.95 C 651.574 1477.25 696.911 1477.25 740.948 1473.99 C 757.313 1472.64 773.593 1470.4 789.717 1467.29 C 880.646 1450.18 972.551 1416.2 1026.75 1336.93 C 1019.61 1336.07 1012.51 1334.5 1005.45 1333.17 C 831.674 1300.56 670.936 1220.87 559.605 1080.66 C 469.248 966.866 429.482 837.396 389.582 700.413 C 385.204 685.385 378.542 669.204 377.855 653.774 C 377.772 651.887 379.802 650.249 381.186 649.308 C 391.417 651.086 466.927 705.134 481.688 714.841 C 492.629 722.142 503.993 728.789 515.719 734.749 C 592.663 774.517 674.781 792.188 756.766 815.023 C 756.482 814.729 756.198 814.434 755.914 814.14 L 754.522 812.645 C 750.19 808.04 747.014 803.532 743.317 798.41 C 676.416 705.722 629.105 601.179 584.763 496.363 C 576.686 477.271 566.426 458.871 560.131 439.175 C 558.924 435.401 561.422 433.154 563.408 430.403 z M 1275.75 1266.48 L 1275.36 1265.21 C 1248.5 1175.38 1296.97 1048.89 1197.98 996.895 C 1129.04 960.687 1051.83 957.713 976.525 946.249 C 919.786 937.858 863.274 928.006 807.043 916.703 C 738.934 903.421 671.602 886.426 605.35 865.792 C 578.892 857.375 553.577 847.92 527.532 838.48 C 535.671 863.289 551.484 896.526 563.173 919.881 C 620.281 1033.99 705.082 1120.15 819.088 1177.97 C 928.346 1233.38 1050.06 1255.83 1171.5 1263.85 C 1204.06 1266 1242.99 1268 1275.75 1266.48 z M 1225.12 910.727 C 1225.08 865.102 1220.44 845.007 1186.4 811.258 C 1108.86 734.375 1002.15 722.48 901.054 700.484 C 853.729 690.188 807.544 675.809 761.621 659.883 C 779.698 698.262 870.89 830.832 906.875 843.865 C 922.491 849.52 945.012 850.618 961.961 853.442 C 1037.89 866.096 1115.35 869.955 1188.54 895.638 C 1200.85 899.96 1213.67 904.436 1225.12 910.727 z M 882.268 1537.17 C 896.144 1537.75 911.894 1541.72 925.931 1543.83 C 955.834 1548.34 1009.9 1551 1038.76 1544.32 C 1108.82 1536.91 1181.63 1493.12 1225.55 1438.57 C 1238.79 1421.93 1250.42 1404.07 1260.3 1385.24 C 1264.97 1376.18 1269.23 1365.82 1273.99 1357.12 C 1255.79 1359.14 1233.58 1356.48 1215 1356.12 C 1192.2 1355.68 1170 1354.73 1147.28 1352.54 C 1138.17 1351.66 1129.31 1351.94 1119.99 1350.63 C 1092.15 1425.38 1018.42 1480.29 947.97 1512.49 C 926.628 1522.13 904.681 1530.38 882.268 1537.17 z M 1318.18 989.614 C 1348.24 1035.59 1356.35 1100.68 1353.93 1154.91 C 1360.97 1142.35 1373.67 1120.9 1383.21 1109.98 C 1429.04 1049.51 1491.48 998.421 1565.54 977.774 C 1537.53 939.193 1512.28 907.806 1461.02 909.43 C 1415.44 911.011 1381.42 935.334 1347.18 963.701 C 1337.71 971.553 1327.38 982.443 1318.18 989.614 z"/>
       </svg>
       <span class="nav-logo-text">
-        <span>ХДН</span>
-        <span>Библейский Колледж</span>
+        <span>{{ site.nav_logo_top }}</span>
+        <span>{{ site.nav_logo_main }}</span>
       </span>
     </span>
     <ul class="nav-links">
-      <li><a href="#mission">Миссия</a></li>
-      <li><a href="#programs">Программы</a></li>
-      <li><a href="#rector">Ректор</a></li>
-      <li><a href="#teachers">Преподаватели</a></li>
-      <li><a href="#admission">Приём</a></li>
-      <li><a href="#contact">Контакты</a></li>
+      <li><a href="#mission">{{ t('nav.about', lang|default('ru')) }}</a></li>
+      <li><a href="#programs">{{ t('nav.programs', lang|default('ru')) }}</a></li>
+      <li><a href="#teachers">{{ t('nav.teachers', lang|default('ru')) }}</a></li>
+      <li><a href="#admission">{{ t('nav.admission', lang|default('ru')) }}</a></li>
+      <li><a href="#contact">{{ t('nav.contact', lang|default('ru')) }}</a></li>
     </ul>
+    <span class="lang-switch" aria-label="Language switcher">
+      {% set _curlang = lang|default('ru') %}
+      {% for code in LANGS %}
+        <a href="?lang={{ code }}" class="{{ 'active' if code == _curlang else '' }}">{{ LANG_LABELS[code] }}</a>
+      {% endfor %}
+    </span>
   </nav>
 
   <!-- HERO -->
@@ -1949,15 +2170,34 @@
     </svg>
     <div class="hero-content">
       <div class="hero-eyebrow">{{ site.hero_eyebrow }}</div>
-      <h1 class="hero-title">Библейский<br><em>Колледж</em></h1>
+      <h1 class="hero-title" data-cms="hero.title">
+        {%- if _l == 'en' %}Bible<br><em>College</em>
+        {%- else %}Библейский<br><em>Колледж</em>
+        {%- endif %}
+      </h1>
       <p class="hero-sub">{{ site.hero_subtitle }}</p>
       <div class="hero-cta">
-        <button class="btn-primary" onclick="scrollToPrograms()">Выбрать программу</button>
-        <a href="#mission" class="btn-outline">Узнать больше</a>
+        <button class="btn-primary" onclick="scrollToPrograms()">
+          {%- if _l == 'en' %}Choose a program
+          {%- elif _l == 'be' %}Выбраць праграму
+          {%- else %}Выбрать программу
+          {%- endif %}
+        </button>
+        <a href="#mission" class="btn-outline">
+          {%- if _l == 'en' %}Learn more
+          {%- elif _l == 'be' %}Даведацца больш
+          {%- else %}Узнать больше
+          {%- endif %}
+        </a>
       </div>
     </div>
     <div class="hero-scroll">
-      <span>Далее</span>
+      <span>
+        {%- if _l == 'en' %}Scroll
+        {%- elif _l == 'be' %}Далей
+        {%- else %}Далее
+        {%- endif %}
+      </span>
       <div class="scroll-line"></div>
     </div>
   </section>
@@ -1965,10 +2205,10 @@
   <!-- STATS -->
   <div class="stats-bar">
     <div class="stats-inner stagger-children">
-      <div class="stat-item"><div class="stat-num">{{ site.stats_directions }}</div><div class="stat-label">Направления</div></div>
-      <div class="stat-item"><div class="stat-num">{{ site.stats_years }}</div><div class="stat-label">Лет служения</div></div>
-      <div class="stat-item"><div class="stat-num">{{ site.stats_degrees }}</div><div class="stat-label">Степеней</div></div>
-      <div class="stat-item"><div class="stat-num">{{ site.stats_callings }}</div><div class="stat-label">Призваний</div></div>
+      <div class="stat-item"><div class="stat-num">{{ site.stats_directions }}</div><div class="stat-label" data-cms="stats.label1">{% if _l == 'en' %}Directions{% elif _l == 'be' %}Накірункі{% else %}Направления{% endif %}</div></div>
+      <div class="stat-item"><div class="stat-num">{{ site.stats_years }}</div><div class="stat-label" data-cms="stats.label2">{% if _l == 'en' %}Years of service{% elif _l == 'be' %}Гадоў служэння{% else %}Лет служения{% endif %}</div></div>
+      <div class="stat-item"><div class="stat-num">{{ site.stats_degrees }}</div><div class="stat-label" data-cms="stats.label3">{% if _l == 'en' %}Degrees{% elif _l == 'be' %}Ступеняў{% else %}Степеней{% endif %}</div></div>
+      <div class="stat-item"><div class="stat-num">{{ site.stats_callings }}</div><div class="stat-label" data-cms="stats.label4">{% if _l == 'en' %}Callings{% elif _l == 'be' %}Пакліканняў{% else %}Призваний{% endif %}</div></div>
     </div>
   </div>
 
@@ -1979,21 +2219,52 @@
       <!-- LEAD -->
       <div class="mission-lead">
         <div class="reveal-left">
-          <div class="section-label">Почему мы</div>
-          <h2 class="section-title">Не просто<br><em>учёба</em></h2>
-          <p class="mission-lead-text">
-            Большинство людей знают Библию — но <strong>не знают, что с ней делать.</strong>
-            Чувствуют призвание — но не понимают, куда оно ведёт.
-            Хотят служить — но не имеют инструментов.<br><br>
-            Библейский колледж ХВЕ существует для тех, кто готов перейти
-            от «верю» к <strong>«действую».</strong> Здесь вера встречается с практикой,
-            а призвание обретает форму.
+          <div class="section-label" data-cms="mission.label">{% if _l == 'en' %}Why us{% elif _l == 'be' %}Чаму мы{% else %}Почему мы{% endif %}</div>
+          <h2 class="section-title" data-cms="mission.title">
+            {%- if _l == 'en' %}More than just<br><em>study</em>
+            {%- elif _l == 'be' %}Не проста<br><em>вучоба</em>
+            {%- else %}Не просто<br><em>учёба</em>
+            {%- endif %}
+          </h2>
+          <p class="mission-lead-text" data-cms="mission.lead">
+            {% if _l == 'en' %}
+              Most people know the Bible — but <strong>don't know what to do with it.</strong>
+              They sense a calling — but don't understand where it leads.
+              They want to serve — but lack the tools.<br><br>
+              The Pentecostal Bible College exists for those ready to move
+              from "I believe" to <strong>"I act."</strong> Here faith meets practice,
+              and a calling takes shape.
+            {% elif _l == 'be' %}
+              Большасць людзей ведаюць Біблію — але <strong>не ведаюць, што з ёй рабіць.</strong>
+              Адчуваюць пакліканне — але не разумеюць, куды яно вядзе.
+              Хочуць служыць — але не маюць інструментаў.<br><br>
+              Біблейскі каледж ХВЕ існуе для тых, хто гатовы перайсці
+              ад «веру» да <strong>«дзейнічаю».</strong> Тут вера сустракаецца з практыкай,
+              а пакліканне набывае форму.
+            {% else %}
+              Большинство людей знают Библию — но <strong>не знают, что с ней делать.</strong>
+              Чувствуют призвание — но не понимают, куда оно ведёт.
+              Хотят служить — но не имеют инструментов.<br><br>
+              Библейский колледж ХВЕ существует для тех, кто готов перейти
+              от «верю» к <strong>«действую».</strong> Здесь вера встречается с практикой,
+              а призвание обретает форму.
+            {% endif %}
           </p>
         </div>
         <div>
           <div class="mission-lead-quote">
-            <p>«Бог ищет не идеальных — Он ищет готовых. Готовых учиться, расти и идти туда, куда большинство не решается.»</p>
-            <cite>Пётр Ашейчик · Ректор</cite>
+            <p data-cms="mission.quote">
+              {%- if _l == 'en' %}"God seeks not the perfect — He seeks the ready. Those ready to learn, grow, and go where most don't dare."
+              {%- elif _l == 'be' %}«Бог шукае не дасканалых — Ён шукае гатовых. Гатовых вучыцца, расці і ісці туды, куды большасць не адважваецца.»
+              {%- else %}«Бог ищет не идеальных — Он ищет готовых. Готовых учиться, расти и идти туда, куда большинство не решается.»
+              {%- endif %}
+            </p>
+            <cite data-cms="mission.cite">
+              {%- if _l == 'en' %}Petr Asheychik · Rector
+              {%- elif _l == 'be' %}Пётр Ашэйчык · Рэктар
+              {%- else %}Пётр Ашейчик · Ректор
+              {%- endif %}
+            </cite>
           </div>
         </div>
       </div>
@@ -2001,37 +2272,90 @@
       <hr class="mission-divider">
 
       <!-- REASONS -->
-      <div class="mission-reasons-label">3 причины, которые меняют всё</div>
+      <div class="mission-reasons-label" data-cms="mission.reasons_label">
+        {%- if _l == 'en' %}3 reasons that change everything
+        {%- elif _l == 'be' %}3 прычыны, якія мяняюць усё
+        {%- else %}3 причины, которые меняют всё
+        {%- endif %}
+      </div>
       <div class="mission-reasons">
 
         <div class="mission-reason">
           <div class="mission-reason-num">01</div>
-          <div class="mission-reason-title">Ты уйдёшь с ответами, а не вопросами</div>
-          <div class="mission-reason-body">
-            Многие годами ходят на службы и так и не понимают,
-            <strong>как самостоятельно читать и понимать Библию.</strong>
-            Здесь ты изучишь герменевтику, экзегетику, богословие —
-            и научишься слышать Бога в тексте, а не только через чужую проповедь.
+          <div class="mission-reason-title" data-cms="mission.r1.title">
+            {%- if _l == 'en' %}You'll leave with answers, not questions
+            {%- elif _l == 'be' %}Ты сыдзеш з адказамі, а не з пытаннямі
+            {%- else %}Ты уйдёшь с ответами, а не вопросами
+            {%- endif %}
+          </div>
+          <div class="mission-reason-body" data-cms="mission.r1.body">
+            {% if _l == 'en' %}
+              Many people attend services for years yet still don't understand
+              <strong>how to read and interpret the Bible on their own.</strong>
+              Here you'll study hermeneutics, exegesis, theology — and learn
+              to hear God in the text, not only through someone else's sermon.
+            {% elif _l == 'be' %}
+              Многія гадамі ходзяць на набажэнствы і так і не разумеюць,
+              <strong>як самастойна чытаць і разумець Біблію.</strong>
+              Тут ты вывучыш герменеўтыку, экзегетыку, багаслоўе —
+              і навучышся чуць Бога ў тэксце, а не толькі праз чужую пропаведзь.
+            {% else %}
+              Многие годами ходят на службы и так и не понимают,
+              <strong>как самостоятельно читать и понимать Библию.</strong>
+              Здесь ты изучишь герменевтику, экзегетику, богословие —
+              и научишься слышать Бога в тексте, а не только через чужую проповедь.
+            {% endif %}
           </div>
         </div>
 
         <div class="mission-reason">
           <div class="mission-reason-num">02</div>
-          <div class="mission-reason-title">Призвание становится профессией</div>
-          <div class="mission-reason-body">
-            Желание служить — это начало. Но без знаний оно быстро упирается в стену.
-            <strong>Государственно признанный диплом бакалавра</strong> открывает двери
-            в профессиональное служение — в Беларуси и за её пределами.
+          <div class="mission-reason-title" data-cms="mission.r2.title">
+            {%- if _l == 'en' %}A calling becomes a profession
+            {%- elif _l == 'be' %}Пакліканне становіцца прафесіяй
+            {%- else %}Призвание становится профессией
+            {%- endif %}
+          </div>
+          <div class="mission-reason-body" data-cms="mission.r2.body">
+            {% if _l == 'en' %}
+              The desire to serve is the start. But without knowledge it quickly hits a wall.
+              <strong>A state-recognised bachelor's degree</strong> opens the doors to
+              professional ministry — in Belarus and beyond.
+            {% elif _l == 'be' %}
+              Жаданне служыць — гэта пачатак. Але без ведаў яно хутка натыкаецца на сцяну.
+              <strong>Дзяржаўна прызнаны дыплом бакалаўра</strong> адкрывае дзверы
+              ў прафесійнае служэнне — у Беларусі і за яе межамі.
+            {% else %}
+              Желание служить — это начало. Но без знаний оно быстро упирается в стену.
+              <strong>Государственно признанный диплом бакалавра</strong> открывает двери
+              в профессиональное служение — в Беларуси и за её пределами.
+            {% endif %}
           </div>
         </div>
 
         <div class="mission-reason">
           <div class="mission-reason-num">03</div>
-          <div class="mission-reason-title">Формат, который работает для занятых</div>
-          <div class="mission-reason-body">
-            Очно-заочная форма — <strong>4 сессии в год.</strong>
-            Ты продолжаешь работать, служить в своей церкви, жить своей жизнью —
-            и при этом системно растёшь. Не нужно бросать всё. Нужно просто начать.
+          <div class="mission-reason-title" data-cms="mission.r3.title">
+            {%- if _l == 'en' %}A format that works for the busy
+            {%- elif _l == 'be' %}Фармат, які працуе для занятых
+            {%- else %}Формат, который работает для занятых
+            {%- endif %}
+          </div>
+          <div class="mission-reason-body" data-cms="mission.r3.body">
+            {% if _l == 'en' %}
+              Part-time format — <strong>4 sessions per year.</strong>
+              You keep working, serving in your church, living your life —
+              and at the same time you grow systematically. No need to drop everything.
+              You only need to begin.
+            {% elif _l == 'be' %}
+              Завочна-сесійная форма — <strong>4 сесіі на год.</strong>
+              Ты працягваеш працаваць, служыць у сваёй царкве, жыць сваім жыццём —
+              і пры гэтым сістэмна растзеш. Не трэба кідаць усё. Трэба проста пачаць.
+            {% else %}
+              Очно-заочная форма — <strong>4 сессии в год.</strong>
+              Ты продолжаешь работать, служить в своей церкви, жить своей жизнью —
+              и при этом системно растёшь. Не нужно бросать всё. Нужно просто начать.
+            {% endif %}
           </div>
         </div>
 
@@ -2041,19 +2365,39 @@
       <div class="mission-stats">
         <div class="mission-stat">
           <div class="mission-stat-num">20+</div>
-          <div class="mission-stat-text">лет подготовки служителей</div>
+          <div class="mission-stat-text">
+            {%- if _l == 'en' %}years training ministers
+            {%- elif _l == 'be' %}гадоў падрыхтоўкі служыцеляў
+            {%- else %}лет подготовки служителей
+            {%- endif %}
+          </div>
         </div>
         <div class="mission-stat">
           <div class="mission-stat-num">25</div>
-          <div class="mission-stat-text">практикующих преподавателей</div>
+          <div class="mission-stat-text">
+            {%- if _l == 'en' %}practising faculty
+            {%- elif _l == 'be' %}практыкуючых выкладчыкаў
+            {%- else %}практикующих преподавателей
+            {%- endif %}
+          </div>
         </div>
         <div class="mission-stat">
           <div class="mission-stat-num">3</div>
-          <div class="mission-stat-text">программы подготовки</div>
+          <div class="mission-stat-text">
+            {%- if _l == 'en' %}programs
+            {%- elif _l == 'be' %}праграмы падрыхтоўкі
+            {%- else %}программы подготовки
+            {%- endif %}
+          </div>
         </div>
         <div class="mission-stat">
           <div class="mission-stat-num">4×</div>
-          <div class="mission-stat-text">сессии в год — без отрыва от жизни</div>
+          <div class="mission-stat-text">
+            {%- if _l == 'en' %}sessions a year — without leaving your life
+            {%- elif _l == 'be' %}сесіі на год — без адрыву ад жыцця
+            {%- else %}сессии в год — без отрыва от жизни
+            {%- endif %}
+          </div>
         </div>
       </div>
 
@@ -2063,54 +2407,31 @@
   <!-- PROGRAMS -->
   <section class="programs" id="programs">
     <div class="programs-header fade-in">
-      <div class="section-label">Обучение</div>
-      <h2 class="section-title">Программы<br><em>Подготовки</em></h2>
+      <div class="section-label" data-cms="programs.label">{% if _l == 'en' %}Education{% elif _l == 'be' %}Навучанне{% else %}Обучение{% endif %}</div>
+      <h2 class="section-title" data-cms="programs.title">
+        {%- if _l == 'en' %}Training<br><em>Programs</em>
+        {%- elif _l == 'be' %}Праграмы<br><em>падрыхтоўкі</em>
+        {%- else %}Программы<br><em>Подготовки</em>
+        {%- endif %}
+      </h2>
     </div>
     <div class="programs-grid">
-      <button class="program-card fade-in" onclick="openPage('music')">
+      {% for prog in programs %}
+      <button class="program-card fade-in" onclick="openPage('{{ prog.slug }}')">
         <div class="program-arrow">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L12 2M12 2H5M12 2V9"/></svg>
         </div>
-        <div class="program-number">01</div>
-        <div class="program-tag">Музыкальное служение</div>
-        <h3 class="program-title">Бакалавр искусств в церковной музыке</h3>
-        <p class="program-desc">Практические навыки музыкального служения и технического обеспечения. Богословская и музыкальная подготовка в едином курсе.</p>
+        {% if prog.number %}<div class="program-number">{{ prog.number }}</div>{% endif %}
+        {% if prog.tag %}<div class="program-tag">{{ prog.tag }}</div>{% endif %}
+        <h3 class="program-title">{{ prog.title }}</h3>
+        {% if prog.description %}<p class="program-desc">{{ prog.description }}</p>{% endif %}
         <div class="program-meta">
-          <div class="program-meta-item"><span>Форма</span><span>Очно-заочная · 4 сессии/год</span></div>
-          <div class="program-meta-item"><span>Срок</span><span>Уровень 1 — 3 года · Уровень 2 — 2,5 года</span></div>
-          <div class="program-meta-item"><span>Степень</span><span>Бакалавр искусств</span></div>
+          {% if prog.form_label %}<div class="program-meta-item"><span>{% if _l == 'en' %}Format{% elif _l == 'be' %}Форма{% else %}Форма{% endif %}</span><span>{{ prog.form_label }}</span></div>{% endif %}
+          {% if prog.term_label %}<div class="program-meta-item"><span>{% if _l == 'en' %}Length{% elif _l == 'be' %}Тэрмін{% else %}Срок{% endif %}</span><span>{{ prog.term_label }}</span></div>{% endif %}
+          {% if prog.degree_label %}<div class="program-meta-item"><span>{% if _l == 'en' %}Degree{% elif _l == 'be' %}Ступень{% else %}Степень{% endif %}</span><span>{{ prog.degree_label }}</span></div>{% endif %}
         </div>
       </button>
-
-      <button class="program-card fade-in" onclick="openPage('theology')">
-        <div class="program-arrow">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L12 2M12 2H5M12 2V9"/></svg>
-        </div>
-        <div class="program-number">02</div>
-        <div class="program-tag">Библейско-богословское</div>
-        <h3 class="program-title">Богословие и христианское служение</h3>
-        <p class="program-desc">Изучение Священного Писания на трёх уровнях — от базового сертификата до степени бакалавра богословия. Полностью онлайн.</p>
-        <div class="program-meta">
-          <div class="program-meta-item"><span>Форма</span><span>Заочная (онлайн)</span></div>
-          <div class="program-meta-item"><span>Уровень А</span><span>Сертификат библейских знаний</span></div>
-          <div class="program-meta-item"><span>Уровень B/C</span><span>Бакалавр служения / богословия</span></div>
-        </div>
-      </button>
-
-      <button class="program-card fade-in" onclick="openPage('theatre')">
-        <div class="program-arrow">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L12 2M12 2H5M12 2V9"/></svg>
-        </div>
-        <div class="program-number">03</div>
-        <div class="program-tag">Евангелие через творчество</div>
-        <h3 class="program-title">Бакалавр искусств в театральном служении</h3>
-        <p class="program-desc">Практические навыки церковного театрального служения. Сочетание богословской и специальной подготовки для служения творчеством.</p>
-        <div class="program-meta">
-          <div class="program-meta-item"><span>Форма</span><span>Очно-заочная · 4 сессии/год</span></div>
-          <div class="program-meta-item"><span>Срок</span><span>3 года</span></div>
-          <div class="program-meta-item"><span>Степень</span><span>Бакалавр искусств</span></div>
-        </div>
-      </button>
+      {% endfor %}
     </div>
   </section>
 
@@ -2118,19 +2439,46 @@
   <section class="rector" id="rector">
     <div class="rector-inner fade-in">
       <div class="rector-text-side">
-        <div class="section-label">Слово ректора</div>
-        <h2 class="section-title">Послание<br><em>Руководителя</em></h2>
-        <div class="rector-body">
+        <div class="section-label" data-cms="rector.label">{% if _l == 'en' %}From the Rector{% elif _l == 'be' %}Слова рэктара{% else %}Слово ректора{% endif %}</div>
+        <h2 class="section-title" data-cms="rector.title">
+          {%- if _l == 'en' %}A message<br><em>from the Rector</em>
+          {%- elif _l == 'be' %}Пасланне<br><em>Кіраўніка</em>
+          {%- else %}Послание<br><em>Руководителя</em>
+          {%- endif %}
+        </h2>
+        <div class="rector-body" data-cms="rector.body">
+          {% if _l == 'en' %}
+          <p>God is working on the salvation of people in this world today. He seeks fellowship with you. He wants to invite you into His work.</p>
+          <p>He has a specific calling and purpose for your life. A serious challenge awaits you if you decide to fulfil your calling.</p>
+          <p>His vision is far higher than your abilities. It will take all of your faith and faithfulness to Him. You will have to prepare seriously to carry out His mission.</p>
+          <p>You will discover what it means to <strong>walk with Him!</strong></p>
+          {% elif _l == 'be' %}
+          <p>Бог працуе над выратаваннем людзей у гэтым свеце сёння. Ён шукае зносінаў з табой. Ён хоча запрасіць цябе ў Сваю працу.</p>
+          <p>У Яго ёсць канкрэтнае пакліканне і справа для твайго жыцця. Цябе чакае сур'ёзны выклік, калі прымеш рашэнне выконваць сваё пакліканне.</p>
+          <p>Яго бачанне нашмат вышэй за твае магчымасці. Спатрэбіцца ўся вера і вернасць Яму. Давядзецца сур'ёзна падрыхтавацца да выканання Яго задання.</p>
+          <p>Ты даведаешся, як гэта — <strong>Хадзіць з Ім!</strong></p>
+          {% else %}
           <p>Бог трудится над спасением людей в этом мире сегодня. Он ищет общения с тобой. Он хочет пригласить тебя в Свой труд.</p>
           <p>У Него есть конкретное призвание и дело для Твоей Жизни. Тебя ждёт серьёзный вызов, если примешь решение исполнять своё призвание.</p>
           <p>Его видение гораздо выше твоих возможностей. Потребуется вся вера и верность Ему. Придётся серьёзно подготовиться к выполнению Его задания.</p>
           <p>Ты узнаешь, как это — <strong>Ходить с Ним!</strong></p>
+          {% endif %}
         </div>
         <div class="rector-signature">
           <div class="ornament-cross"></div>
           <div>
-            <div class="rector-sig-name">Пётр Ашейчик</div>
-            <div class="rector-sig-title">Ректор · Доктор богословия</div>
+            <div class="rector-sig-name" data-cms="rector.sig_name">
+              {%- if _l == 'en' %}Petr Asheychik
+              {%- elif _l == 'be' %}Пётр Ашэйчык
+              {%- else %}Пётр Ашейчик
+              {%- endif %}
+            </div>
+            <div class="rector-sig-title" data-cms="rector.sig_title">
+              {%- if _l == 'en' %}Rector · Doctor of Theology
+              {%- elif _l == 'be' %}Рэктар · Доктар багаслоўя
+              {%- else %}Ректор · Доктор богословия
+              {%- endif %}
+            </div>
           </div>
         </div>
       </div>
@@ -2139,8 +2487,18 @@
         <div class="rector-portrait-frame">
           <div class="rector-initials">ПА</div>
           <div class="rector-caption">
-            <div class="rector-caption-name">Пётр Викентьевич Ашейчик</div>
-            <div class="rector-caption-sub">Ректор · Доктор богословия · Основатель ХДН</div>
+            <div class="rector-caption-name" data-cms="rector.portrait_name">
+              {%- if _l == 'en' %}Petr Vikentievich Asheychik
+              {%- elif _l == 'be' %}Пётр Вікенцьевіч Ашэйчык
+              {%- else %}Пётр Викентьевич Ашейчик
+              {%- endif %}
+            </div>
+            <div class="rector-caption-sub" data-cms="rector.portrait_sub">
+              {%- if _l == 'en' %}Rector · Doctor of Theology · Founder of CFN
+              {%- elif _l == 'be' %}Рэктар · Доктар багаслоўя · Заснавальнік ХДН
+              {%- else %}Ректор · Доктор богословия · Основатель ХДН
+              {%- endif %}
+            </div>
           </div>
         </div>
         <div class="portrait-ornament2"></div>
@@ -2153,48 +2511,35 @@
     <div class="teachers-inner">
       <div class="teachers-header fade-in">
         <div>
-          <div class="section-label">Состав</div>
-          <h2 class="section-title">Наши<br><em>Преподаватели</em></h2>
+          <div class="section-label" data-cms="teachers.label">{% if _l == 'en' %}Faculty{% elif _l == 'be' %}Склад{% else %}Состав{% endif %}</div>
+          <h2 class="section-title" data-cms="teachers.title">
+            {%- if _l == 'en' %}Our<br><em>Faculty</em>
+            {%- elif _l == 'be' %}Нашы<br><em>Выкладчыкі</em>
+            {%- else %}Наши<br><em>Преподаватели</em>
+            {%- endif %}
+          </h2>
         </div>
       </div>
       <div class="teachers-grid">
-        <div class="teacher-card fade-in" onclick="openTeacherModal(0)" style="cursor:pointer;">
-          <div class="teacher-avatar">ПА</div>
-          <div class="teacher-name">Пётр Викентьевич Ашейчик</div>
-          <div class="teacher-role">Ректор · Доктор богословия</div>
+        {% for t in teachers[:3] %}
+        <div class="teacher-card fade-in" onclick="openTeacherModal({{ loop.index0 }})" style="cursor:pointer;">
+          <div class="teacher-avatar">{{ t.initials }}</div>
+          <div class="teacher-name">{{ t.name }}</div>
+          <div class="teacher-role">{{ t.role }}</div>
           <div class="teacher-subjects">
-            <span class="teacher-subject">Хвала и поклонение</span>
-            <span class="teacher-subject">Введение в Библию</span>
-            <span class="teacher-subject">Обзор НЗ</span>
-            <span class="teacher-subject">Христ. этика</span>
+            {% for sj in (t.subjects or [])[:4] %}
+            <span class="teacher-subject">{{ sj }}</span>
+            {% endfor %}
           </div>
         </div>
-        <div class="teacher-card fade-in" onclick="openTeacherModal(1)" style="cursor:pointer;">
-          <div class="teacher-avatar">ИА</div>
-          <div class="teacher-name">Инесса Григорьевна Ашейчик</div>
-          <div class="teacher-role">Проректор · Магистр богословия</div>
-          <div class="teacher-subjects">
-            <span class="teacher-subject">Обзор ВЗ</span>
-            <span class="teacher-subject">Теория музыки</span>
-            <span class="teacher-subject">Хвала и поклонение</span>
-          </div>
-        </div>
-        <div class="teacher-card fade-in" onclick="openTeacherModal(2)" style="cursor:pointer;">
-          <div class="teacher-avatar">АЛ</div>
-          <div class="teacher-name">Александр Сергеевич Лукьянович</div>
-          <div class="teacher-role">Зав. богосл. отделением · Магистр</div>
-          <div class="teacher-subjects">
-            <span class="teacher-subject">Методы изучения Библии</span>
-            <span class="teacher-subject">Герменевтика</span>
-          </div>
-        </div>
+        {% endfor %}
         <div class="teacher-card fade-in" onclick="openPage('teachers')" style="background:var(--gold-dim);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:40px 28px;cursor:pointer;">
           <div style="width:48px;height:48px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gold);">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="7" r="3"/><path d="M2 17c0-3 2.7-5 6-5s6 2 6 5"/><circle cx="15" cy="7" r="2.5"/><path d="M15 12c2 .5 3 2 3 4"/></svg>
           </div>
-          <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">Практические служители</div>
-          <div style="font-size:0.78rem;color:var(--ink-soft);font-weight:300;line-height:1.6;">Большинство наших преподавателей — действующие служители церкви</div>
-          <div class="btn-primary" style="font-size:0.65rem;padding:10px 24px;margin-top:8px;pointer-events:none;">Все преподаватели</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">{% if _l == 'en' %}Practising ministers{% elif _l == 'be' %}Практычныя служыцелі{% else %}Практические служители{% endif %}</div>
+          <div style="font-size:0.78rem;color:var(--ink-soft);font-weight:300;line-height:1.6;">{% if _l == 'en' %}Most of our faculty are active ministers of the church{% elif _l == 'be' %}Большасць нашых выкладчыкаў — дзеючыя служыцелі царквы{% else %}Большинство наших преподавателей — действующие служители церкви{% endif %}</div>
+          <div class="btn-primary" style="font-size:0.65rem;padding:10px 24px;margin-top:8px;pointer-events:none;">{% if _l == 'en' %}All faculty{% elif _l == 'be' %}Усе выкладчыкі{% else %}Все преподаватели{% endif %}</div>
         </div>
       </div>
     </div>
@@ -2296,32 +2641,81 @@
   <!-- ADMISSION -->
   <section class="admission" id="admission">
     <div class="admission-inner fade-in">
-      <div class="section-label">Поступление</div>
-      <h2 class="section-title">Правила<br><em>Приёма</em></h2>
+      <div class="section-label" data-cms="admission.label">{% if _l == 'en' %}Admission{% elif _l == 'be' %}Паступленне{% else %}Поступление{% endif %}</div>
+      <h2 class="section-title" data-cms="admission.title">
+        {%- if _l == 'en' %}Admission<br><em>Rules</em>
+        {%- elif _l == 'be' %}Правілы<br><em>Прыёму</em>
+        {%- else %}Правила<br><em>Приёма</em>
+        {%- endif %}
+      </h2>
       <div class="admission-grid">
         <div>
           <div class="admission-block">
-            <h3>Требования к поступающим</h3>
-            <ul>
+            <h3 data-cms="admission.req_title">
+              {%- if _l == 'en' %}Requirements for applicants
+              {%- elif _l == 'be' %}Патрабаванні да абітурыентаў
+              {%- else %}Требования к поступающим
+              {%- endif %}
+            </h3>
+            <ul data-cms="admission.req_list">
+              {% if _l == 'en' %}
+              <li>Citizens of Belarus, foreign nationals and stateless persons</li>
+              <li>Age 17 and over, completed secondary education</li>
+              <li>Membership in an evangelical church</li>
+              <li>No active church discipline at the time of application</li>
+              <li>Passing the entrance exam / audition</li>
+              {% elif _l == 'be' %}
+              <li>Грамадзяне Беларусі, замежныя грамадзяне і асобы без грамадзянства</li>
+              <li>Узрост ад 17 гадоў, наяўнасць сярэдняй адукацыі</li>
+              <li>Сяброўства ў евангельскай царкве</li>
+              <li>Адсутнасць царкоўных спагнанняў на момант паступлення</li>
+              <li>Праходжанне ўступнага іспыту / праслухоўвання</li>
+              {% else %}
               <li>Граждане Беларуси, иностранные граждане и лица без гражданства</li>
               <li>Возраст от 17 лет, наличие среднего образования</li>
               <li>Членство в евангельской церкви</li>
               <li>Отсутствие церковных взысканий на момент поступления</li>
               <li>Прохождение вступительного испытания / прослушивания</li>
+              {% endif %}
             </ul>
           </div>
           <div class="admission-block" style="margin-top:36px">
-            <h3>Организация учёбы</h3>
-            <p>Учебный процесс ведётся пять дней в неделю (пн.–пт.) в соответствии с учебными планами. Для сессионных программ — 4 очных недели в год. Богословское отделение работает полностью онлайн.</p>
+            <h3 data-cms="admission.org_title">
+              {%- if _l == 'en' %}Schedule
+              {%- elif _l == 'be' %}Арганізацыя вучобы
+              {%- else %}Организация учёбы
+              {%- endif %}
+            </h3>
+            <p data-cms="admission.org_body">
+              {%- if _l == 'en' %}The academic process runs five days a week (Mon–Fri) according to the curriculum. Session-based programs meet 4 weeks per year on campus. The theology department is fully online.
+              {%- elif _l == 'be' %}Навучальны працэс вядзецца пяць дзён на тыдзень (пн.–пт.) у адпаведнасці з вучэбнымі планамі. Для сесійных праграм — 4 ачныя тыдні на год. Багаслоўская кафедра працуе цалкам онлайн.
+              {%- else %}Учебный процесс ведётся пять дней в неделю (пн.–пт.) в соответствии с учебными планами. Для сессионных программ — 4 очных недели в год. Богословское отделение работает полностью онлайн.
+              {%- endif %}
+            </p>
           </div>
         </div>
         <div>
           <div class="admission-block">
-            <h3>Сроки приёма документов</h3>
+            <h3 data-cms="admission.dates_title">
+              {%- if _l == 'en' %}Application deadlines
+              {%- elif _l == 'be' %}Тэрміны прыёму дакументаў
+              {%- else %}Сроки приёма документов
+              {%- endif %}
+            </h3>
             <div class="dates-grid">
+              {% if _l == 'en' %}
+              <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Music department (level 1)</strong>August 1 — September 15, 2026</div></div>
+              <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Biblical and theological department</strong>Year-round</div></div>
+              <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Theatre department</strong>January 1 — February 8, 2026</div></div>
+              {% elif _l == 'be' %}
+              <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Музычная кафедра (узровень 1)</strong>1 жніўня — 15 верасня 2026 г.</div></div>
+              <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Біблейска-багаслоўская кафедра</strong>На працягу ўсяго года</div></div>
+              <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Тэатральная кафедра</strong>1 студзеня — 8 лютага 2026 г.</div></div>
+              {% else %}
               <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Музыкальное отделение (уровень 1)</strong>1 августа — 15 сентября 2026 г.</div></div>
               <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Библейско-богословское отделение</strong>В течение всего года</div></div>
               <div class="date-item"><div class="date-dot"></div><div class="date-text"><strong>Театральное отделение</strong>1 января — 8 февраля 2026 г.</div></div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -2333,16 +2727,21 @@
   <section class="contact" id="contact">
     <div class="contact-inner fade-in">
       <div class="contact-info">
-        <div class="section-label">Связь</div>
-        <h2 class="section-title">Контактная<br><em>Информация</em></h2>
+        <div class="section-label" data-cms="contact.label">{% if _l == 'en' %}Contact{% elif _l == 'be' %}Сувязь{% else %}Связь{% endif %}</div>
+        <h2 class="section-title" data-cms="contact.title">
+          {%- if _l == 'en' %}Contact<br><em>Information</em>
+          {%- elif _l == 'be' %}Кантактная<br><em>Інфармацыя</em>
+          {%- else %}Контактная<br><em>Информация</em>
+          {%- endif %}
+        </h2>
         <div class="contact-items">
           <div class="contact-item">
             <div class="contact-icon">
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 1C6.2 1 4 3.2 4 6c0 4 5 11 5 11s5-7 5-11c0-2.8-2.2-5-5-5z"/><circle cx="9" cy="6" r="2"/></svg>
             </div>
             <div class="contact-item-text">
-              <label>Адрес</label>
-              <p>{{ site.contact_address | e | replace('\n', '<br>') | safe }}</p>
+              <label>{% if _l == 'en' %}Address{% elif _l == 'be' %}Адрас{% else %}Адрес{% endif %}</label>
+              <p>{{ site.contact_address | nl2br }}</p>
             </div>
           </div>
           <div class="contact-item">
@@ -2350,8 +2749,8 @@
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h12v10H3z"/><path d="M3 4l6 6 6-6"/></svg>
             </div>
             <div class="contact-item-text">
-              <label>Электронная почта</label>
-              <p>{{ site.contact_email | e | replace('\n', '<br>') | safe }}</p>
+              <label>{% if _l == 'en' %}Email{% elif _l == 'be' %}Электронная пошта{% else %}Электронная почта{% endif %}</label>
+              <p>{{ site.contact_email | nl2br }}</p>
             </div>
           </div>
           <div class="contact-item">
@@ -2359,8 +2758,8 @@
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3l3 3-2 4 4 4 4-2 3 3-2 2C6 18 0 12 0 5l3-2z" transform="translate(1,1)"/></svg>
             </div>
             <div class="contact-item-text">
-              <label>Телефоны</label>
-              <p>{{ site.contact_phones | e | replace('\n', '<br>') | safe }}</p>
+              <label>{% if _l == 'en' %}Phones{% elif _l == 'be' %}Тэлефоны{% else %}Телефоны{% endif %}</label>
+              <p>{{ site.contact_phones | nl2br }}</p>
             </div>
           </div>
           <div class="contact-item">
@@ -2368,15 +2767,15 @@
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="9" r="7"/><path d="M9 5v4l3 2"/></svg>
             </div>
             <div class="contact-item-text">
-              <label>Режим работы</label>
-              <p>{{ site.contact_hours | e | replace('\n', '<br>') | safe }}</p>
+              <label>{% if _l == 'en' %}Hours{% elif _l == 'be' %}Рэжым працы{% else %}Режим работы{% endif %}</label>
+              <p>{{ site.contact_hours | nl2br }}</p>
             </div>
           </div>
 
           <!-- SOCIAL NETWORKS -->
           <div style="margin-top:8px;">
             <div class="contact-item-text" style="margin-bottom:14px;">
-              <label style="font-size:0.62rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:4px;">Мы в соцсетях и мессенджерах</label>
+              <label style="font-size:0.62rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:4px;">{% if _l == 'en' %}Find us on social{% elif _l == 'be' %}Мы ў сацсетках і месэнджарах{% else %}Мы в соцсетях и мессенджерах{% endif %}</label>
             </div>
             <div class="social-strip">
               <a href="{{ site.social_instagram }}" target="_blank" class="social-btn" title="Instagram">
@@ -2404,25 +2803,36 @@
         </div>
       </div>
       <div class="contact-form">
-        <h3>Заказать<br>звонок</h3>
+        <h3>
+          {%- if _l == 'en' %}Request<br>a call
+          {%- elif _l == 'be' %}Заказаць<br>званок
+          {%- else %}Заказать<br>звонок
+          {%- endif %}
+        </h3>
         <div class="form-row">
-          <div class="form-group"><label>Ваше имя</label><input type="text" placeholder="Иван Иванов"></div>
-          <div class="form-group"><label>Телефон</label><input type="tel" placeholder="+375 XX XXX XX XX"></div>
+          <div class="form-group"><label>{% if _l == 'en' %}Your name{% elif _l == 'be' %}Ваша імя{% else %}Ваше имя{% endif %}</label><input type="text" placeholder="{% if _l == 'en' %}John Smith{% else %}Иван Иванов{% endif %}"></div>
+          <div class="form-group"><label>{% if _l == 'en' %}Phone{% elif _l == 'be' %}Тэлефон{% else %}Телефон{% endif %}</label><input type="tel" placeholder="+375 XX XXX XX XX"></div>
         </div>
         <div class="form-group">
-          <label>Интересует программа</label>
+          <label>{% if _l == 'en' %}Interested in program{% elif _l == 'be' %}Цікавіць праграма{% else %}Интересует программа{% endif %}</label>
           <select>
-            <option value="">Выберите направление</option>
+            <option value="">{% if _l == 'en' %}Choose a track{% elif _l == 'be' %}Выберыце накірунак{% else %}Выберите направление{% endif %}</option>
+            {% if _l == 'en' %}
+            <option>Music ministry</option>
+            <option>Biblical & theological</option>
+            <option>Theatre ministry</option>
+            {% else %}
             <option>Музыкальное служение</option>
             <option>Библейско-богословское</option>
             <option>Театральное служение</option>
+            {% endif %}
           </select>
         </div>
         <div class="form-group">
-          <label>Сообщение (необязательно)</label>
-          <textarea placeholder="Ваш вопрос или комментарий..."></textarea>
+          <label>{% if _l == 'en' %}Message (optional){% elif _l == 'be' %}Паведамленне (неабавязкова){% else %}Сообщение (необязательно){% endif %}</label>
+          <textarea placeholder="{% if _l == 'en' %}Your question or comment...{% elif _l == 'be' %}Ваша пытанне ці каментарый...{% else %}Ваш вопрос или комментарий...{% endif %}"></textarea>
         </div>
-        <button class="form-submit" onclick="handleSubmit(event)">Отправить запрос</button>
+        <button class="form-submit" onclick="handleSubmit(event)">{% if _l == 'en' %}Send request{% elif _l == 'be' %}Адправіць запыт{% else %}Отправить запрос{% endif %}</button>
       </div>
     </div>
   </section>
@@ -2435,7 +2845,7 @@
           <svg style="height:32px;width:auto;opacity:0.6;" viewBox="0 0 2048 2048" xmlns="http://www.w3.org/2000/svg">
             <path fill="rgb(201,168,76)" d="M 563.408 430.403 C 576.145 433.628 678.372 513.149 697.694 526.463 C 716.843 539.658 737.542 551.847 758.634 561.638 C 818.56 589.457 884.238 605.575 948.594 619.54 C 977.989 625.919 1007.82 630.572 1037.05 637.633 C 1104.53 653.928 1174.59 683.386 1228.09 728.187 C 1272.91 765.73 1309.4 816.635 1314.64 876.309 C 1316.33 874.797 1318.07 873.338 1319.85 871.936 C 1363.81 837.465 1429.6 812.696 1484.96 819.892 C 1588.5 833.353 1652.04 926.722 1679.2 1019.74 C 1681.95 1029.16 1688.71 1042.19 1687.47 1051.78 C 1685.58 1054.54 1682.81 1056.06 1679.56 1056.47 C 1659.65 1059.95 1633.32 1054.47 1613.93 1057.86 C 1503.36 1077.18 1426.67 1182.34 1392.16 1282.39 C 1380.52 1316.12 1373.64 1346.49 1361.7 1378.8 C 1325.28 1477.35 1254.15 1558.24 1158.47 1602.42 C 1040.34 1656.5 907.662 1645.73 788.226 1599.53 C 730.559 1579.5 676.429 1543.78 622.729 1515.2 C 613.533 1510.3 579.421 1494.33 579.351 1484.25 C 584.686 1479.35 600.085 1480.39 607.421 1479.95 C 651.574 1477.25 696.911 1477.25 740.948 1473.99 C 757.313 1472.64 773.593 1470.4 789.717 1467.29 C 880.646 1450.18 972.551 1416.2 1026.75 1336.93 C 1019.61 1336.07 1012.51 1334.5 1005.45 1333.17 C 831.674 1300.56 670.936 1220.87 559.605 1080.66 C 469.248 966.866 429.482 837.396 389.582 700.413 C 385.204 685.385 378.542 669.204 377.855 653.774 C 377.772 651.887 379.802 650.249 381.186 649.308 C 391.417 651.086 466.927 705.134 481.688 714.841 C 492.629 722.142 503.993 728.789 515.719 734.749 C 592.663 774.517 674.781 792.188 756.766 815.023 C 756.482 814.729 756.198 814.434 755.914 814.14 L 754.522 812.645 C 750.19 808.04 747.014 803.532 743.317 798.41 C 676.416 705.722 629.105 601.179 584.763 496.363 C 576.686 477.271 566.426 458.871 560.131 439.175 C 558.924 435.401 561.422 433.154 563.408 430.403 z M 1275.75 1266.48 L 1275.36 1265.21 C 1248.5 1175.38 1296.97 1048.89 1197.98 996.895 C 1129.04 960.687 1051.83 957.713 976.525 946.249 C 919.786 937.858 863.274 928.006 807.043 916.703 C 738.934 903.421 671.602 886.426 605.35 865.792 C 578.892 857.375 553.577 847.92 527.532 838.48 C 535.671 863.289 551.484 896.526 563.173 919.881 C 620.281 1033.99 705.082 1120.15 819.088 1177.97 C 928.346 1233.38 1050.06 1255.83 1171.5 1263.85 C 1204.06 1266 1242.99 1268 1275.75 1266.48 z M 1225.12 910.727 C 1225.08 865.102 1220.44 845.007 1186.4 811.258 C 1108.86 734.375 1002.15 722.48 901.054 700.484 C 853.729 690.188 807.544 675.809 761.621 659.883 C 779.698 698.262 870.89 830.832 906.875 843.865 C 922.491 849.52 945.012 850.618 961.961 853.442 C 1037.89 866.096 1115.35 869.955 1188.54 895.638 C 1200.85 899.96 1213.67 904.436 1225.12 910.727 z M 882.268 1537.17 C 896.144 1537.75 911.894 1541.72 925.931 1543.83 C 955.834 1548.34 1009.9 1551 1038.76 1544.32 C 1108.82 1536.91 1181.63 1493.12 1225.55 1438.57 C 1238.79 1421.93 1250.42 1404.07 1260.3 1385.24 C 1264.97 1376.18 1269.23 1365.82 1273.99 1357.12 C 1255.79 1359.14 1233.58 1356.48 1215 1356.12 C 1192.2 1355.68 1170 1354.73 1147.28 1352.54 C 1138.17 1351.66 1129.31 1351.94 1119.99 1350.63 C 1092.15 1425.38 1018.42 1480.29 947.97 1512.49 C 926.628 1522.13 904.681 1530.38 882.268 1537.17 z M 1318.18 989.614 C 1348.24 1035.59 1356.35 1100.68 1353.93 1154.91 C 1360.97 1142.35 1373.67 1120.9 1383.21 1109.98 C 1429.04 1049.51 1491.48 998.421 1565.54 977.774 C 1537.53 939.193 1512.28 907.806 1461.02 909.43 C 1415.44 911.011 1381.42 935.334 1347.18 963.701 C 1337.71 971.553 1327.38 982.443 1318.18 989.614 z"/>
           </svg>
-          <span>Библейский<br>Колледж ХВЕ</span>
+          <span>{{ site.footer_logo|safe }}</span>
         </div>
         <div class="footer-socials">
           <a href="{{ site.social_instagram }}" target="_blank" class="footer-social-btn" title="Instagram">
@@ -2457,9 +2867,14 @@
       </div>
       <div class="footer-middle">
         <div class="footer-cross-divider">✝</div>
-        <div class="footer-reg">Духовное учебное заведение<br>«Библейский колледж христиан веры евангельской»<br>Зарегистрирован 24.04.1996 · УНН 100776710</div>
+        <div class="footer-reg">
+          {%- if _l == 'en' %}Religious educational institution<br>"Bible College of Christians of Evangelical Faith"<br>Registered 24.04.1996 · UNP 100776710
+          {%- elif _l == 'be' %}Духоўная навучальная ўстанова<br>«Біблейскі каледж хрысціян веры евангельскай»<br>Зарэгістраваны 24.04.1996 · УНП 100776710
+          {%- else %}Духовное учебное заведение<br>«Библейский колледж христиан веры евангельской»<br>Зарегистрирован 24.04.1996 · УНН 100776710
+          {%- endif %}
+        </div>
       </div>
-      <div class="footer-right">220092, Минск, ул. Бельского, 15<br>cfnbel@gmail.com<br>+375 17 393 53 94</div>
+      <div class="footer-right">{% if _l == 'en' %}220092, Minsk, Belskogo str. 15{% elif _l == 'be' %}220092, Мінск, вул. Бельскага, 15{% else %}220092, Минск, ул. Бельского, 15{% endif %}<br>cfnbel@gmail.com<br>+375 17 393 53 94<br><br><a href="/donate" style="color:#C9A84C;text-transform:uppercase;letter-spacing:.16em;font-size:.78rem;">♥ {% if _l == 'en' %}Support the college{% elif _l == 'be' %}Падтрымаць каледж{% else %}Поддержать колледж{% endif %}</a></div>
     </div>
   </footer>
 
@@ -2477,7 +2892,7 @@
         </div>
       </div>
       <div class="teacher-modal-bio" id="modalBio"></div>
-      <div class="teacher-modal-subjects-title">Преподаваемые предметы</div>
+      <div class="teacher-modal-subjects-title">{% if _l == 'en' %}Subjects taught{% elif _l == 'be' %}Прадметы, якія выкладаюцца{% else %}Преподаваемые предметы{% endif %}</div>
       <div class="teacher-modal-subjects" id="modalSubjects"></div>
     </div>
   </div>
@@ -2493,45 +2908,39 @@
         <path fill="rgb(201,168,76)" d="M 563.408 430.403 C 576.145 433.628 678.372 513.149 697.694 526.463 C 716.843 539.658 737.542 551.847 758.634 561.638 C 818.56 589.457 884.238 605.575 948.594 619.54 C 977.989 625.919 1007.82 630.572 1037.05 637.633 C 1104.53 653.928 1174.59 683.386 1228.09 728.187 C 1272.91 765.73 1309.4 816.635 1314.64 876.309 C 1316.33 874.797 1318.07 873.338 1319.85 871.936 C 1363.81 837.465 1429.6 812.696 1484.96 819.892 C 1588.5 833.353 1652.04 926.722 1679.2 1019.74 C 1681.95 1029.16 1688.71 1042.19 1687.47 1051.78 C 1685.58 1054.54 1682.81 1056.06 1679.56 1056.47 C 1659.65 1059.95 1633.32 1054.47 1613.93 1057.86 C 1503.36 1077.18 1426.67 1182.34 1392.16 1282.39 C 1380.52 1316.12 1373.64 1346.49 1361.7 1378.8 C 1325.28 1477.35 1254.15 1558.24 1158.47 1602.42 C 1040.34 1656.5 907.662 1645.73 788.226 1599.53 C 730.559 1579.5 676.429 1543.78 622.729 1515.2 C 613.533 1510.3 579.421 1494.33 579.351 1484.25 C 584.686 1479.35 600.085 1480.39 607.421 1479.95 C 651.574 1477.25 696.911 1477.25 740.948 1473.99 C 757.313 1472.64 773.593 1470.4 789.717 1467.29 C 880.646 1450.18 972.551 1416.2 1026.75 1336.93 C 1019.61 1336.07 1012.51 1334.5 1005.45 1333.17 C 831.674 1300.56 670.936 1220.87 559.605 1080.66 C 469.248 966.866 429.482 837.396 389.582 700.413 C 385.204 685.385 378.542 669.204 377.855 653.774 C 377.772 651.887 379.802 650.249 381.186 649.308 C 391.417 651.086 466.927 705.134 481.688 714.841 C 492.629 722.142 503.993 728.789 515.719 734.749 C 592.663 774.517 674.781 792.188 756.766 815.023 L 754.522 812.645 C 750.19 808.04 747.014 803.532 743.317 798.41 C 676.416 705.722 629.105 601.179 584.763 496.363 C 576.686 477.271 566.426 458.871 560.131 439.175 C 558.924 435.401 561.422 433.154 563.408 430.403 z"/>
       </svg>
       <div class="subpage-nav-logo-text">
-        <span>ХДН</span>
-        <span>Библейский Колледж</span>
+        <span>{{ site.nav_logo_top }}</span>
+        <span>{{ site.nav_logo_main }}</span>
       </div>
     </span>
     <div class="prog-switcher">
-      <button class="prog-switcher-btn active" onclick="openPage('music')">
-        Музыка
-      </button>
+      <button class="prog-switcher-btn active" onclick="openPage('music')">{% if _l == 'en' %}Music{% elif _l == 'be' %}Музыка{% else %}Музыка{% endif %}</button>
       <div class="prog-switcher-divider"></div>
-      <button class="prog-switcher-btn" onclick="openPage('theology')">
-        Богословие
-      </button>
+      <button class="prog-switcher-btn" onclick="openPage('theology')">{% if _l == 'en' %}Theology{% elif _l == 'be' %}Багаслоўе{% else %}Богословие{% endif %}</button>
       <div class="prog-switcher-divider"></div>
-      <button class="prog-switcher-btn" onclick="openPage('theatre')">
-        Театр
-      </button>
+      <button class="prog-switcher-btn" onclick="openPage('theatre')">{% if _l == 'en' %}Theatre{% elif _l == 'be' %}Тэатр{% else %}Театр{% endif %}</button>
     </div>
   </nav>
   <div class="prog-mobile-switcher">
-    <button class="prog-mobile-switcher-btn active" onclick="openPage('music')">Музыка</button>
-    <button class="prog-mobile-switcher-btn" onclick="openPage('theology')">Богословие</button>
-    <button class="prog-mobile-switcher-btn" onclick="openPage('theatre')">Театр</button>
+    <button class="prog-mobile-switcher-btn active" onclick="openPage('music')">{% if _l == 'en' %}Music{% elif _l == 'be' %}Музыка{% else %}Музыка{% endif %}</button>
+    <button class="prog-mobile-switcher-btn" onclick="openPage('theology')">{% if _l == 'en' %}Theology{% elif _l == 'be' %}Багаслоўе{% else %}Богословие{% endif %}</button>
+    <button class="prog-mobile-switcher-btn" onclick="openPage('theatre')">{% if _l == 'en' %}Theatre{% elif _l == 'be' %}Тэатр{% else %}Театр{% endif %}</button>
   </div>
   <div style="background:var(--ink);">
     <div class="prog-page-hero">
       <div class="prog-page-hero-inner">
         <button class="prog-back-btn" onclick="goHome()">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg>
-          Все программы
+          {% if _l == 'en' %}All programs{% elif _l == 'be' %}Усе праграмы{% else %}Все программы{% endif %}
         </button>
-        <div class="prog-hero-tag">Программа 01 · Музыкальное служение</div>
-        <h1 class="prog-hero-title">Бакалавр искусств<br>в <em>Церковной Музыке</em></h1>
-        <p class="prog-hero-sub">Изменённые жизни изменяют народы</p>
+        <div class="prog-hero-tag">{% if _l == 'en' %}Program 01 · Music Ministry{% elif _l == 'be' %}Праграма 01 · Музычнае служэнне{% else %}Программа 01 · Музыкальное служение{% endif %}</div>
+        <h1 class="prog-hero-title">{% if _l == 'en' %}Bachelor of Arts<br>in <em>Church Music</em>{% elif _l == 'be' %}Бакалаўр мастацтваў<br>у <em>Царкоўнай Музыцы</em>{% else %}Бакалавр искусств<br>в <em>Церковной Музыке</em>{% endif %}</h1>
+        <p class="prog-hero-sub">{% if _l == 'en' %}Changed lives change nations{% elif _l == 'be' %}Зменены жыцці змяняюць народы{% else %}Изменённые жизни изменяют народы{% endif %}</p>
         <div class="prog-hero-meta">
-          <div class="prog-hero-meta-item"><label>Форма</label><span>Очно-заочная</span></div>
-          <div class="prog-hero-meta-item"><label>Сессии</label><span>4 недели в год</span></div>
-          <div class="prog-hero-meta-item"><label>Уровень 1</label><span>3 года</span></div>
-          <div class="prog-hero-meta-item"><label>Уровень 2</label><span>2,5 года</span></div>
-          <div class="prog-hero-meta-item"><label>Приём</label><span>1 авг — 15 сент 2026</span></div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Format</label><span>Part-time</span>{% elif _l == 'be' %}<label>Форма</label><span>Завочна-сесійная</span>{% else %}<label>Форма</label><span>Очно-заочная</span>{% endif %}</div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Sessions</label><span>4 weeks a year</span>{% elif _l == 'be' %}<label>Сесіі</label><span>4 тыдні на год</span>{% else %}<label>Сессии</label><span>4 недели в год</span>{% endif %}</div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Level 1</label><span>3 years</span>{% elif _l == 'be' %}<label>Узровень 1</label><span>3 гады</span>{% else %}<label>Уровень 1</label><span>3 года</span>{% endif %}</div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Level 2</label><span>2.5 years</span>{% elif _l == 'be' %}<label>Узровень 2</label><span>2,5 года</span>{% else %}<label>Уровень 2</label><span>2,5 года</span>{% endif %}</div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Admission</label><span>Aug 1 — Sept 15, 2026</span>{% elif _l == 'be' %}<label>Прыём</label><span>1 жнів — 15 вер 2026</span>{% else %}<label>Приём</label><span>1 авг — 15 сент 2026</span>{% endif %}</div>
         </div>
       </div>
     </div>
@@ -2540,34 +2949,34 @@
   <div class="prog-body">
 
     <div class="prog-section" id="music-specialties">
-      <h2 class="prog-section-title">Специальности <em>отделения</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}<em>Department</em> specialties{% elif _l == 'be' %}Спецыяльнасці <em>аддзялення</em>{% else %}Специальности <em>отделения</em>{% endif %}</h2>
       <div class="prog-specialties">
         <div class="prog-specialty-card">
           <div class="prog-specialty-num">01</div>
-          <div class="prog-specialty-name">Инструментальное исполнительство</div>
-          <div class="prog-specialty-subs">Клавишные · Гитара (электрогитара) · Бас-гитара · Ударные инструменты</div>
-          <div class="prog-specialty-qual">Квалификация: Руководитель музыкального коллектива</div>
+          {% if _l == 'en' %}<div class="prog-specialty-name">Instrumental performance</div>{% elif _l == 'be' %}<div class="prog-specialty-name">Інструментальнае выкананне</div>{% else %}<div class="prog-specialty-name">Инструментальное исполнительство</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-specialty-subs">Keyboards · Guitar (electric) · Bass · Drums</div>{% elif _l == 'be' %}<div class="prog-specialty-subs">Клавішныя · Гітара (электрагітара) · Бас-гітара · Ударныя інструменты</div>{% else %}<div class="prog-specialty-subs">Клавишные · Гитара (электрогитара) · Бас-гитара · Ударные инструменты</div>{% endif %}
+          <div class="prog-specialty-qual">{% if _l == 'en' %}Qualification: Music ensemble director{% elif _l == 'be' %}Кваліфікацыя: Кіраўнік музычнага калектыву{% else %}Квалификация: Руководитель музыкального коллектива{% endif %}</div>
         </div>
         <div class="prog-specialty-card">
           <div class="prog-specialty-num">02</div>
-          <div class="prog-specialty-name">Пение</div>
-          <div class="prog-specialty-subs">Руководство пением в церкви</div>
-          <div class="prog-specialty-qual">Квалификация: Руководитель музыкального коллектива</div>
+          {% if _l == 'en' %}<div class="prog-specialty-name">Vocals</div>{% elif _l == 'be' %}<div class="prog-specialty-name">Спеў</div>{% else %}<div class="prog-specialty-name">Пение</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-specialty-subs">Leading singing in church</div>{% elif _l == 'be' %}<div class="prog-specialty-subs">Кіраўніцтва спевам у царкве</div>{% else %}<div class="prog-specialty-subs">Руководство пением в церкви</div>{% endif %}
+          <div class="prog-specialty-qual">{% if _l == 'en' %}Qualification: Music ensemble director{% elif _l == 'be' %}Кваліфікацыя: Кіраўнік музычнага калектыву{% else %}Квалификация: Руководитель музыкального коллектива{% endif %}</div>
         </div>
         <div class="prog-specialty-card">
           <div class="prog-specialty-num">03</div>
-          <div class="prog-specialty-name">Звукорежиссура</div>
-          <div class="prog-specialty-subs">Полный курс обучения — 3 года</div>
-          <div class="prog-specialty-qual">Квалификация: Звукооператор</div>
+          {% if _l == 'en' %}<div class="prog-specialty-name">Sound engineering</div>{% elif _l == 'be' %}<div class="prog-specialty-name">Гукарэжысура</div>{% else %}<div class="prog-specialty-name">Звукорежиссура</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-specialty-subs">Full program — 3 years</div>{% elif _l == 'be' %}<div class="prog-specialty-subs">Поўны курс навучання — 3 гады</div>{% else %}<div class="prog-specialty-subs">Полный курс обучения — 3 года</div>{% endif %}
+          <div class="prog-specialty-qual">{% if _l == 'en' %}Qualification: Sound operator{% elif _l == 'be' %}Кваліфікацыя: Гукааператар{% else %}Квалификация: Звукооператор{% endif %}</div>
         </div>
       </div>
     </div>
 
     <div class="prog-section">
-      <h2 class="prog-section-title">Программа <em>обучения — Уровень 1</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}<em>Curriculum — Level 1</em>{% elif _l == 'be' %}Праграма <em>навучання — Узровень 1</em>{% else %}Программа <em>обучения — Уровень 1</em>{% endif %}</h2>
       <div class="prog-curriculum">
         <div class="prog-curriculum-block">
-          <h4>Музыкальная подготовка</h4>
+          {% if _l == 'en' %}<h4>Music training</h4>{% elif _l == 'be' %}<h4>Музычная падрыхтоўка</h4>{% else %}<h4>Музыкальная подготовка</h4>{% endif %}
           <ul>
             <li>Теория музыки (элементарная теория, гармония)</li>
             <li>Сольфеджио</li>
@@ -2584,7 +2993,7 @@
           </ul>
         </div>
         <div class="prog-curriculum-block">
-          <h4>Богословская часть</h4>
+          {% if _l == 'en' %}<h4>Theology core</h4>{% elif _l == 'be' %}<h4>Багаслоўская частка</h4>{% else %}<h4>Богословская часть</h4>{% endif %}
           <ul>
             <li>Обзор Нового Завета</li>
             <li>Обзор Ветхого Завета</li>
@@ -2597,18 +3006,18 @@
             <li>Миссиология</li>
           </ul>
           <div style="margin-top:20px;padding:16px;background:rgba(201,168,76,0.08);border-left:2px solid var(--gold);">
-            <div style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Присуждаемая степень</div>
-            <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">Бакалавр искусств в церковной музыке</div>
+            <div style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">{% if _l == 'en' %}Degree awarded{% elif _l == 'be' %}Прысвойваная ступень{% else %}Присуждаемая степень{% endif %}</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">{% if _l == 'en' %}Bachelor of Arts in Church Music{% elif _l == 'be' %}Бакалаўр мастацтваў у царкоўнай музыцы{% else %}Бакалавр искусств в церковной музыке{% endif %}</div>
           </div>
         </div>
       </div>
     </div>
 
     <div class="prog-section">
-      <h2 class="prog-section-title">Программа <em>обучения — Уровень 2</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}<em>Curriculum — Level 2</em>{% elif _l == 'be' %}Праграма <em>навучання — Узровень 2</em>{% else %}Программа <em>обучения — Уровень 2</em>{% endif %}</h2>
       <div class="prog-curriculum">
         <div class="prog-curriculum-block">
-          <h4>Музыкальная подготовка</h4>
+          {% if _l == 'en' %}<h4>Music training</h4>{% elif _l == 'be' %}<h4>Музычная падрыхтоўка</h4>{% else %}<h4>Музыкальная подготовка</h4>{% endif %}
           <ul>
             <li>Теория музыки · Сольфеджио · Гармония</li>
             <li>Специальный инструмент</li>
@@ -2620,7 +3029,7 @@
           </ul>
         </div>
         <div class="prog-curriculum-block">
-          <h4>Богословская часть (расширенная)</h4>
+          {% if _l == 'en' %}<h4>Theology (advanced)</h4>{% elif _l == 'be' %}<h4>Багаслоўская частка (пашыраная)</h4>{% else %}<h4>Богословская часть (расширенная)</h4>{% endif %}
           <ul>
             <li>Изучение языков оригиналов</li>
             <li>Систематическое богословие</li>
@@ -2631,8 +3040,8 @@
             <li>Исследовательская работа</li>
           </ul>
           <div style="margin-top:20px;padding:16px;background:rgba(201,168,76,0.08);border-left:2px solid var(--gold);">
-            <div style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Присуждаемая степень</div>
-            <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">Магистр искусств в церковной музыке</div>
+            <div style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">{% if _l == 'en' %}Degree awarded{% elif _l == 'be' %}Прысвойваная ступень{% else %}Присуждаемая степень{% endif %}</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">{% if _l == 'en' %}Master of Arts in Church Music{% elif _l == 'be' %}Магістр мастацтваў у царкоўнай музыцы{% else %}Магистр искусств в церковной музыке{% endif %}</div>
           </div>
         </div>
       </div>
@@ -2640,28 +3049,28 @@
 
     <div class="prog-info-grid" id="music-cost">
       <div class="prog-info-block">
-        <h4>Стоимость обучения</h4>
+        {% if _l == 'en' %}<h4>Tuition</h4>{% elif _l == 'be' %}<h4>Кошт навучання</h4>{% else %}<h4>Стоимость обучения</h4>{% endif %}
         <div class="prog-price">280 BYN</div>
-        <div class="prog-price-note">за сессию · Уровень 2</div>
-        <p style="margin-top:16px;">Оплата перечислением на расчётный счёт колледжа. Проживание и питание во время сессий студенты оплачивают отдельно.</p>
+        {% if _l == 'en' %}<div class="prog-price-note">per session · Level 2</div>{% elif _l == 'be' %}<div class="prog-price-note">за сесію · Узровень 2</div>{% else %}<div class="prog-price-note">за сессию · Уровень 2</div>{% endif %}
+        <p style="margin-top:16px;">{% if _l == 'en' %}Payment is made by bank transfer to the college account. Accommodation and meals during sessions are paid separately by the student.{% elif _l == 'be' %}Аплата пералікам на разліковы рахунак каледжа. Пражыванне і харчаванне падчас сесій студэнты аплочваюць асобна.{% else %}Оплата перечислением на расчётный счёт колледжа. Проживание и питание во время сессий студенты оплачивают отдельно.{% endif %}</p>
       </div>
       <div class="prog-info-block">
-        <h4>Вступительное испытание</h4>
+        {% if _l == 'en' %}<h4>Entrance exam</h4>{% elif _l == 'be' %}<h4>Уступны іспыт</h4>{% else %}<h4>Вступительное испытание</h4>{% endif %}
         <ul>
           <li>Тест по музыкальной грамоте и сольфеджио</li>
           <li>Прослушивание (исполнение любого музыкального произведения)</li>
           <li>Собеседование</li>
           <li>Для поступающих на звукорежиссуру — без прослушивания</li>
         </ul>
-        <p style="margin-top:16px;">Абитуриенты без музыкального образования могут поступить на <strong style="color:var(--gold-light);">подготовительный курс</strong> (1–2 года) без сдачи теста.</p>
+        <p style="margin-top:16px;">{% if _l == 'en' %}Applicants without prior musical education can enrol in the <strong style="color:var(--gold-light);">preparatory course</strong> (1–2 years) without sitting the test.{% elif _l == 'be' %}Абітурыенты без музычнай адукацыі могуць паступіць на <strong style="color:var(--gold-light);">падрыхтоўчы курс</strong> (1–2 гады) без здачы тэсту.{% else %}Абитуриенты без музыкального образования могут поступить на <strong style="color:var(--gold-light);">подготовительный курс</strong> (1–2 года) без сдачи теста.{% endif %}</p>
       </div>
     </div>
 
     <div class="prog-section">
-      <h2 class="prog-section-title">Документы для <em>поступления</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}Application <em>documents</em>{% elif _l == 'be' %}Дакументы для <em>паступлення</em>{% else %}Документы для <em>поступления</em>{% endif %}</h2>
       <div class="prog-curriculum">
         <div class="prog-curriculum-block">
-          <h4>Перечень документов</h4>
+          {% if _l == 'en' %}<h4>Document checklist</h4>{% elif _l == 'be' %}<h4>Спіс дакументаў</h4>{% else %}<h4>Перечень документов</h4>{% endif %}
           <ul>
             <li>Оригинал заполненной анкеты-заявления</li>
             <li>2 фотографии 3×4</li>
@@ -2671,7 +3080,7 @@
           </ul>
         </div>
         <div class="prog-curriculum-block">
-          <h4>Что необходимо студентам</h4>
+          {% if _l == 'en' %}<h4>What students need</h4>{% elif _l == 'be' %}<h4>Што неабходна студэнтам</h4>{% else %}<h4>Что необходимо студентам</h4>{% endif %}
           <ul>
             <li>Нотная и общая тетради</li>
             <li>Ноутбук (со 2-го курса; для клавишных и звукорежиссуры — с 1-го)</li>
@@ -2685,17 +3094,18 @@
   </div>
 
   <div class="prog-cta">
-    <h3>Готов начать путь?</h3>
-    <p>Приём документов: 1 августа — 15 сентября 2026 г.</p>
-    <a href="mailto:cfnbel@gmail.com" class="btn-cta">Написать в приёмную комиссию</a>
+    {% if _l == 'en' %}<h3>Ready to begin?</h3>{% elif _l == 'be' %}<h3>Гатовы пачаць шлях?</h3>{% else %}<h3>Готов начать путь?</h3>{% endif %}
+    <p>{% if _l == 'en' %}Applications: August 1 — September 15, 2026{% elif _l == 'be' %}Прыём дакументаў: 1 жніўня — 15 верасня 2026 г.{% else %}Приём документов: 1 августа — 15 сентября 2026 г.{% endif %}</p>
+    <button type="button" class="btn-cta js-prog-apply-toggle" data-program="music" data-target="apply-form-music" aria-expanded="false">{% if _l == 'en' %}Email the admissions office{% elif _l == 'be' %}Напісаць у прыёмную камісію{% else %}Написать в приёмную комиссию{% endif %}</button>
+    {{ prog_apply_form('apply-form-music', 'music', _l) }}
   </div>
 
   <footer>
     <div class="footer-inner">
-      <div class="footer-logo">Библейский<br>Колледж ХВЕ</div>
+      <div class="footer-logo">{{ site.footer_logo|safe }}</div>
       <div class="footer-middle">
         <div class="footer-cross-divider">✝</div>
-        <div class="footer-reg">«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15</div>
+        <div class="footer-reg">{% if _l == 'en' %}"Bible College of Christians of Evangelical Faith"<br>220092, Minsk, Belskogo str. 15{% elif _l == 'be' %}«Біблейскі каледж хрысціян веры евангельскай»<br>220092, Мінск, вул. Бельскага, 15{% else %}«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15{% endif %}</div>
       </div>
       <div class="footer-right">cfnbel@gmail.com<br>+375 17 393 53 94</div>
     </div>
@@ -2711,44 +3121,38 @@
         <path fill="rgb(201,168,76)" d="M 563.408 430.403 C 576.145 433.628 678.372 513.149 697.694 526.463 C 716.843 539.658 737.542 551.847 758.634 561.638 C 818.56 589.457 884.238 605.575 948.594 619.54 C 977.989 625.919 1007.82 630.572 1037.05 637.633 C 1104.53 653.928 1174.59 683.386 1228.09 728.187 C 1272.91 765.73 1309.4 816.635 1314.64 876.309 C 1316.33 874.797 1318.07 873.338 1319.85 871.936 C 1363.81 837.465 1429.6 812.696 1484.96 819.892 C 1588.5 833.353 1652.04 926.722 1679.2 1019.74 C 1681.95 1029.16 1688.71 1042.19 1687.47 1051.78 C 1685.58 1054.54 1682.81 1056.06 1679.56 1056.47 C 1659.65 1059.95 1633.32 1054.47 1613.93 1057.86 C 1503.36 1077.18 1426.67 1182.34 1392.16 1282.39 C 1380.52 1316.12 1373.64 1346.49 1361.7 1378.8 C 1325.28 1477.35 1254.15 1558.24 1158.47 1602.42 C 1040.34 1656.5 907.662 1645.73 788.226 1599.53 C 730.559 1579.5 676.429 1543.78 622.729 1515.2 C 613.533 1510.3 579.421 1494.33 579.351 1484.25 C 584.686 1479.35 600.085 1480.39 607.421 1479.95 C 651.574 1477.25 696.911 1477.25 740.948 1473.99 C 757.313 1472.64 773.593 1470.4 789.717 1467.29 C 880.646 1450.18 972.551 1416.2 1026.75 1336.93 C 1019.61 1336.07 1012.51 1334.5 1005.45 1333.17 C 831.674 1300.56 670.936 1220.87 559.605 1080.66 C 469.248 966.866 429.482 837.396 389.582 700.413 C 385.204 685.385 378.542 669.204 377.855 653.774 C 377.772 651.887 379.802 650.249 381.186 649.308 C 391.417 651.086 466.927 705.134 481.688 714.841 C 492.629 722.142 503.993 728.789 515.719 734.749 C 592.663 774.517 674.781 792.188 756.766 815.023 L 754.522 812.645 C 750.19 808.04 747.014 803.532 743.317 798.41 C 676.416 705.722 629.105 601.179 584.763 496.363 C 576.686 477.271 566.426 458.871 560.131 439.175 C 558.924 435.401 561.422 433.154 563.408 430.403 z"/>
       </svg>
       <div class="subpage-nav-logo-text">
-        <span>ХДН</span>
-        <span>Библейский Колледж</span>
+        <span>{{ site.nav_logo_top }}</span>
+        <span>{{ site.nav_logo_main }}</span>
       </div>
     </span>
     <div class="prog-switcher">
-      <button class="prog-switcher-btn" onclick="openPage('music')">
-        Музыка
-      </button>
+      <button class="prog-switcher-btn" onclick="openPage('music')">{% if _l == 'en' %}Music{% elif _l == 'be' %}Музыка{% else %}Музыка{% endif %}</button>
       <div class="prog-switcher-divider"></div>
-      <button class="prog-switcher-btn active" onclick="openPage('theology')">
-        Богословие
-      </button>
+      <button class="prog-switcher-btn active" onclick="openPage('theology')">{% if _l == 'en' %}Theology{% elif _l == 'be' %}Багаслоўе{% else %}Богословие{% endif %}</button>
       <div class="prog-switcher-divider"></div>
-      <button class="prog-switcher-btn" onclick="openPage('theatre')">
-        Театр
-      </button>
+      <button class="prog-switcher-btn" onclick="openPage('theatre')">{% if _l == 'en' %}Theatre{% elif _l == 'be' %}Тэатр{% else %}Театр{% endif %}</button>
     </div>
   </nav>
   <div class="prog-mobile-switcher">
-    <button class="prog-mobile-switcher-btn" onclick="openPage('music')">Музыка</button>
-    <button class="prog-mobile-switcher-btn active" onclick="openPage('theology')">Богословие</button>
-    <button class="prog-mobile-switcher-btn" onclick="openPage('theatre')">Театр</button>
+    <button class="prog-mobile-switcher-btn" onclick="openPage('music')">{% if _l == 'en' %}Music{% elif _l == 'be' %}Музыка{% else %}Музыка{% endif %}</button>
+    <button class="prog-mobile-switcher-btn active" onclick="openPage('theology')">{% if _l == 'en' %}Theology{% elif _l == 'be' %}Багаслоўе{% else %}Богословие{% endif %}</button>
+    <button class="prog-mobile-switcher-btn" onclick="openPage('theatre')">{% if _l == 'en' %}Theatre{% elif _l == 'be' %}Тэатр{% else %}Театр{% endif %}</button>
   </div>
   <div style="background:var(--ink);">
     <div class="prog-page-hero">
       <div class="prog-page-hero-inner">
         <button class="prog-back-btn" onclick="goHome()">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg>
-          Все программы
+          {% if _l == 'en' %}All programs{% elif _l == 'be' %}Усе праграмы{% else %}Все программы{% endif %}
         </button>
-        <div class="prog-hero-tag">Программа 02 · Библейско-богословское</div>
-        <h1 class="prog-hero-title">Богословие<br>и <em>Христианское Служение</em></h1>
-        <p class="prog-hero-sub">Христос для народов — не просто имя, это наша Миссия</p>
+        <div class="prog-hero-tag">{% if _l == 'en' %}Program 02 · Biblical & Theological{% elif _l == 'be' %}Праграма 02 · Біблейска-багаслоўская{% else %}Программа 02 · Библейско-богословское{% endif %}</div>
+        <h1 class="prog-hero-title">{% if _l == 'en' %}Theology<br>and <em>Christian Ministry</em>{% elif _l == 'be' %}Багаслоўе<br>і <em>Хрысціянскае Служэнне</em>{% else %}Богословие<br>и <em>Христианское Служение</em>{% endif %}</h1>
+        <p class="prog-hero-sub">{% if _l == 'en' %}Christ for the Nations — not just a name, it's our mission{% elif _l == 'be' %}Хрыстос для народаў — не проста імя, гэта наша Місія{% else %}Христос для народов — не просто имя, это наша Миссия{% endif %}</p>
         <div class="prog-hero-meta">
-          <div class="prog-hero-meta-item"><label>Форма</label><span>Заочная (онлайн)</span></div>
-          <div class="prog-hero-meta-item"><label>Уровни</label><span>А, В, С</span></div>
-          <div class="prog-hero-meta-item"><label>Кредиты</label><span>40 / 120 / 180</span></div>
-          <div class="prog-hero-meta-item"><label>Приём</label><span>В течение года</span></div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Format</label><span>Distance (online)</span>{% elif _l == 'be' %}<label>Форма</label><span>Завочная (анлайн)</span>{% else %}<label>Форма</label><span>Заочная (онлайн)</span>{% endif %}</div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Levels</label>{% elif _l == 'be' %}<label>Узроўні</label>{% else %}<label>Уровни</label>{% endif %}<span>А, В, С</span></div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Credits</label><span>40 / 120 / 180</span>{% elif _l == 'be' %}<label>Крэдыты</label><span>40 / 120 / 180</span>{% else %}<label>Кредиты</label><span>40 / 120 / 180</span>{% endif %}</div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Admission</label><span>Year-round</span>{% elif _l == 'be' %}<label>Прыём</label><span>На працягу года</span>{% else %}<label>Приём</label><span>В течение года</span>{% endif %}</div>
         </div>
       </div>
     </div>
@@ -2757,12 +3161,12 @@
   <div class="prog-body">
 
     <div class="prog-section" id="theology-levels">
-      <h2 class="prog-section-title">Уровни <em>обучения</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}<em>Study</em> levels{% elif _l == 'be' %}Узроўні <em>навучання</em>{% else %}Уровни <em>обучения</em>{% endif %}</h2>
       <div class="prog-levels">
         <div class="prog-level-card">
-          <div class="prog-level-badge">Уровень А</div>
-          <div class="prog-level-title">Курс Библейских знаний</div>
-          <div class="prog-level-credits">Сертификат · 40 кредитов</div>
+          {% if _l == 'en' %}<div class="prog-level-badge">Level A</div>{% elif _l == 'be' %}<div class="prog-level-badge">Узровень А</div>{% else %}<div class="prog-level-badge">Уровень А</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-level-title">Bible Knowledge Course</div>{% elif _l == 'be' %}<div class="prog-level-title">Курс Біблейскіх ведаў</div>{% else %}<div class="prog-level-title">Курс Библейских знаний</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-level-credits">Certificate · 40 credits</div>{% elif _l == 'be' %}<div class="prog-level-credits">Сертыфікат · 40 крэдытаў</div>{% else %}<div class="prog-level-credits">Сертификат · 40 кредитов</div>{% endif %}
           <ul class="prog-level-list">
             <li>Обзор Нового Завета</li>
             <li>Обзор Ветхого Завета</li>
@@ -2777,9 +3181,9 @@
           </ul>
         </div>
         <div class="prog-level-card">
-          <div class="prog-level-badge">Уровень В</div>
-          <div class="prog-level-title">Бакалавр христианского служения</div>
-          <div class="prog-level-credits">120 кредитов</div>
+          {% if _l == 'en' %}<div class="prog-level-badge">Level B</div>{% elif _l == 'be' %}<div class="prog-level-badge">Узровень В</div>{% else %}<div class="prog-level-badge">Уровень В</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-level-title">Bachelor of Christian Ministry</div>{% elif _l == 'be' %}<div class="prog-level-title">Бакалаўр хрысціянскага служэння</div>{% else %}<div class="prog-level-title">Бакалавр христианского служения</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-level-credits">120 credits</div>{% elif _l == 'be' %}<div class="prog-level-credits">120 крэдытаў</div>{% else %}<div class="prog-level-credits">120 кредитов</div>{% endif %}
           <ul class="prog-level-list">
             <li>Все предметы уровня А</li>
             <li>Экзегетика</li>
@@ -2794,9 +3198,9 @@
           </ul>
         </div>
         <div class="prog-level-card">
-          <div class="prog-level-badge">Уровень С</div>
-          <div class="prog-level-title">Бакалавр богословия</div>
-          <div class="prog-level-credits">180 кредитов</div>
+          {% if _l == 'en' %}<div class="prog-level-badge">Level C</div>{% elif _l == 'be' %}<div class="prog-level-badge">Узровень С</div>{% else %}<div class="prog-level-badge">Уровень С</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-level-title">Bachelor of Theology</div>{% elif _l == 'be' %}<div class="prog-level-title">Бакалаўр багаслоўя</div>{% else %}<div class="prog-level-title">Бакалавр богословия</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-level-credits">180 credits</div>{% elif _l == 'be' %}<div class="prog-level-credits">180 крэдытаў</div>{% else %}<div class="prog-level-credits">180 кредитов</div>{% endif %}
           <ul class="prog-level-list">
             <li>Все предметы уровней А и В</li>
             <li>Корпус Иоанна</li>
@@ -2811,15 +3215,15 @@
         </div>
       </div>
       <div style="background:var(--cream);padding:32px 40px;border-left:3px solid var(--gold);">
-        <p style="font-size:0.85rem;color:var(--ink-soft);font-weight:300;line-height:1.8;">Все предметы уровня А засчитываются при зачислении на следующий уровень. Возможно поступление сразу на уровень В или С при документальном подтверждении начального богословского образования.</p>
+        <p style="font-size:0.85rem;color:var(--ink-soft);font-weight:300;line-height:1.8;">{% if _l == 'en' %}All Level A subjects transfer when enrolling in the next level. Direct admission to Level B or C is possible with documented prior theological education.{% elif _l == 'be' %}Усе прадметы ўзроўню А залічваюцца пры залічэнні на наступны ўзровень. Магчыма паступленне адразу на ўзровень В або С пры дакументальным пацверджанні пачатковай багаслоўскай адукацыі.{% else %}Все предметы уровня А засчитываются при зачислении на следующий уровень. Возможно поступление сразу на уровень В или С при документальном подтверждении начального богословского образования.{% endif %}</p>
       </div>
     </div>
 
     <div class="prog-section">
-      <h2 class="prog-section-title">Как проходит <em>обучение</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}How <em>study</em> works{% elif _l == 'be' %}Як праходзіць <em>навучанне</em>{% else %}Как проходит <em>обучение</em>{% endif %}</h2>
       <div class="prog-curriculum">
         <div class="prog-curriculum-block">
-          <h4>Формат и сроки</h4>
+          {% if _l == 'en' %}<h4>Format and timeline</h4>{% elif _l == 'be' %}<h4>Фармат і тэрміны</h4>{% else %}<h4>Формат и сроки</h4>{% endif %}
           <ul>
             <li>Полностью онлайн — просмотр видеолекций</li>
             <li>Чтение учебной литературы</li>
@@ -2830,12 +3234,12 @@
           </ul>
         </div>
         <div class="prog-curriculum-block">
-          <h4>Получение степени</h4>
+          {% if _l == 'en' %}<h4>Earning the degree</h4>{% elif _l == 'be' %}<h4>Атрыманне ступені</h4>{% else %}<h4>Получение степени</h4>{% endif %}
           <ul>
             <li>Бакалавр служения: практика в поместной церкви + дневник + презентация</li>
             <li>Бакалавр богословия: успешная защита дипломной работы</li>
             <li>Индивидуальный подход к каждому абитуриенту</li>
-            <li>Поступление возможно в течение всего года</li>
+            <li>{% if _l == 'en' %}Applications open year-round{% elif _l == 'be' %}Паступленне магчымае на працягу ўсяго года{% else %}Поступление возможно в течение всего года{% endif %}</li>
           </ul>
         </div>
       </div>
@@ -2843,13 +3247,13 @@
 
     <div class="prog-info-grid" id="theology-cost">
       <div class="prog-info-block">
-        <h4>Стоимость обучения</h4>
+        {% if _l == 'en' %}<h4>Tuition</h4>{% elif _l == 'be' %}<h4>Кошт навучання</h4>{% else %}<h4>Стоимость обучения</h4>{% endif %}
         <div class="prog-price">100 BYN</div>
-        <div class="prog-price-note">за предмет</div>
-        <p style="margin-top:16px;">Оплата перечислением на расчётный счёт (для резидентов РБ) или онлайн (для нерезидентов). Начало осеннего семестра — сентябрь.</p>
+        {% if _l == 'en' %}<div class="prog-price-note">per subject</div>{% elif _l == 'be' %}<div class="prog-price-note">за прадмет</div>{% else %}<div class="prog-price-note">за предмет</div>{% endif %}
+        <p style="margin-top:16px;">{% if _l == 'en' %}Payment by bank transfer (for RB residents) or online (for non-residents). The autumn semester begins in September.{% elif _l == 'be' %}Аплата пералікам на разліковы рахунак (для рэзідэнтаў РБ) або анлайн (для нерэзідэнтаў). Пачатак асенняга семестра — верасень.{% else %}Оплата перечислением на расчётный счёт (для резидентов РБ) или онлайн (для нерезидентов). Начало осеннего семестра — сентябрь.{% endif %}</p>
       </div>
       <div class="prog-info-block">
-        <h4>Документы для поступления</h4>
+        {% if _l == 'en' %}<h4>Application documents</h4>{% elif _l == 'be' %}<h4>Дакументы для паступлення</h4>{% else %}<h4>Документы для поступления</h4>{% endif %}
         <ul>
           <li>Скан заполненной анкеты-заявления (подписанной)</li>
           <li>Фото 3×4</li>
@@ -2864,17 +3268,18 @@
   </div>
 
   <div class="prog-cta">
-    <h3>Начни изучать Слово</h3>
-    <p>Приём документов в течение всего года. Начало — в любое время.</p>
-    <a href="mailto:cfnbel@gmail.com" class="btn-cta">Подать документы</a>
+    {% if _l == 'en' %}<h3>Begin studying the Word</h3>{% elif _l == 'be' %}<h3>Пачні вывучаць Слова</h3>{% else %}<h3>Начни изучать Слово</h3>{% endif %}
+    {% if _l == 'en' %}<p>Applications open year-round. Start any time.</p>{% elif _l == 'be' %}<p>Прыём дакументаў на працягу ўсяго года. Пачатак — у любы час.</p>{% else %}<p>Приём документов в течение всего года. Начало — в любое время.</p>{% endif %}
+    <button type="button" class="btn-cta js-prog-apply-toggle" data-program="theology" data-target="apply-form-theology" aria-expanded="false">{% if _l == 'en' %}Apply now{% elif _l == 'be' %}Падаць дакументы{% else %}Подать документы{% endif %}</button>
+    {{ prog_apply_form('apply-form-theology', 'theology', _l) }}
   </div>
 
   <footer>
     <div class="footer-inner">
-      <div class="footer-logo">Библейский<br>Колледж ХВЕ</div>
+      <div class="footer-logo">{{ site.footer_logo|safe }}</div>
       <div class="footer-middle">
         <div class="footer-cross-divider">✝</div>
-        <div class="footer-reg">«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15</div>
+        <div class="footer-reg">{% if _l == 'en' %}"Bible College of Christians of Evangelical Faith"<br>220092, Minsk, Belskogo str. 15{% elif _l == 'be' %}«Біблейскі каледж хрысціян веры евангельскай»<br>220092, Мінск, вул. Бельскага, 15{% else %}«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15{% endif %}</div>
       </div>
       <div class="footer-right">cfnbel@gmail.com<br>+375 17 393 53 94</div>
     </div>
@@ -2890,44 +3295,38 @@
         <path fill="rgb(201,168,76)" d="M 563.408 430.403 C 576.145 433.628 678.372 513.149 697.694 526.463 C 716.843 539.658 737.542 551.847 758.634 561.638 C 818.56 589.457 884.238 605.575 948.594 619.54 C 977.989 625.919 1007.82 630.572 1037.05 637.633 C 1104.53 653.928 1174.59 683.386 1228.09 728.187 C 1272.91 765.73 1309.4 816.635 1314.64 876.309 C 1316.33 874.797 1318.07 873.338 1319.85 871.936 C 1363.81 837.465 1429.6 812.696 1484.96 819.892 C 1588.5 833.353 1652.04 926.722 1679.2 1019.74 C 1681.95 1029.16 1688.71 1042.19 1687.47 1051.78 C 1685.58 1054.54 1682.81 1056.06 1679.56 1056.47 C 1659.65 1059.95 1633.32 1054.47 1613.93 1057.86 C 1503.36 1077.18 1426.67 1182.34 1392.16 1282.39 C 1380.52 1316.12 1373.64 1346.49 1361.7 1378.8 C 1325.28 1477.35 1254.15 1558.24 1158.47 1602.42 C 1040.34 1656.5 907.662 1645.73 788.226 1599.53 C 730.559 1579.5 676.429 1543.78 622.729 1515.2 C 613.533 1510.3 579.421 1494.33 579.351 1484.25 C 584.686 1479.35 600.085 1480.39 607.421 1479.95 C 651.574 1477.25 696.911 1477.25 740.948 1473.99 C 757.313 1472.64 773.593 1470.4 789.717 1467.29 C 880.646 1450.18 972.551 1416.2 1026.75 1336.93 C 1019.61 1336.07 1012.51 1334.5 1005.45 1333.17 C 831.674 1300.56 670.936 1220.87 559.605 1080.66 C 469.248 966.866 429.482 837.396 389.582 700.413 C 385.204 685.385 378.542 669.204 377.855 653.774 C 377.772 651.887 379.802 650.249 381.186 649.308 C 391.417 651.086 466.927 705.134 481.688 714.841 C 492.629 722.142 503.993 728.789 515.719 734.749 C 592.663 774.517 674.781 792.188 756.766 815.023 L 754.522 812.645 C 750.19 808.04 747.014 803.532 743.317 798.41 C 676.416 705.722 629.105 601.179 584.763 496.363 C 576.686 477.271 566.426 458.871 560.131 439.175 C 558.924 435.401 561.422 433.154 563.408 430.403 z"/>
       </svg>
       <div class="subpage-nav-logo-text">
-        <span>ХДН</span>
-        <span>Библейский Колледж</span>
+        <span>{{ site.nav_logo_top }}</span>
+        <span>{{ site.nav_logo_main }}</span>
       </div>
     </span>
     <div class="prog-switcher">
-      <button class="prog-switcher-btn" onclick="openPage('music')">
-        Музыка
-      </button>
+      <button class="prog-switcher-btn" onclick="openPage('music')">{% if _l == 'en' %}Music{% elif _l == 'be' %}Музыка{% else %}Музыка{% endif %}</button>
       <div class="prog-switcher-divider"></div>
-      <button class="prog-switcher-btn" onclick="openPage('theology')">
-        Богословие
-      </button>
+      <button class="prog-switcher-btn" onclick="openPage('theology')">{% if _l == 'en' %}Theology{% elif _l == 'be' %}Багаслоўе{% else %}Богословие{% endif %}</button>
       <div class="prog-switcher-divider"></div>
-      <button class="prog-switcher-btn active" onclick="openPage('theatre')">
-        Театр
-      </button>
+      <button class="prog-switcher-btn active" onclick="openPage('theatre')">{% if _l == 'en' %}Theatre{% elif _l == 'be' %}Тэатр{% else %}Театр{% endif %}</button>
     </div>
   </nav>
   <div class="prog-mobile-switcher">
-    <button class="prog-mobile-switcher-btn" onclick="openPage('music')">Музыка</button>
-    <button class="prog-mobile-switcher-btn" onclick="openPage('theology')">Богословие</button>
-    <button class="prog-mobile-switcher-btn active" onclick="openPage('theatre')">Театр</button>
+    <button class="prog-mobile-switcher-btn" onclick="openPage('music')">{% if _l == 'en' %}Music{% elif _l == 'be' %}Музыка{% else %}Музыка{% endif %}</button>
+    <button class="prog-mobile-switcher-btn" onclick="openPage('theology')">{% if _l == 'en' %}Theology{% elif _l == 'be' %}Багаслоўе{% else %}Богословие{% endif %}</button>
+    <button class="prog-mobile-switcher-btn active" onclick="openPage('theatre')">{% if _l == 'en' %}Theatre{% elif _l == 'be' %}Тэатр{% else %}Театр{% endif %}</button>
   </div>
   <div style="background:var(--ink);">
     <div class="prog-page-hero">
       <div class="prog-page-hero-inner">
         <button class="prog-back-btn" onclick="goHome()">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg>
-          Все программы
+          {% if _l == 'en' %}All programs{% elif _l == 'be' %}Усе праграмы{% else %}Все программы{% endif %}
         </button>
-        <div class="prog-hero-tag">Программа 03 · Евангелие через творчество</div>
-        <h1 class="prog-hero-title">Бакалавр искусств<br>в <em>Театральном Служении</em></h1>
-        <p class="prog-hero-sub">Творчество — это форма проповеди Евангелия</p>
+        <div class="prog-hero-tag">{% if _l == 'en' %}Program 03 · Gospel Through Creativity{% elif _l == 'be' %}Праграма 03 · Евангелле праз творчасць{% else %}Программа 03 · Евангелие через творчество{% endif %}</div>
+        <h1 class="prog-hero-title">{% if _l == 'en' %}Bachelor of Arts<br>in <em>Theatre Ministry</em>{% elif _l == 'be' %}Бакалаўр мастацтваў<br>у <em>Тэатральным Служэнні</em>{% else %}Бакалавр искусств<br>в <em>Театральном Служении</em>{% endif %}</h1>
+        <p class="prog-hero-sub">{% if _l == 'en' %}Creativity is a form of proclaiming the Gospel{% elif _l == 'be' %}Творчасць — гэта форма пропаведзі Евангелля{% else %}Творчество — это форма проповеди Евангелия{% endif %}</p>
         <div class="prog-hero-meta">
-          <div class="prog-hero-meta-item"><label>Форма</label><span>Очно-заочная</span></div>
-          <div class="prog-hero-meta-item"><label>Сессии</label><span>4 недели в год</span></div>
-          <div class="prog-hero-meta-item"><label>Срок</label><span>3 года</span></div>
-          <div class="prog-hero-meta-item"><label>Приём</label><span>до 8 февраля 2026</span></div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Format</label><span>Part-time</span>{% elif _l == 'be' %}<label>Форма</label><span>Завочна-сесійная</span>{% else %}<label>Форма</label><span>Очно-заочная</span>{% endif %}</div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Sessions</label><span>4 weeks a year</span>{% elif _l == 'be' %}<label>Сесіі</label><span>4 тыдні на год</span>{% else %}<label>Сессии</label><span>4 недели в год</span>{% endif %}</div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Length</label>{% elif _l == 'be' %}<label>Тэрмін</label>{% else %}<label>Срок</label>{% endif %}<span>3 года</span></div>
+          <div class="prog-hero-meta-item">{% if _l == 'en' %}<label>Admission</label><span>by February 8, 2026</span>{% elif _l == 'be' %}<label>Прыём</label><span>да 8 лютага 2026</span>{% else %}<label>Приём</label><span>до 8 февраля 2026</span>{% endif %}</div>
         </div>
       </div>
     </div>
@@ -2936,7 +3335,7 @@
   <div class="prog-body">
 
     <div class="prog-section" id="theatre-goal">
-      <h2 class="prog-section-title">Цель <em>обучения</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}Goal of <em>study</em>{% elif _l == 'be' %}Мэта <em>навучання</em>{% else %}Цель <em>обучения</em>{% endif %}</h2>
       <div style="background:var(--cream);padding:48px;border-left:3px solid var(--gold);margin-bottom:48px;">
         <p style="font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:300;color:var(--ink);line-height:1.75;font-style:italic;">Принять и познать себя, понять, как именно вы — с вашей индивидуальностью и талантами — можете служить Божьему Царству, используя творчество как форму проповеди. Приобрести навыки для создания или развития творческого служения в вашей церкви.</p>
         <div style="margin-top:24px;font-size:0.7rem;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);">Квалификация: Руководитель творческих проектов</div>
@@ -2944,7 +3343,7 @@
     </div>
 
     <div class="prog-section">
-      <h2 class="prog-section-title">Программа <em>обучения</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}<em>Curriculum</em>{% elif _l == 'be' %}Праграма <em>навучання</em>{% else %}Программа <em>обучения</em>{% endif %}</h2>
       <div class="prog-curriculum">
         <div class="prog-curriculum-block">
           <h4>Специальная подготовка</h4>
@@ -2962,7 +3361,7 @@
           </ul>
         </div>
         <div class="prog-curriculum-block">
-          <h4>Богословская часть</h4>
+          {% if _l == 'en' %}<h4>Theology core</h4>{% elif _l == 'be' %}<h4>Багаслоўская частка</h4>{% else %}<h4>Богословская часть</h4>{% endif %}
           <ul>
             <li>Обзор Нового Завета</li>
             <li>Обзор Ветхого Завета</li>
@@ -2974,44 +3373,44 @@
             <li>Миссиология</li>
           </ul>
           <div style="margin-top:20px;padding:16px;background:rgba(201,168,76,0.08);border-left:2px solid var(--gold);">
-            <div style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Присуждаемая степень</div>
-            <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">Бакалавр искусств в области театрального служения</div>
+            <div style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">{% if _l == 'en' %}Degree awarded{% elif _l == 'be' %}Прысвойваная ступень{% else %}Присуждаемая степень{% endif %}</div>
+            {% if _l == 'en' %}<div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">Bachelor of Arts in Theatre Ministry</div>{% elif _l == 'be' %}<div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">Бакалаўр мастацтваў у галіне тэатральнага служэння</div>{% else %}<div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);">Бакалавр искусств в области театрального служения</div>{% endif %}
           </div>
         </div>
       </div>
     </div>
 
     <div class="prog-section">
-      <h2 class="prog-section-title">Задачи <em>специальной части</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}Goals of the <em>specialty courses</em>{% elif _l == 'be' %}Задачы <em>спецыяльнай часткі</em>{% else %}Задачи <em>специальной части</em>{% endif %}</h2>
       <div class="prog-specialties">
         <div class="prog-specialty-card">
           <div class="prog-specialty-num">✦</div>
-          <div class="prog-specialty-name">Сценическое мастерство</div>
-          <div class="prog-specialty-subs">Освоить навыки актёрской игры, пластики, сценической речи и вокала для служения в церковных постановках.</div>
+          {% if _l == 'en' %}<div class="prog-specialty-name">Stagecraft</div>{% elif _l == 'be' %}<div class="prog-specialty-name">Сцэнічнае майстэрства</div>{% else %}<div class="prog-specialty-name">Сценическое мастерство</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-specialty-subs">Develop acting, movement, stage speech and vocal skills for ministry in church productions.</div>{% elif _l == 'be' %}<div class="prog-specialty-subs">Засвоіць навыкі акцёрскай ігры, пластыкі, сцэнічнай мовы і вакалу для служэння ў царкоўных пастаноўках.</div>{% else %}<div class="prog-specialty-subs">Освоить навыки актёрской игры, пластики, сценической речи и вокала для служения в церковных постановках.</div>{% endif %}
         </div>
         <div class="prog-specialty-card">
           <div class="prog-specialty-num">✦</div>
-          <div class="prog-specialty-name">Создание постановок</div>
-          <div class="prog-specialty-subs">Изучить методику создания церковных постановок и евангелизационных проектов городского уровня.</div>
+          {% if _l == 'en' %}<div class="prog-specialty-name">Producing</div>{% elif _l == 'be' %}<div class="prog-specialty-name">Стварэнне пастановак</div>{% else %}<div class="prog-specialty-name">Создание постановок</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-specialty-subs">Learn how to produce church performances and city-scale evangelistic events.</div>{% elif _l == 'be' %}<div class="prog-specialty-subs">Вывучыць методыку стварэння царкоўных пастановак і евангелізацыйных праектаў гарадскога ўзроўню.</div>{% else %}<div class="prog-specialty-subs">Изучить методику создания церковных постановок и евангелизационных проектов городского уровня.</div>{% endif %}
         </div>
         <div class="prog-specialty-card">
           <div class="prog-specialty-num">✦</div>
-          <div class="prog-specialty-name">Творческое служение</div>
-          <div class="prog-specialty-subs">Создать или развить творческое служение в вашей церкви — театральные постановки, евангелизационные концерты, творческие вечера.</div>
+          {% if _l == 'en' %}<div class="prog-specialty-name">Creative ministry</div>{% elif _l == 'be' %}<div class="prog-specialty-name">Творчае служэнне</div>{% else %}<div class="prog-specialty-name">Творческое служение</div>{% endif %}
+          {% if _l == 'en' %}<div class="prog-specialty-subs">Start or grow a creative ministry in your church — theatrical productions, evangelistic concerts, creative evenings.</div>{% elif _l == 'be' %}<div class="prog-specialty-subs">Стварыць або развіць творчае служэнне ў вашай царкве — тэатральныя пастаноўкі, евангелізацыйныя канцэрты, творчыя вечары.</div>{% else %}<div class="prog-specialty-subs">Создать или развить творческое служение в вашей церкви — театральные постановки, евангелизационные концерты, творческие вечера.</div>{% endif %}
         </div>
       </div>
     </div>
 
     <div class="prog-info-grid" id="theatre-cost">
       <div class="prog-info-block">
-        <h4>Стоимость обучения</h4>
+        {% if _l == 'en' %}<h4>Tuition</h4>{% elif _l == 'be' %}<h4>Кошт навучання</h4>{% else %}<h4>Стоимость обучения</h4>{% endif %}
         <div class="prog-price">280 BYN</div>
-        <div class="prog-price-note">за сессию</div>
-        <p style="margin-top:16px;">Питание и проживание студенты оплачивают самостоятельно.</p>
-        <p style="margin-top:12px;font-size:0.75rem;color:rgba(245,240,232,0.4);">Стоимость определяется в начале каждого семестра.</p>
+        {% if _l == 'en' %}<div class="prog-price-note">per session</div>{% elif _l == 'be' %}<div class="prog-price-note">за сесію</div>{% else %}<div class="prog-price-note">за сессию</div>{% endif %}
+        <p style="margin-top:16px;">{% if _l == 'en' %}Meals and accommodation are paid by students themselves.{% elif _l == 'be' %}Харчаванне і пражыванне студэнты аплочваюць самастойна.{% else %}Питание и проживание студенты оплачивают самостоятельно.{% endif %}</p>
+        <p style="margin-top:12px;font-size:0.75rem;color:rgba(245,240,232,0.4);">{% if _l == 'en' %}Tuition is set at the start of each semester.{% elif _l == 'be' %}Кошт вызначаецца ў пачатку кожнага семестра.{% else %}Стоимость определяется в начале каждого семестра.{% endif %}</p>
       </div>
       <div class="prog-info-block">
-        <h4>Вступительное испытание</h4>
+        {% if _l == 'en' %}<h4>Entrance exam</h4>{% elif _l == 'be' %}<h4>Уступны іспыт</h4>{% else %}<h4>Вступительное испытание</h4>{% endif %}
         <ul>
           <li>Чтение программы наизусть: отрывок из прозы (≥0,5 стр.) + стихотворение</li>
           <li>Творческий номер: танец, песня, жонглирование, акробатика или этюд</li>
@@ -3022,10 +3421,10 @@
     </div>
 
     <div class="prog-section">
-      <h2 class="prog-section-title">Документы для <em>поступления</em></h2>
+      <h2 class="prog-section-title">{% if _l == 'en' %}Application <em>documents</em>{% elif _l == 'be' %}Дакументы для <em>паступлення</em>{% else %}Документы для <em>поступления</em>{% endif %}</h2>
       <div class="prog-curriculum">
         <div class="prog-curriculum-block">
-          <h4>Перечень документов</h4>
+          {% if _l == 'en' %}<h4>Document checklist</h4>{% elif _l == 'be' %}<h4>Спіс дакументаў</h4>{% else %}<h4>Перечень документов</h4>{% endif %}
           <ul>
             <li>Оригинал заполненной анкеты-заявления</li>
             <li>2 фотографии 3×4</li>
@@ -3036,7 +3435,7 @@
           </ul>
         </div>
         <div class="prog-curriculum-block">
-          <h4>Преподаватели отделения</h4>
+          {% if _l == 'en' %}<h4>Department faculty</h4>{% elif _l == 'be' %}<h4>Выкладчыкі аддзялення</h4>{% else %}<h4>Преподаватели отделения</h4>{% endif %}
           <ul>
             <li>Мария Гуцева</li>
             <li>Марина Пташникова</li>
@@ -3052,17 +3451,18 @@
   </div>
 
   <div class="prog-cta">
-    <h3>Твори во славу Божию</h3>
-    <p>Приём документов до 8 февраля 2026 г.</p>
-    <a href="mailto:cfnbel@gmail.com" class="btn-cta">Написать в приёмную комиссию</a>
+    {% if _l == 'en' %}<h3>Create for the glory of God</h3>{% elif _l == 'be' %}<h3>Твары на славу Божую</h3>{% else %}<h3>Твори во славу Божию</h3>{% endif %}
+    {% if _l == 'en' %}<p>Applications due February 8, 2026</p>{% elif _l == 'be' %}<p>Прыём дакументаў да 8 лютага 2026 г.</p>{% else %}<p>Приём документов до 8 февраля 2026 г.</p>{% endif %}
+    <button type="button" class="btn-cta js-prog-apply-toggle" data-program="theatre" data-target="apply-form-theatre" aria-expanded="false">{% if _l == 'en' %}Email the admissions office{% elif _l == 'be' %}Напісаць у прыёмную камісію{% else %}Написать в приёмную комиссию{% endif %}</button>
+    {{ prog_apply_form('apply-form-theatre', 'theatre', _l) }}
   </div>
 
   <footer>
     <div class="footer-inner">
-      <div class="footer-logo">Библейский<br>Колледж ХВЕ</div>
+      <div class="footer-logo">{{ site.footer_logo|safe }}</div>
       <div class="footer-middle">
         <div class="footer-cross-divider">✝</div>
-        <div class="footer-reg">«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15</div>
+        <div class="footer-reg">{% if _l == 'en' %}"Bible College of Christians of Evangelical Faith"<br>220092, Minsk, Belskogo str. 15{% elif _l == 'be' %}«Біблейскі каледж хрысціян веры евангельскай»<br>220092, Мінск, вул. Бельскага, 15{% else %}«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15{% endif %}</div>
       </div>
       <div class="footer-right">cfnbel@gmail.com<br>+375 17 393 53 94</div>
     </div>
@@ -3078,8 +3478,8 @@
         <path fill="rgb(201,168,76)" d="M 563.408 430.403 C 576.145 433.628 678.372 513.149 697.694 526.463 C 716.843 539.658 737.542 551.847 758.634 561.638 C 818.56 589.457 884.238 605.575 948.594 619.54 C 977.989 625.919 1007.82 630.572 1037.05 637.633 C 1104.53 653.928 1174.59 683.386 1228.09 728.187 C 1272.91 765.73 1309.4 816.635 1314.64 876.309 C 1316.33 874.797 1318.07 873.338 1319.85 871.936 C 1363.81 837.465 1429.6 812.696 1484.96 819.892 C 1588.5 833.353 1652.04 926.722 1679.2 1019.74 C 1681.95 1029.16 1688.71 1042.19 1687.47 1051.78 C 1685.58 1054.54 1682.81 1056.06 1679.56 1056.47 C 1659.65 1059.95 1633.32 1054.47 1613.93 1057.86 C 1503.36 1077.18 1426.67 1182.34 1392.16 1282.39 C 1380.52 1316.12 1373.64 1346.49 1361.7 1378.8 C 1325.28 1477.35 1254.15 1558.24 1158.47 1602.42 C 1040.34 1656.5 907.662 1645.73 788.226 1599.53 C 730.559 1579.5 676.429 1543.78 622.729 1515.2 C 613.533 1510.3 579.421 1494.33 579.351 1484.25 C 584.686 1479.35 600.085 1480.39 607.421 1479.95 C 651.574 1477.25 696.911 1477.25 740.948 1473.99 C 757.313 1472.64 773.593 1470.4 789.717 1467.29 C 880.646 1450.18 972.551 1416.2 1026.75 1336.93 C 1019.61 1336.07 1012.51 1334.5 1005.45 1333.17 C 831.674 1300.56 670.936 1220.87 559.605 1080.66 C 469.248 966.866 429.482 837.396 389.582 700.413 C 385.204 685.385 378.542 669.204 377.855 653.774 C 377.772 651.887 379.802 650.249 381.186 649.308 C 391.417 651.086 466.927 705.134 481.688 714.841 C 492.629 722.142 503.993 728.789 515.719 734.749 C 592.663 774.517 674.781 792.188 756.766 815.023 L 754.522 812.645 C 750.19 808.04 747.014 803.532 743.317 798.41 C 676.416 705.722 629.105 601.179 584.763 496.363 C 576.686 477.271 566.426 458.871 560.131 439.175 C 558.924 435.401 561.422 433.154 563.408 430.403 z"/>
       </svg>
       <div class="subpage-nav-logo-text">
-        <span>ХДН</span>
-        <span>Библейский Колледж</span>
+        <span>{{ site.nav_logo_top }}</span>
+        <span>{{ site.nav_logo_main }}</span>
       </div>
     </span>
   </nav>
@@ -3088,11 +3488,11 @@
       <div class="prog-page-hero-inner">
         <button class="prog-back-btn" onclick="goHome()">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg>
-          Все программы
+          {% if _l == 'en' %}All programs{% elif _l == 'be' %}Усе праграмы{% else %}Все программы{% endif %}
         </button>
-        <div class="prog-hero-tag">Состав · 25 преподавателей</div>
-        <h1 class="prog-hero-title">Преподаватели<br><em>Колледжа</em></h1>
-        <p class="prog-hero-sub">Практические служители церкви</p>
+        <div class="prog-hero-tag">{% if _l == 'en' %}Faculty · 25 instructors{% elif _l == 'be' %}Склад · 25 выкладчыкаў{% else %}Состав · 25 преподавателей{% endif %}</div>
+        <h1 class="prog-hero-title">{% if _l == 'en' %}Faculty of the<br><em>College</em>{% elif _l == 'be' %}Выкладчыкі<br><em>Каледжа</em>{% else %}Преподаватели<br><em>Колледжа</em>{% endif %}</h1>
+        <p class="prog-hero-sub">{% if _l == 'en' %}Practising ministers of the church{% elif _l == 'be' %}Практычныя служыцелі царквы{% else %}Практические служители церкви{% endif %}</p>
       </div>
     </div>
   </div>
@@ -3100,32 +3500,32 @@
   <!-- Teachers intro block -->
   <div class="teachers-page-intro">
     <div class="teachers-page-intro-left">
-      <div class="section-label" style="color:var(--gold);">Наши преподаватели</div>
-      <h2 style="font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:300;color:var(--cream);line-height:1.15;margin-top:16px;">Служители,<br><em>которые учат</em></h2>
-      <p class="teachers-page-intro-quote">Каждый преподаватель — прежде всего практикующий служитель церкви, несущий живое знание из реального опыта веры.</p>
+      {% if _l == 'en' %}<div class="section-label" style="color:var(--gold);">Our faculty</div>{% elif _l == 'be' %}<div class="section-label" style="color:var(--gold);">Нашы выкладчыкі</div>{% else %}<div class="section-label" style="color:var(--gold);">Наши преподаватели</div>{% endif %}
+      {% if _l == 'en' %}<h2 style="font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:300;color:var(--cream);line-height:1.15;margin-top:16px;">Ministers<br><em>who teach</em></h2>{% elif _l == 'be' %}<h2 style="font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:300;color:var(--cream);line-height:1.15;margin-top:16px;">Служыцелі,<br><em>якія вучаць</em></h2>{% else %}<h2 style="font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:300;color:var(--cream);line-height:1.15;margin-top:16px;">Служители,<br><em>которые учат</em></h2>{% endif %}
+      {% if _l == 'en' %}<p class="teachers-page-intro-quote">Every instructor is first and foremost a practising minister, bringing living knowledge from real experience of faith.</p>{% elif _l == 'be' %}<p class="teachers-page-intro-quote">Кожны выкладчык — перш за ўсё практыкуючы служыцель царквы, які нясе жывыя веды з рэальнага вопыту веры.</p>{% else %}<p class="teachers-page-intro-quote">Каждый преподаватель — прежде всего практикующий служитель церкви, несущий живое знание из реального опыта веры.</p>{% endif %}
     </div>
     <div class="teachers-page-intro-right">
       <div class="teachers-page-stat">
         <div class="teachers-page-stat-num">25+</div>
-        <div class="teachers-page-stat-label">Преподавателей<br>и наставников</div>
+        {% if _l == 'en' %}<div class="teachers-page-stat-label">Faculty<br>and mentors</div>{% elif _l == 'be' %}<div class="teachers-page-stat-label">Выкладчыкаў<br>і настаўнікаў</div>{% else %}<div class="teachers-page-stat-label">Преподавателей<br>и наставников</div>{% endif %}
       </div>
       <div class="teachers-page-stat">
         <div class="teachers-page-stat-num">3</div>
-        <div class="teachers-page-stat-label">Отделения<br>колледжа</div>
+        {% if _l == 'en' %}<div class="teachers-page-stat-label">College<br>departments</div>{% elif _l == 'be' %}<div class="teachers-page-stat-label">Аддзяленні<br>каледжа</div>{% else %}<div class="teachers-page-stat-label">Отделения<br>колледжа</div>{% endif %}
       </div>
       <div class="teachers-page-stat">
         <div class="teachers-page-stat-num">30+</div>
-        <div class="teachers-page-stat-label">Лет совокупного<br>опыта служения</div>
+        {% if _l == 'en' %}<div class="teachers-page-stat-label">Years of combined<br>ministry experience</div>{% elif _l == 'be' %}<div class="teachers-page-stat-label">Гадоў сукупнага<br>досведу служэння</div>{% else %}<div class="teachers-page-stat-label">Лет совокупного<br>опыта служения</div>{% endif %}
       </div>
     </div>
   </div>
 
   <!-- Department filter -->
   <div class="teachers-dept-filter" id="teachersDeptFilter">
-    <button class="teachers-dept-btn active" onclick="filterTeachers('all', this)">Все</button>
-    <button class="teachers-dept-btn" onclick="filterTeachers('music', this)">Музыкальное служение</button>
-    <button class="teachers-dept-btn" onclick="filterTeachers('theology', this)">Библейско-богословское</button>
-    <button class="teachers-dept-btn" onclick="filterTeachers('theatre', this)">Театральное служение</button>
+    {% if _l == 'en' %}<button class="teachers-dept-btn active" onclick="filterTeachers('all', this)">All</button>{% elif _l == 'be' %}<button class="teachers-dept-btn active" onclick="filterTeachers('all', this)">Усе</button>{% else %}<button class="teachers-dept-btn active" onclick="filterTeachers('all', this)">Все</button>{% endif %}
+    {% if _l == 'en' %}<button class="teachers-dept-btn" onclick="filterTeachers('music', this)">Music ministry</button>{% elif _l == 'be' %}<button class="teachers-dept-btn" onclick="filterTeachers('music', this)">Музычнае служэнне</button>{% else %}<button class="teachers-dept-btn" onclick="filterTeachers('music', this)">Музыкальное служение</button>{% endif %}
+    {% if _l == 'en' %}<button class="teachers-dept-btn" onclick="filterTeachers('theology', this)">Biblical & theological</button>{% elif _l == 'be' %}<button class="teachers-dept-btn" onclick="filterTeachers('theology', this)">Біблейска-багаслоўскае</button>{% else %}<button class="teachers-dept-btn" onclick="filterTeachers('theology', this)">Библейско-богословское</button>{% endif %}
+    {% if _l == 'en' %}<button class="teachers-dept-btn" onclick="filterTeachers('theatre', this)">Theatre ministry</button>{% elif _l == 'be' %}<button class="teachers-dept-btn" onclick="filterTeachers('theatre', this)">Тэатральнае служэнне</button>{% else %}<button class="teachers-dept-btn" onclick="filterTeachers('theatre', this)">Театральное служение</button>{% endif %}
   </div>
 
   <!-- Masonry grid -->
@@ -3133,10 +3533,10 @@
 
   <footer>
     <div class="footer-inner">
-      <div class="footer-logo">Библейский<br>Колледж ХВЕ</div>
+      <div class="footer-logo">{{ site.footer_logo|safe }}</div>
       <div class="footer-middle">
         <div class="footer-cross-divider">✝</div>
-        <div class="footer-reg">«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15</div>
+        <div class="footer-reg">{% if _l == 'en' %}"Bible College of Christians of Evangelical Faith"<br>220092, Minsk, Belskogo str. 15{% elif _l == 'be' %}«Біблейскі каледж хрысціян веры евангельскай»<br>220092, Мінск, вул. Бельскага, 15{% else %}«Библейский колледж христиан веры евангельской»<br>220092, Минск, ул. Бельского, 15{% endif %}</div>
       </div>
       <div class="footer-right">cfnbel@gmail.com<br>+375 17 393 53 94</div>
     </div>
@@ -3199,36 +3599,52 @@ function scrollToPrograms() {
 }
 
 // ===================== BOTTOM NAV =====================
+const __NAV_T = {
+  ru: { mission:'Миссия', programs:'Программы', teachers:'Препод.', admission:'Приём', contact:'Контакты',
+        home:'Главное', specialties:'Специальности', cost:'Стоимость', apply:'Записаться',
+        levels:'Уровни', about:'О программе', faculty:'Состав' },
+  be: { mission:'Місія',  programs:'Праграмы', teachers:'Выкладч.', admission:'Прыём', contact:'Кантакты',
+        home:'Галоўная', specialties:'Спецыяльнасці', cost:'Кошт', apply:'Запісацца',
+        levels:'Узроўні', about:'Пра праграму', faculty:'Склад' },
+  en: { mission:'Mission', programs:'Programs', teachers:'Faculty', admission:'Admission', contact:'Contact',
+        home:'Home', specialties:'Specialties', cost:'Tuition', apply:'Apply',
+        levels:'Levels', about:'About', faculty:'Faculty' },
+}[(window.__LANG__ || 'ru')] || null;
+const _navT = __NAV_T || {
+  mission:'Миссия', programs:'Программы', teachers:'Препод.', admission:'Приём', contact:'Контакты',
+  home:'Главное', specialties:'Специальности', cost:'Стоимость', apply:'Записаться',
+  levels:'Уровни', about:'О программе', faculty:'Состав'
+};
 const mainNavItems = [
-  { section: 'mission', label: 'Миссия', icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>' },
-  { section: 'programs', label: 'Программы', icon: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="12" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="12" width="7" height="7" rx="1.5"/><rect x="12" y="12" width="7" height="7" rx="1.5"/>' },
-  { section: 'teachers', label: 'Препод.', icon: '<circle cx="11" cy="7" r="3.5"/><path d="M4 19c0-3.3 3.1-6 7-6s7 2.7 7 6"/>' },
-  { section: 'admission', label: 'Приём', icon: '<rect x="3" y="4" width="16" height="15" rx="2"/><path d="M3 9h16M8 2v4M14 2v4"/>' },
-  { section: 'contact', label: 'Контакты', icon: '<path d="M4 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6l-4 4V6a2 2 0 0 1 2-2z"/>' },
+  { section: 'mission', label: _navT.mission, icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>' },
+  { section: 'programs', label: _navT.programs, icon: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="12" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="12" width="7" height="7" rx="1.5"/><rect x="12" y="12" width="7" height="7" rx="1.5"/>' },
+  { section: 'teachers', label: _navT.teachers, icon: '<circle cx="11" cy="7" r="3.5"/><path d="M4 19c0-3.3 3.1-6 7-6s7 2.7 7 6"/>' },
+  { section: 'admission', label: _navT.admission, icon: '<rect x="3" y="4" width="16" height="15" rx="2"/><path d="M3 9h16M8 2v4M14 2v4"/>' },
+  { section: 'contact', label: _navT.contact, icon: '<path d="M4 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6l-4 4V6a2 2 0 0 1 2-2z"/>' },
 ];
 
 const progNavItems = {
   music: [
-    { action: 'home',    label: 'Главное',    icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
-    { anchor: 'music-specialties', label: 'Специальности', icon: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="12" y="3" width="7" height="7" rx="1"/><rect x="3" y="12" width="7" height="7" rx="1"/><rect x="12" y="12" width="7" height="7" rx="1"/>', section: 'music-specialties' },
-    { anchor: 'music-cost',        label: 'Стоимость',     icon: '<rect x="2" y="6" width="18" height="12" rx="2"/><path d="M2 10h18"/>', section: 'music-cost' },
-    { action: 'apply',   label: 'Записаться', icon: '<path d="M12 5v14M5 12h14"/>', section: null },
+    { action: 'home',    label: _navT.home,    icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
+    { anchor: 'music-specialties', label: _navT.specialties, icon: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="12" y="3" width="7" height="7" rx="1"/><rect x="3" y="12" width="7" height="7" rx="1"/><rect x="12" y="12" width="7" height="7" rx="1"/>', section: 'music-specialties' },
+    { anchor: 'music-cost',        label: _navT.cost,     icon: '<rect x="2" y="6" width="18" height="12" rx="2"/><path d="M2 10h18"/>', section: 'music-cost' },
+    { action: 'apply',   label: _navT.apply, icon: '<path d="M12 5v14M5 12h14"/>', section: null },
   ],
   theology: [
-    { action: 'home',    label: 'Главное',    icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
-    { anchor: 'theology-levels', label: 'Уровни',      icon: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="12" y="3" width="7" height="7" rx="1"/><rect x="3" y="12" width="7" height="7" rx="1"/><rect x="12" y="12" width="7" height="7" rx="1"/>', section: 'theology-levels' },
-    { anchor: 'theology-cost',   label: 'Стоимость',   icon: '<rect x="2" y="6" width="18" height="12" rx="2"/><path d="M2 10h18"/>', section: 'theology-cost' },
-    { action: 'apply',   label: 'Записаться', icon: '<path d="M12 5v14M5 12h14"/>', section: null },
+    { action: 'home',    label: _navT.home,    icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
+    { anchor: 'theology-levels', label: _navT.levels,      icon: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="12" y="3" width="7" height="7" rx="1"/><rect x="3" y="12" width="7" height="7" rx="1"/><rect x="12" y="12" width="7" height="7" rx="1"/>', section: 'theology-levels' },
+    { anchor: 'theology-cost',   label: _navT.cost,   icon: '<rect x="2" y="6" width="18" height="12" rx="2"/><path d="M2 10h18"/>', section: 'theology-cost' },
+    { action: 'apply',   label: _navT.apply, icon: '<path d="M12 5v14M5 12h14"/>', section: null },
   ],
   theatre: [
-    { action: 'home',    label: 'Главное',    icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
-    { anchor: 'theatre-goal', label: 'О программе', icon: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="12" y="3" width="7" height="7" rx="1"/><rect x="3" y="12" width="7" height="7" rx="1"/><rect x="12" y="12" width="7" height="7" rx="1"/>', section: 'theatre-goal' },
-    { anchor: 'theatre-cost', label: 'Стоимость',   icon: '<rect x="2" y="6" width="18" height="12" rx="2"/><path d="M2 10h18"/>', section: 'theatre-cost' },
-    { action: 'apply',   label: 'Записаться', icon: '<path d="M12 5v14M5 12h14"/>', section: null },
+    { action: 'home',    label: _navT.home,    icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
+    { anchor: 'theatre-goal', label: _navT.about, icon: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="12" y="3" width="7" height="7" rx="1"/><rect x="3" y="12" width="7" height="7" rx="1"/><rect x="12" y="12" width="7" height="7" rx="1"/>', section: 'theatre-goal' },
+    { anchor: 'theatre-cost', label: _navT.cost,   icon: '<rect x="2" y="6" width="18" height="12" rx="2"/><path d="M2 10h18"/>', section: 'theatre-cost' },
+    { action: 'apply',   label: _navT.apply, icon: '<path d="M12 5v14M5 12h14"/>', section: null },
   ],
   teachers: [
-    { action: 'home', label: 'Главное', icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
-    { anchor: 'teachersFullGrid', label: 'Состав', icon: '<circle cx="11" cy="7" r="3.5"/><path d="M4 19c0-3.3 3.1-6 7-6s7 2.7 7 6"/>', section: null },
+    { action: 'home', label: _navT.home, icon: '<path d="M11 2L2 9v11h6v-6h6v6h6V9z"/>', section: null },
+    { anchor: 'teachersFullGrid', label: _navT.faculty, icon: '<circle cx="11" cy="7" r="3.5"/><path d="M4 19c0-3.3 3.1-6 7-6s7 2.7 7 6"/>', section: null },
   ],
 };
 
@@ -3396,25 +3812,30 @@ document.querySelectorAll('#page-main a[href^="#"]').forEach(anchor => {
 
 // Contact-form submit (the inline "Заказать звонок" form). Posts to /api/applications.
 async function handleSubmit(e) {
+  const lang = (window.__LANG__ || 'ru');
+  const T = {
+    ru: { needName: 'Укажите имя', send: 'Отправить запрос', sending: 'Отправляем…', sent: 'Отправлено ✓', err: 'Ошибка. Повторить?' },
+    be: { needName: 'Пакажыце імя',  send: 'Адправіць запыт',  sending: 'Адпраўляем…', sent: 'Адпраўлена ✓', err: 'Памылка. Паўтарыць?' },
+    en: { needName: 'Please enter your name', send: 'Send request', sending: 'Sending…', sent: 'Sent ✓', err: 'Error. Retry?' },
+  }[lang] || { needName: 'Укажите имя', send: 'Отправить запрос', sending: 'Отправляем…', sent: 'Отправлено ✓', err: 'Ошибка. Повторить?' };
   const btn = e.target;
   const wrap = btn.closest('.contact-form');
   if (!wrap) return;
   const inputs = wrap.querySelectorAll('input, select, textarea');
   const data = { name: '', phone: '', program: '', note: '' };
   inputs.forEach(el => {
-    const lbl = (el.previousElementSibling && el.previousElementSibling.textContent || '').toLowerCase();
-    if (el.tagName === 'SELECT') data.program = el.value || '';
-    else if (lbl.includes('имя')) data.name = el.value || '';
-    else if (lbl.includes('телефон')) data.phone = el.value || '';
-    else if (el.tagName === 'TEXTAREA') data.note = el.value || '';
+    if (el.tagName === 'SELECT') { data.program = el.value || ''; return; }
+    if (el.tagName === 'TEXTAREA') { data.note = el.value || ''; return; }
+    if (el.type === 'tel') { data.phone = el.value || ''; return; }
+    if (el.type === 'text') { data.name = el.value || ''; return; }
   });
   if (!data.name) {
-    btn.textContent = 'Укажите имя';
-    setTimeout(() => { btn.textContent = 'Отправить запрос'; }, 2500);
+    btn.textContent = T.needName;
+    setTimeout(() => { btn.textContent = T.send; }, 2500);
     return;
   }
   const orig = btn.textContent;
-  btn.disabled = true; btn.textContent = 'Отправляем…';
+  btn.disabled = true; btn.textContent = T.sending;
   try {
     const res = await fetch('/api/applications', {
       method: 'POST',
@@ -3422,12 +3843,12 @@ async function handleSubmit(e) {
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error('http ' + res.status);
-    btn.textContent = 'Отправлено ✓';
+    btn.textContent = T.sent;
     btn.style.background = '#4a7c59';
     btn.style.color = '#fff';
     inputs.forEach(el => { if (el.tagName !== 'BUTTON') el.value = ''; });
   } catch (err) {
-    btn.textContent = 'Ошибка. Повторить?';
+    btn.textContent = T.err;
     setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2500);
     return;
   }
@@ -3441,6 +3862,132 @@ async function handleSubmit(e) {
 
 // Init
 renderBottomNav();
+
+// ===================== Inline application form on program subpages =====================
+(function () {
+  function langPack() {
+    var lang = (window.__LANG__ || 'ru');
+    return ({
+      ru: { needName: 'Укажите имя', send: 'Отправить заявку', sending: 'Отправляем…', err: 'Ошибка. Повторить?' },
+      be: { needName: 'Пакажыце імя', send: 'Адправіць заяўку', sending: 'Адпраўляем…', err: 'Памылка. Паўтарыць?' },
+      en: { needName: 'Please enter your name', send: 'Send application', sending: 'Sending…', err: 'Error. Retry?' },
+    })[lang] || ({ needName: 'Укажите имя', send: 'Отправить заявку', sending: 'Отправляем…', err: 'Ошибка. Повторить?' });
+  }
+
+  function closeAllForms(except) {
+    document.querySelectorAll('.prog-apply-form.open').forEach(function (f) {
+      if (f === except) return;
+      f.classList.remove('open');
+      f.setAttribute('aria-hidden', 'true');
+      var ttl = f.previousElementSibling;
+      if (ttl && ttl.classList && ttl.classList.contains('js-prog-apply-toggle')) {
+        ttl.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  function resetForm(form) {
+    form.querySelectorAll('input, textarea').forEach(function (el) { el.value = ''; });
+    var body = form.querySelector('.prog-apply-body');
+    var thanks = form.querySelector('.prog-apply-thanks');
+    if (body) body.hidden = false;
+    if (thanks) thanks.hidden = true;
+    var btn = form.querySelector('.js-prog-apply-submit');
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = langPack().send;
+    }
+  }
+
+  // Toggle button
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.js-prog-apply-toggle');
+    if (!btn) return;
+    e.preventDefault();
+    var targetId = btn.getAttribute('data-target');
+    var form = document.getElementById(targetId);
+    if (!form) return;
+    var willOpen = !form.classList.contains('open');
+    closeAllForms(form);
+    form.classList.toggle('open', willOpen);
+    form.setAttribute('aria-hidden', String(!willOpen));
+    btn.setAttribute('aria-expanded', String(willOpen));
+    if (willOpen) {
+      resetForm(form);
+      // Focus first input after the expand transition has begun
+      setTimeout(function () {
+        var first = form.querySelector('input[name="name"]');
+        if (first) first.focus({ preventScroll: false });
+        // Scroll the form into view inside the active page scroller
+        try {
+          form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch (_e) {
+          form.scrollIntoView();
+        }
+      }, 250);
+    }
+  });
+
+  // Cancel button
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.js-prog-apply-cancel');
+    if (!btn) return;
+    var form = btn.closest('.prog-apply-form');
+    if (!form) return;
+    form.classList.remove('open');
+    form.setAttribute('aria-hidden', 'true');
+    var toggle = document.querySelector('.js-prog-apply-toggle[data-target="' + form.id + '"]');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  });
+
+  // Submit
+  document.addEventListener('click', async function (e) {
+    var btn = e.target.closest('.js-prog-apply-submit');
+    if (!btn) return;
+    var form = btn.closest('.prog-apply-form');
+    if (!form) return;
+    var T = langPack();
+    var program = form.getAttribute('data-program') || '';
+    var data = { name: '', phone: '', church: '', note: '', program: program };
+    form.querySelectorAll('input, textarea').forEach(function (el) {
+      var n = el.getAttribute('name');
+      if (n && n in data) data[n] = (el.value || '').trim();
+    });
+    if (!data.name) {
+      btn.textContent = T.needName;
+      setTimeout(function () { btn.textContent = T.send; }, 2500);
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = T.sending;
+    try {
+      var res = await fetch('/api/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('http ' + res.status);
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = T.err;
+      setTimeout(function () { btn.textContent = T.send; }, 2500);
+      return;
+    }
+    // Success: show thank-you, then auto-collapse after a moment
+    var body = form.querySelector('.prog-apply-body');
+    var thanks = form.querySelector('.prog-apply-thanks');
+    if (body) body.hidden = true;
+    if (thanks) thanks.hidden = false;
+    setTimeout(function () {
+      form.classList.remove('open');
+      form.setAttribute('aria-hidden', 'true');
+      var toggle = document.querySelector('.js-prog-apply-toggle[data-target="' + form.id + '"]');
+      if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      // Reset for next open
+      setTimeout(function () { resetForm(form); }, 500);
+    }, 2200);
+  });
+})();
 
 // ===================== ANIMATION SYSTEM =====================
 
@@ -3650,7 +4197,7 @@ filterTeachers = function(dept, btn) {
           '<div style="display:flex;flex-direction:column;gap:5px;"><label style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);">Фамилия</label><input id="applyLastname" type="text" placeholder="Иванов" style="background:var(--cream);border:1px solid var(--border);padding:11px 14px;font-size:0.9rem;color:var(--ink);outline:none;border-radius:4px;width:100%;"></div>',
         '</div>',
         '<div style="display:flex;flex-direction:column;gap:5px;"><label style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);">Телефон / Telegram</label><input id="applyPhone" type="tel" placeholder="+375 XX XXX XX XX" style="background:var(--cream);border:1px solid var(--border);padding:11px 14px;font-size:0.9rem;color:var(--ink);outline:none;border-radius:4px;width:100%;"></div>',
-        '<div style="display:flex;flex-direction:column;gap:5px;"><label style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);">Программа</label><select id="applyProgram" style="background:var(--cream);border:1px solid var(--border);padding:11px 14px;font-size:0.9rem;color:var(--ink);outline:none;border-radius:4px;appearance:none;width:100%;"><option value="">Выберите программу</option><option value="music">Музыкальное служение</option><option value="theology">Богословие и христианское служение</option><option value="theatre">Театральное служение</option></select></div>',
+        '<div style="display:flex;flex-direction:column;gap:5px;"><label style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);">Программа</label><select id="applyProgram" class="apply-select" style="background:var(--cream);border:1px solid var(--border);padding:11px 44px 11px 14px;font-size:0.9rem;color:var(--ink);outline:none;border-radius:4px;appearance:none;-webkit-appearance:none;width:100%;cursor:pointer;background-image:url(\'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2214%22 height=%228%22 viewBox=%220 0 14 8%22 fill=%22none%22 stroke=%22%23C9A84C%22 stroke-width=%221.6%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpolyline points=%221 1 7 7 13 1%22/%3E%3C/svg%3E\');background-repeat:no-repeat;background-position:right 14px center;background-size:12px 7px;"><option value="">Выберите программу</option><option value="music">Музыкальное служение</option><option value="theology">Богословие и христианское служение</option><option value="theatre">Театральное служение</option></select></div>',
         '<div style="display:flex;flex-direction:column;gap:5px;"><label style="font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);">Ваша церковь <span style="opacity:0.5;font-weight:400;">(необязательно)</span></label><input id="applyChurch" type="text" placeholder="Название и город" style="background:var(--cream);border:1px solid var(--border);padding:11px 14px;font-size:0.9rem;color:var(--ink);outline:none;border-radius:4px;width:100%;"></div>',
         '<button id="applySubmitBtn" style="margin-top:8px;width:100%;padding:16px;background:var(--gold);border:none;font-size:0.8rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink);cursor:pointer;border-radius:4px;">Отправить заявку</button>',
         '<p style="text-align:center;font-size:0.72rem;color:rgba(26,22,18,0.4);line-height:1.6;">Мы свяжемся с вами в течение 1–2 рабочих дней</p>',
@@ -3744,6 +4291,310 @@ filterTeachers = function(dept, btn) {
   window.submitApply = function() {};
 })();
 </script>
+
+{% if site.cookie_banner_enabled == '1' %}
+<div id="cookieBanner" class="cookie-banner" style="display:none;">
+  <div class="cookie-banner-inner">
+    <div class="cookie-text">
+      {{ site.cookie_banner_text | nl2br }}
+      {% if site.cookie_banner_terms_url %}
+      <a href="{{ site.cookie_banner_terms_url }}" target="_blank" rel="noopener" class="cookie-link">{% if _l == 'en' %}Details →{% elif _l == 'be' %}Падрабязней →{% else %}Подробнее →{% endif %}</a>
+      {% endif %}
+    </div>
+    <button type="button" id="cookieBannerAccept" class="cookie-accept">{{ site.cookie_banner_button_text or 'Принимаю' }}</button>
+  </div>
+</div>
+<style>
+.cookie-banner {
+  position: fixed; left: 16px; right: 16px; bottom: 16px;
+  z-index: 9998;
+  background: var(--ink);
+  color: var(--cream);
+  border: 1px solid var(--gold);
+  border-radius: 14px;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,0.5);
+  font-family: 'Jost', sans-serif;
+  animation: cookieIn 0.4s cubic-bezier(.2,.7,.3,1.2) both;
+}
+@keyframes cookieIn {
+  from { transform: translateY(120%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.cookie-banner-inner {
+  display: flex; align-items: center; gap: 20px;
+  padding: 18px 22px;
+  max-width: 980px; margin: 0 auto;
+}
+.cookie-text {
+  flex: 1; font-size: 14px; line-height: 1.55; color: var(--cream-dark);
+}
+.cookie-link {
+  display: inline-block; margin-left: 8px;
+  color: var(--gold); text-decoration: none;
+  border-bottom: 1px solid rgba(201,168,76,0.5);
+  padding-bottom: 1px;
+}
+.cookie-link:hover { border-color: var(--gold); }
+.cookie-accept {
+  flex-shrink: 0;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+  color: var(--ink);
+  border: none; border-radius: 8px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 15px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.cookie-accept:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -8px rgba(201,168,76,0.7); }
+@media (max-width: 600px) {
+  .cookie-banner { left: 8px; right: 8px; bottom: 8px; }
+  .cookie-banner-inner { flex-direction: column; align-items: stretch; gap: 12px; padding: 14px 16px; }
+  .cookie-accept { width: 100%; }
+  .cookie-text { font-size: 13px; }
+}
+</style>
+<script>
+(function () {
+  try {
+    if (localStorage.getItem('cookieAccepted') === '1') return;
+  } catch (_) { /* private mode — show anyway */ }
+  var banner = document.getElementById('cookieBanner');
+  if (!banner) return;
+  banner.style.display = 'block';
+  document.getElementById('cookieBannerAccept').addEventListener('click', function () {
+    try { localStorage.setItem('cookieAccepted', '1'); } catch (_) {}
+    banner.style.transition = 'transform .35s ease, opacity .35s ease';
+    banner.style.transform = 'translateY(120%)';
+    banner.style.opacity = '0';
+    setTimeout(function () { banner.remove(); }, 380);
+  });
+})();
+</script>
+{% endif %}
+
+<!-- ============================================================ -->
+<!-- VISUAL CMS: applies admin overrides + enables edit mode      -->
+<!-- ============================================================ -->
+<script>
+window.__CMS__ = {{ cms_overrides | tojson | safe }};
+window.__CMS_EDIT__ = {{ 'true' if cms_edit else 'false' }};
+window.__LANG__ = "{{ lang|default('ru') }}";
+(function () {
+  // 1) Apply saved overrides to all data-cms elements — only in the source
+  //    language (ru), since the visual CMS edits the canonical Russian copy.
+  //    For other languages we keep whatever the template renders.
+  if (window.__LANG__ !== 'ru' && !window.__CMS_EDIT__) return;
+  var data = window.__CMS__ || {};
+  document.querySelectorAll('[data-cms]').forEach(function (el) {
+    var key = el.getAttribute('data-cms');
+    if (Object.prototype.hasOwnProperty.call(data, key)) {
+      el.innerHTML = data[key];
+    }
+  });
+})();
+</script>
+
+{% if cms_edit %}
+<style>
+  /* Reserve space at the top so the toolbar doesn't cover the page. */
+  body { padding-top: 64px; }
+  /* Hide things that would navigate or clutter while editing. */
+  .cookie-banner, #cookieBanner { display:none !important; }
+  /* Editable hover/edit highlight */
+  [data-cms]:hover {
+    outline: 2px dashed rgba(201,168,76,0.85);
+    outline-offset: 4px;
+    cursor: text;
+  }
+  [data-cms][contenteditable="true"] {
+    outline: 2px solid #C9A84C !important;
+    outline-offset: 4px;
+    background: rgba(201,168,76,0.07);
+    border-radius: 4px;
+  }
+  [data-cms][data-cms-dirty="1"] {
+    outline-color: #f0c14b !important;
+    background: rgba(240,193,75,0.18);
+  }
+  /* Top toolbar */
+  #cmsBar {
+    position: fixed; top:0; left:0; right:0; z-index: 9999;
+    height: 56px;
+    background: linear-gradient(180deg, #1A1612 0%, #0e0c08 100%);
+    border-bottom: 1px solid rgba(201,168,76,0.45);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 0 22px;
+    color: #FAF6EE;
+    font-family: 'Jost', system-ui, sans-serif;
+  }
+  #cmsBar .cms-bar-left { display:flex; align-items:center; gap:14px; }
+  #cmsBar .cms-bar-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem; color: #C9A84C; letter-spacing: 0.05em;
+  }
+  #cmsBar .cms-bar-hint {
+    font-size: 0.78rem; color: rgba(250,246,238,0.6);
+    text-transform: uppercase; letter-spacing: 0.18em;
+  }
+  #cmsBar .cms-bar-right { display:flex; align-items:center; gap:10px; }
+  #cmsBar .cms-btn {
+    appearance:none; border:1px solid rgba(201,168,76,0.5);
+    background: transparent; color: #FAF6EE;
+    padding: 8px 16px; font-size: 0.78rem;
+    text-transform: uppercase; letter-spacing: 0.16em;
+    cursor:pointer; border-radius: 2px;
+    font-family: 'Jost', system-ui, sans-serif;
+    transition: all .18s ease;
+  }
+  #cmsBar .cms-btn:hover { background: rgba(201,168,76,0.12); color: #C9A84C; }
+  #cmsBar .cms-btn.primary {
+    background: #C9A84C; color: #1A1612; border-color: #C9A84C;
+    font-weight: 600;
+  }
+  #cmsBar .cms-btn.primary:hover { background: #d9b85c; color: #1A1612; }
+  #cmsBar .cms-btn.danger { color: #e98080; border-color: rgba(233,128,128,0.4); }
+  #cmsBar .cms-btn.danger:hover { background: rgba(233,128,128,0.10); color: #ffa8a8; }
+  #cmsBar .cms-status {
+    font-size: 0.78rem; color: rgba(250,246,238,0.6);
+    min-width: 120px; text-align:right;
+  }
+  /* Disable nav/buttons that would leave the page while editing */
+  #cmsBar ~ * a[href^="#"], #cmsBar ~ * a[href="/"] {}
+  /* Tiny toast for save feedback */
+  #cmsToast {
+    position: fixed; bottom: 28px; right: 28px; z-index: 10000;
+    padding: 12px 22px; background: #1A1612;
+    border: 1px solid #C9A84C; color: #C9A84C;
+    font-family: 'Jost', sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
+    font-size: 0.82rem;
+    transform: translateY(20px); opacity: 0;
+    transition: all .25s ease;
+    pointer-events: none;
+  }
+  #cmsToast.show { transform: translateY(0); opacity: 1; }
+  #cmsToast.error { border-color: #e98080; color: #e98080; }
+</style>
+<div id="cmsBar">
+  <div class="cms-bar-left">
+    <div class="cms-bar-title">✎ Редактор главной</div>
+    <div class="cms-bar-hint">Кликните по тексту, чтобы изменить</div>
+  </div>
+  <div class="cms-bar-right">
+    <span id="cmsStatus" class="cms-status"></span>
+    <button class="cms-btn danger" id="cmsResetBtn">Сбросить всё</button>
+    <a class="cms-btn" href="/admin/settings">Выйти</a>
+    <button class="cms-btn primary" id="cmsSaveBtn">💾 Сохранить</button>
+  </div>
+</div>
+<div id="cmsToast"></div>
+<script>
+(function () {
+  var dirty = {};
+  var origin = {};
+
+  function showToast(msg, isError) {
+    var t = document.getElementById('cmsToast');
+    t.textContent = msg;
+    t.classList.toggle('error', !!isError);
+    t.classList.add('show');
+    clearTimeout(t._tm);
+    t._tm = setTimeout(function () { t.classList.remove('show'); }, 2400);
+  }
+
+  function setStatus(text) {
+    document.getElementById('cmsStatus').textContent = text || '';
+  }
+
+  // Make everything editable + capture original HTML
+  document.querySelectorAll('[data-cms]').forEach(function (el) {
+    el.setAttribute('contenteditable', 'true');
+    // Don't let inner clicks (like onclick handlers on buttons that have
+    // data-cms) trigger navigation while editing.
+    el.addEventListener('click', function (e) { e.stopPropagation(); }, true);
+    origin[el.getAttribute('data-cms')] = el.innerHTML;
+    el.addEventListener('input', function () {
+      var key = el.getAttribute('data-cms');
+      if (el.innerHTML !== origin[key]) {
+        dirty[key] = el.innerHTML;
+        el.setAttribute('data-cms-dirty', '1');
+      } else {
+        delete dirty[key];
+        el.removeAttribute('data-cms-dirty');
+      }
+      var n = Object.keys(dirty).length;
+      setStatus(n ? ('Не сохранено: ' + n) : '');
+    });
+    el.addEventListener('keydown', function (e) {
+      // Ctrl/Cmd+S anywhere triggers save.
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        document.getElementById('cmsSaveBtn').click();
+      }
+    });
+  });
+
+  // Disable navigation: clicks on links/buttons that would leave or scroll
+  // the page should still work (so admins can scroll), but form submissions,
+  // page navigations, openPage(), and similar must NOT trigger.
+  document.querySelectorAll('form').forEach(function (f) {
+    f.addEventListener('submit', function (e) { e.preventDefault(); });
+  });
+  document.querySelectorAll('[onclick*="openPage"], [onclick*="openTeacherModal"]').forEach(function (b) {
+    b.removeAttribute('onclick');
+    b.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); });
+  });
+
+  document.getElementById('cmsSaveBtn').addEventListener('click', function () {
+    var keys = Object.keys(dirty);
+    if (!keys.length) { showToast('Нет изменений'); return; }
+    setStatus('Сохраняю…');
+    fetch('/admin/api/cms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dirty),
+      credentials: 'same-origin'
+    }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function (j) {
+      if (!j.ok) throw new Error('save failed');
+      // Mark all as clean
+      Object.keys(dirty).forEach(function (k) {
+        origin[k] = dirty[k];
+        var el = document.querySelector('[data-cms="' + k + '"]');
+        if (el) el.removeAttribute('data-cms-dirty');
+      });
+      dirty = {};
+      setStatus('Сохранено ✓');
+      showToast('Сохранено ✓ (' + j.saved + ')');
+    }).catch(function (err) {
+      console.error(err);
+      setStatus('Ошибка');
+      showToast('Ошибка сохранения', true);
+    });
+  });
+
+  document.getElementById('cmsResetBtn').addEventListener('click', function () {
+    if (!confirm('Сбросить ВСЕ изменения главной страницы и вернуться к стандартным текстам?')) return;
+    fetch('/admin/api/cms/reset', {
+      method: 'POST',
+      credentials: 'same-origin'
+    }).then(function (r) { return r.json(); })
+      .then(function () { window.location.reload(); });
+  });
+
+  window.addEventListener('beforeunload', function (e) {
+    if (Object.keys(dirty).length) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+})();
+</script>
+{% endif %}
 
 </body>
 </html>
